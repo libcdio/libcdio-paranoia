@@ -21,8 +21,8 @@
 #ifndef _P_BLOCK_H_
 #define _P_BLOCK_H_
 
-#include <cdio/paranoia.h>
-#include <cdio/cdda.h>
+#include <cdio/paranoia/paranoia.h>
+#include <cdio/paranoia/cdda.h>
 
 #define MIN_WORDS_OVERLAP    64     /* 16 bit words */
 #define MIN_WORDS_SEARCH     64     /* 16 bit words */

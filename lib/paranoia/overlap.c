@@ -34,7 +34,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/paranoia.h>
 #include "p_block.h"
 #include "overlap.h"
 #include "isort.h"

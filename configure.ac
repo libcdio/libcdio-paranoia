@@ -16,21 +16,21 @@ dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 dnl 02110-1301 USA.
 
-define(RELEASE_NUM, 83)
-define(CDIO_VERSION_STR, 0.$1)
+define(RELEASE_NUM, 84)
+define(PARANOIA_VERSION, 10.2)
+define(LIBCDIO_PARANOIA_VERISON, PARANOIA_VERSION+RELEASE_NUM)
+AC_DEFINE([PACKAGE], [libcdio-paranoia], [cdparanoia using libcdio])
+AC_DEFINE([VERSION], [LIBCIDO_PARANOIA_VERSION], [version string])
 
 AC_PREREQ(2.67)
 
-AC_INIT([libcdio-paranoia], [CDIO_PARANOIA_VERSION_STR(RELEASE_NUM)], [libcdio-help@gnu.org])
+AC_INIT([libcdio-paranoia], [VERSION], [libcdio-help@gnu.org])
 AC_CONFIG_SRCDIR(src/cd-paranoia.c)
 AM_INIT_AUTOMAKE
 
 AC_CANONICAL_HOST
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
-
-LIBCDIO_PARANOIA_VERSION_NUM=`echo RELEASE_NUM | cut -d . -f 1 | tr -d a-z`
-AC_SUBST(LIBCDIO_PARANOIA_VERSION_NUM)
 
 AM_MISSING_PROG(HELP2MAN, help2man, $missing_dir)
 AM_MISSING_PROG(GIT2CL, git2cl, $missing_dir)
@@ -86,6 +86,11 @@ else
   WARNING_FLAGS="$warning_flags"
   unset warning_flags
 fi
+
+PKG_CHECK_MODULES(LIBCDIO, libcdio >= 0.83, [], 
+	[AC_MSG_ERROR(Required libcdio library not found. Please get libcdio from http://www.gnu.org/software/libcdio/ and install it.)])
+AC_SUBST(LIBCDIO_LIBS)
+AC_SUBST(LIBCDIO_CFLAGS)
 
 # We use Perl for documentation and regression tests
 AC_PATH_PROG(PERL, perl, false)
@@ -249,7 +254,6 @@ dnl Checks for header files.
      
 LIBCDIO_CDDA_LIBS='$(top_builddir)/lib/cdda_interface/libcdio_cdda.la'
 LIBCDIO_CFLAGS='-I$(top_srcdir)/lib/driver -I$(top_builddir)/include -I$(top_srcdir)/include/'
-LIBCDIO_LIBS='$(top_builddir)/lib/driver/libcdio.la'
 LIBCDIO_PARANOIA_LIBS='$(top_builddir)/lib/paranoia/libcdio_paranoia.la'
 AC_SUBST(LIBCDIO_CDDA_LIBS)
 AC_SUBST(LIBCDIO_PARANOIA_LIBS)
@@ -370,10 +374,10 @@ esac
 AC_SUBST(LT_NO_UNDEFINED)
 AC_SUBST(DARWIN_PKG_LIB_HACK)
 
-LIBCDIO_SOURCE_PATH="`pwd`"
-AC_DEFINE_UNQUOTED(LIBCDIO_SOURCE_PATH, "$LIBCDIO_SOURCE_PATH",
-	[Full path to libcdio top_sourcedir.])
-AC_SUBST(LIBCDIO_SOURCE_PATH)
+LIBCDIO_PARANOIA_SOURCE_PATH="`pwd`"
+AC_DEFINE_UNQUOTED(LIBCDIO_PARANOIA_SOURCE_PATH, "$LIBCDIO_SOURCE_PATH",
+	[Full path to libcdio-paranoia top_sourcedir.])
+AC_SUBST(LIBCDIO_PARANOIA_SOURCE_PATH)
 
 AC_CHECK_FUNCS( [bzero chdir drand48 ftruncate geteuid getgid \
 		 getuid getpwuid gettimeofday lstat memcpy memset \
@@ -401,6 +405,7 @@ AC_CONFIG_FILES([
        include/Makefile \
        include/cdio/Makefile \
        include/cdio/paranoia/Makefile \
+       include/cdio/paranoia/version.h \
        lib/Makefile \
        lib/cdda_interface/Makefile \
        lib/paranoia/Makefile \

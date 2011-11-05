@@ -25,7 +25,7 @@
 # define __CDIO_CONFIG_H__ 1
 #endif
 #include "p_block.h"
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/paranoia.h>
 #include "gap.h"
 #include <string.h>
 

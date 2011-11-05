@@ -1,4 +1,9 @@
+/*~
 /.deps
+/.libs
 /Makefile
 /Makefile.in
-/*~
+/paranoia
+/paranoia.o
+/paranoia2
+/paranoia2.o

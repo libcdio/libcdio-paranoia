@@ -50,7 +50,7 @@ cdmessage(cdrom_drive_t *d, const char *s)
   if(s && d){
     switch(d->messagedest){
     case CDDA_MESSAGE_PRINTIT:
-      bytes_ret = write(STDERR_FILENO, s, strlen(s));
+      write(STDERR_FILENO, s, strlen(s));
       break;
     case CDDA_MESSAGE_LOGIT:
       d->messagebuf=catstring(d->messagebuf,s);

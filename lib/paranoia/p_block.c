@@ -30,8 +30,8 @@
 #endif
 #include <limits.h>
 #include "p_block.h"
-#include <cdio/cdda.h>
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/cdda.h>
+#include <cdio/paranoia/paranoia.h>
 
 linked_list_t *new_list(void *(*newp)(void),void (*freep)(void *))
 {

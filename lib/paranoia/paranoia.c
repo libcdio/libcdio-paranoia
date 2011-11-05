@@ -98,10 +98,10 @@
 #include <string.h>
 #endif
 #include <math.h>
-#include <cdio/cdda.h>
+#include <cdio/paranoia/cdda.h>
 #include "../cdda_interface/smallft.h"
 #include "p_block.h"
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/paranoia.h>
 #include "overlap.h"
 #include "gap.h"
 #include "isort.h"
