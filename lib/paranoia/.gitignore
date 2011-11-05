@@ -1,0 +1,8 @@
+/*.lo
+/*.o
+/.deps
+/.libs
+/Makefile
+/Makefile.in
+/libcdio_paranoia.la
+/libcdio_paranoia.la.ver

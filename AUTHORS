@@ -1,0 +1,5 @@
+This is a port to libcdio from cdparanoia
+
+Monty <monty@xiph.org> wrote cdparanoa
+Rocky Bernstein <rocky@gnu.org> did the initial port to libcdio
+

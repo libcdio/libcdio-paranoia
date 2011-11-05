@@ -1,0 +1,12 @@
+/*.exe
+/*.o
+/.deps
+/.libs
+/Makefile
+/Makefile.in
+/cd-paranoia
+/*.orig
+/*~
+/*.rej
+/usage.h
+/usage.txt

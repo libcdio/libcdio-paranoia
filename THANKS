@@ -1,0 +1,6 @@
+Peter J. Creath
+  removal of libpopt, paranoia documentation, some bug fixes to 
+  cd-* programs and the paranoia lib
+
+Daniel Schwarz
+ log-summary option in cd-paranoia.
