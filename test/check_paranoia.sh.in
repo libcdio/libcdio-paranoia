@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id: check_paranoia.sh.in,v 1.18 2008/10/17 01:51:47 rocky Exp $
 # Compare our cd-paranoia with known good results.
 
 if test "X$srcdir" = "X" ; then
@@ -14,8 +13,8 @@ if test "X$top_srcdir" = "X" ; then
   top_srcdir=`pwd`/..
 fi
 
-if test "@CMP@" != no -a "@BUILD_CD_PARANOIA_TRUE@"X = X ; then
-  cd_paranoia=$top_builddir/src/cd-paranoia/cd-paranoia@EXEEXT@ 
+if test "@CMP@" != no ; then
+  cd_paranoia=$top_builddir/src/cd-paranoia@EXEEXT@ 
   $cd_paranoia -d $srcdir/data/cdda.cue -v -r -- "1-"
   if test $? -ne 0 ; then
     exit 6

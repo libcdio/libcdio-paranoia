@@ -6,6 +6,8 @@
 # There's a problem with doing make distcheck for testdefault. 
 # A reminder of why I hate automake.
 
+SUBDIRS = data
+
 testparanoia=testparanoia
 testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIBS) $(LTLIBICONV)
 
