@@ -5,10 +5,6 @@
 
 transform = s,cd-paranoia,@CDPARANOIA_NAME@,
 
-if BUILD_CD_PARANOIA
-
-SUBDIRS = doc
-
 GETOPT_C = getopt1.c getopt.c
 
 EXTRA_DIST = usage.txt.in usage-copy.h pod2c.pl \
@@ -37,8 +33,6 @@ usage.h: usage.txt $(srcdir)/pod2c.pl
 else
 usage.h: usage-copy.h
 	cp usage-copy.h $@
-endif
-
 endif
 
 MOSTLYCLEANFILES = usage.h usage.txt

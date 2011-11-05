@@ -52,6 +52,7 @@ AC_ARG_ENABLE(example-progs,
 	AC_HELP_STRING([--disable-example-progs], [Don't build libcdio-paranoia sample programs]))
 
 AM_CONDITIONAL(BUILD_EXAMPLES, test "x$enable_example_progs" != "xno")
+AM_CONDITIONAL(BUILD_VERSIONED_LIBS, test "x$enable_versioned_libs" = "xyes")
 
 dnl We use C 
 AC_PROG_CC
@@ -384,21 +385,22 @@ dnl Newest automake workaround - needed for multi-language manual pages
 dnl
 AC_SUBST(mkdir_p)
 
-AC_CONFIG_COMMANDS([checks], 
-		   [chmod +x test/check_cue.sh; chmod +x test/check_nrg.sh
-		   ])
-
 dnl
 dnl Output configuration files
 dnl
 ## AC_CONFIG_FILES([  po/Makefile.in\
 AC_CONFIG_FILES([
        Makefile \
+       doc/Makefile \
+       doc/doxygen/Doxyfile \
+       doc/en/Makefile \
+       doc/en/cd-paranoia.1 \
+       doc/ja/Makefile \
+       doc/ja/cd-paranoia.1 \
        example/Makefile \
        include/Makefile \
+       include/cdio/Makefile \
        include/cdio/paranoia/Makefile \
-       doc/doxygen/Doxyfile \
-       doc/Makefile \
        lib/Makefile \
        lib/cdda_interface/Makefile \
        lib/paranoia/Makefile \
@@ -406,14 +408,7 @@ AC_CONFIG_FILES([
        libcdio_paranoia.pc \
        src/Makefile \
        src/usage.txt \
-       doc/en/cd-paranoia.1 \
-       doc/en/Makefile \
-       doc/ja/cd-paranoia.1 \
-       doc/ja/Makefile \
-       src/Makefile \
-       test/data/Makefile \
-       test/driver/Makefile \
-       test/Makefile \
+       test/Makefile
        ])
 
 # AC_CONFIG_FILES([po/Makefile])

@@ -1,0 +1,2 @@
+Split off from libcdio to allow more flexible licensing and to be compatible
+with cdparanoia-III-10.2's license. And also, libcdio is just too large.
