@@ -130,13 +130,6 @@ AC_CHECK_HEADERS(errno.h fcntl.h glob.h limits.h pwd.h)
 AC_CHECK_HEADERS(stdarg.h stdbool.h stdio.h sys/cdio.h sys/param.h \
 		 sys/time.h sys/timeb.h sys/utsname.h)
 
-# We have to disable cdda_player unless we have either ncurses.h or
-# curses.h
-if test $enable_cdda_player = 'yes' ; then 
-  enable_cdda_player='no'
-  AC_CHECK_HEADERS(ncurses.h curses.h, enable_cdda_player='yes')
-fi
-
 # FreeBSD 4 has getopt in unistd.h. So we include that before
 # getopt.h 
 AC_CHECK_HEADERS(unistd.h getopt.h)
