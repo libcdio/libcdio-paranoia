@@ -9,6 +9,7 @@ cdio_cddap_close_no_free_cdio
 cdio_cddap_close
 cdio_cddap_open
 cdio_cddap_read
+cdio_cddap_read_timed
 cdio_cddap_track_firstsector
 cdio_cddap_track_lastsector
 cdio_cddap_tracks

@@ -26,6 +26,12 @@ Xiph's cdparanoia.
 .SH OPTIONS
 
 .TP
+.B \-A --analyze-drive
+Run and log a complete analysis of drive caching, timing and reading behavior;
+verifies that cdparanoia is correctly modelling a sprcific drive's cache and
+read behavior. Implies -vQL.
+
+.TP
 .B \-v --verbose
 Be absurdly verbose about the autosensing and reading process. Good
 for setup and debugging.

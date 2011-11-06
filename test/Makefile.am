@@ -9,14 +9,14 @@
 SUBDIRS = data
 
 testparanoia=testparanoia
-testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIBS) $(LTLIBICONV)
+testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIBS) $(LTLIBICONV) -lrt
 
 hack = $(testparanoia) 
 
 EXTRA_PROGRAMS = testdefault 
 DATA_DIR       = @abs_top_srcdir@/test/data
 
-INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS) $(LIBISO9660_CFLAGS)
+INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS) $(LIBCDIO_PARANOIA_CFLAGS)
 
 check_SCRIPTS = check_paranoia.sh
 # If we beefed this up so it checked to see if a CD-DA was loaded

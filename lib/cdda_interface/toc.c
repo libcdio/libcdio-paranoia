@@ -1,8 +1,6 @@
 /*
-  $Id: toc.c,v 1.7 2008/04/16 17:00:40 karl Exp $
-
   Copyright (C) 2005, 2008 Rocky Bernstein <rocky@gnu.org>
-  Copyright (C) 1998 Monty xiphmont@mit.edu
+  Copyright (C) 1998-2008 Monty xiphmont@mit.edu
   derived from code (C) 1994-1996 Heiko Eissfeldt
 
   This program is free software: you can redistribute it and/or modify
@@ -36,14 +34,14 @@ cdda_track_firstsector(cdrom_drive_t *d, track_t i_track)
 {
   if(!d->opened){
     cderror(d,"400: Device not open\n");
-    return(-1);
+    return(-400);
   }
 
   if (i_track == 0) {
     if (d->disc_toc[0].dwStartSector == 0) {
       /* first track starts at lsn 0 -> no pre-gap */
       cderror(d,"401: Invalid track number\n");
-      return(-1);
+      return(-401);
     }
     else {
       return 0; /* pre-gap of first track always starts at lba 0 */
@@ -52,7 +50,7 @@ cdda_track_firstsector(cdrom_drive_t *d, track_t i_track)
 
   if( i_track>d->tracks) {
     cderror(d,"401: Invalid track number\n");
-    return(-1);
+    return(-401);
   }
 
   {
@@ -68,7 +66,7 @@ cdda_disc_firstsector(cdrom_drive_t *d)
   int i;
   if(!d->opened){
     cderror(d,"400: Device not open\n");
-    return(-1);
+    return(-400);
   }
 
   /* look for an audio track */
@@ -81,7 +79,7 @@ cdda_disc_firstsector(cdrom_drive_t *d)
     }
 
   cderror(d,"403: No audio tracks on disc\n");  
-  return(-1);
+  return(-403);
 }
 
 /*! Get last lsn of the track. The lsn is generally one less than the
@@ -91,14 +89,14 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 {
   if (!d->opened) {
     cderror(d,"400: Device not open\n");
-    return -1;
+    return -400;
   }
 
   if (i_track == 0) {
     if (d->disc_toc[0].dwStartSector == 0) {
       /* first track starts at lba 0 -> no pre-gap */
       cderror(d,"401: Invalid track number\n");
-      return(-1);
+      return(-401);
     }
     else {
       return d->disc_toc[0].dwStartSector-1;
@@ -107,7 +105,7 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 
   if ( i_track<1 || i_track>d->tracks ) {
     cderror(d,"401: Invalid track number\n");
-    return -1;
+    return -401;
   }
   
   /* CD Extra have their first session ending at the last audio track */
@@ -130,7 +128,7 @@ cdda_disc_lastsector(cdrom_drive_t *d)
 {
   if (!d->opened) {
     cderror(d,"400: Device not open\n");
-    return -1;
+    return -400;
   } else {
     /* look for an audio track */
     const track_t i_first_track = cdio_get_first_track_num(d->p_cdio);
@@ -140,7 +138,7 @@ cdda_disc_lastsector(cdrom_drive_t *d)
 	return (cdda_track_lastsector(d,i));
   }
   cderror(d,"403: No audio tracks on disc\n");  
-  return -1;
+  return -403;
 }
 
 /*! Return the number of tracks on the CD. */
@@ -149,7 +147,7 @@ cdda_tracks(cdrom_drive_t *d)
 {
   if (!d->opened){
     cderror(d,"400: Device not open\n");
-    return -1;
+    return -400;
   }
   return(d->tracks);
 }
@@ -164,7 +162,7 @@ cdda_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
 {
   if (!d->opened) {
     cderror(d,"400: Device not open\n");
-    return -1;
+    return -400;
   } else {
     if (lsn < d->disc_toc[0].dwStartSector)
       return 0; /* We're in the pre-gap of first track */

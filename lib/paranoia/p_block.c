@@ -1,19 +1,6 @@
 /*
   Copyright (C) 2004, 2005, 2007, 2008 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -435,14 +422,15 @@ paranoia_init(cdrom_drive_t *d)
   p->fragments=new_list((void *)&i_vfragment_constructor,
 			(void *)&i_v_fragment_destructor);
 
-  p->readahead=150;
-  p->sortcache=sort_alloc(p->readahead*CD_FRAMEWORDS);
+  p->cdcache_begin= 9999999;
+  p->cdcache_end= 9999999;
+  p->cdcache_size=CACHEMODEL_SECTORS;
+  p->sortcache=sort_alloc(p->cdcache_size*CD_FRAMEWORDS);
   p->d=d;
   p->dynoverlap=MAX_SECTOR_OVERLAP*CD_FRAMEWORDS;
   p->cache_limit=JIGGLE_MODULO;
   p->enable=PARANOIA_MODE_FULL;
   p->cursor=cdda_disc_firstsector(d);
-  p->lastread=LONG_MAX;
 
   /* One last one... in case data and audio tracks are mixed... */
   i_paranoia_firstlast(p);
@@ -456,3 +444,17 @@ void paranoia_set_range(cdrom_paranoia_t *p, long start, long end)
   p->current_firstsector = start;
   p->current_lastsector = end;
 }
+
+/*
+ * sectors < 0 indicates a query.
+ * Returns the number of sectors before the call
+ */
+int paranoia_cachemodel_size(cdrom_paranoia *p,int sectors){
+  int ret = p->cdcache_size;
+  if(sectors>=0)
+    p->cdcache_size=sectors;
+  return ret;
+}
+
+
+

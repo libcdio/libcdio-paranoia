@@ -6,12 +6,14 @@
 /.libs
 /Makefile
 /Makefile.in
+/cd-paranoia.log
 /cdda-1.raw
 /cdda-2.raw
 /cdda-good.raw
 /cdda-jitter.raw
 /cdda-underrun.raw
 /cdda.bin
+/cdda.raw
 /check_common_fn
 /check_cue.sh
 /check_iso.sh

@@ -253,9 +253,10 @@ AM_CONDITIONAL(CYGWIN, test "x$CYGWIN" = "xyes")
 dnl Checks for header files.
      
 LIBCDIO_CDDA_LIBS='$(top_builddir)/lib/cdda_interface/libcdio_cdda.la'
-LIBCDIO_CFLAGS='-I$(top_srcdir)/lib/driver -I$(top_builddir)/include -I$(top_srcdir)/include/'
+LIBCDIO_PARANOIA_CFLAGS='-I$(top_builddir)/include -I$(top_srcdir)/include/'
 LIBCDIO_PARANOIA_LIBS='$(top_builddir)/lib/paranoia/libcdio_paranoia.la'
 AC_SUBST(LIBCDIO_CDDA_LIBS)
+AC_SUBST(LIBCDIO_PARANOIA_CFLAGS)
 AC_SUBST(LIBCDIO_PARANOIA_LIBS)
 
 dnl Libtool flag for strict linkage
@@ -413,6 +414,7 @@ AC_CONFIG_FILES([
        libcdio_paranoia.pc \
        src/Makefile \
        src/usage.txt \
+       test/data/Makefile
        test/Makefile
        ])
 

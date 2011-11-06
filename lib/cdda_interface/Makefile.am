@@ -58,9 +58,9 @@ lib_LTLIBRARIES = libcdio_cdda.la
 libcdio_cdda_la_SOURCES = $(libcdio_cdda_sources)
 libcdio_cdda_la_ldflags = -version-info $(libcdio_cdda_la_CURRENT):$(libcdio_cdda_la_REVISION):$(libcdio_cdda_la_AGE) @LT_NO_UNDEFINED@
 
-INCLUDES = $(LIBCDIO_CFLAGS)
+INCLUDES = $(LIBCDIO_PARANOIA_CFLAGS)
 
-FLAGS=@LIBCDIO_CFLAGS@ @UCDROM_H@ @TYPESIZES@ @CFLAGS@
+FLAGS=@LIBCDIO_PARANOIA_CFLAGS@ @UCDROM_H@ @TYPESIZES@ @CFLAGS@ -lrt
 
 OPT=$(FLAGS)
 DEBUG=$(FLAGS) -DCDDA_TEST
