@@ -1,12 +1,12 @@
 /** \file version.h 
  *
  *  \brief A file containing the libcdio-paranoia package version
- *  number (@LIBCDIO_VERSION_NUM@) and OS build name. 
+ *  number (@VERSION@) and OS build name. 
  */
 
-/*! CDIO_PARANOIA_VERSION is a C-Preprocessor macro of a string that
+/*! LIBCDIO_PARANOIA_VERSION is a C-Preprocessor macro of a string that
     shows what version is used.  cdio_paranoia_version_string has the
     same value, but it is a constant variable that can be accessed at
     run time. */
-#define CDIO_PARANOIA_VERSION "@VERSION@ @build@"
-extern const char *cdio_paranoia_version_string; /**< = CDIO_VERSION */
+#define LIBCDIO_PARANOIA_VERSION "@VERSION@ @build@"
+extern const char *cdio_paranoia_version_string; /**< = LIBCDIO_PARANOIA_VERSION */
