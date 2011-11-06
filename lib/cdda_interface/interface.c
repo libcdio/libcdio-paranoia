@@ -28,7 +28,6 @@
 #include "utils.h"
 #include <cdio/bytesex.h>
 #include <cdio/mmc.h>
-#include <time.h>
 
 static void _clean_messages(cdrom_drive_t *d)
 {
@@ -132,34 +131,15 @@ cdio_cddap_speed_set(cdrom_drive_t *d, int speed)
   return d->set_speed ? d->set_speed(d, speed) : 0;
 }
 
-#if defined(CLOCK_MONOTONIC)
-#define       CDIO_CLOCK      CLOCK_MONOTONIC
-#elif defined(CLOCK_HIGHRES)
-#define       CDIO_CLOCK      CLOCK_HIGHRES
-#else
-#define       CDIO_CLOCK      CLOCK_REALTIME
-#endif
-
-long
-cdio_cddap_read_timed(cdrom_drive_t *d, void *buffer, lsn_t beginsector,
-		 long sectors, int *ms)
+long 
+cdio_cddap_read(cdrom_drive_t *d, void *buffer, lsn_t beginsector, 
+		long sectors)
 {
-   if (ms != NULL)
-     *ms = -1;
-   if (d->opened) {
-     if (sectors>0) {
-       struct timespec tv1, tv2;
-       int rv1, rv2;
-	   
-       rv1 = clock_gettime(CDIO_CLOCK, &tv1);
-       sectors=d->read_audio(d, buffer, beginsector, sectors);
-       rv2 = clock_gettime(CDIO_CLOCK, &tv2);
-       if (ms != NULL && rv1 == 0 && rv2 == 0) {
-	 ms = (tv2.tv_sec - tv1.tv_sec) * 1000L +
-	     (tv2.tv_nsec - tv1.tv_nsec) / 1000000L;
-       }
-     }
-     if (sectors > 0) {
+  if (d->opened) {
+    if (sectors>0) {
+      sectors=d->read_audio(d, buffer, beginsector, sectors);
+
+      if (sectors > 0) {
 	/* byteswap? */
 	if ( d->bigendianp == -1 ) /* not determined yet */
 	  d->bigendianp = data_bigendianp(d);
@@ -172,17 +152,13 @@ cdio_cddap_read_timed(cdrom_drive_t *d, void *buffer, lsn_t beginsector,
 	  for(i=0;i<els;i++)
 	    p[i]=UINT16_SWAP_LE_BE_C(p[i]);
 	}
-     }
-     return sectors;
-   }
-   cderror(d,"400: Device not open\n");
-   return(-400);
-}
-
-long
-cdio_cddap_read(cdrom_drive_t *d, void *buffer, lsn_t beginsector, long sectors)
-{
-    return cdio_cddap_read_timed(d, buffer, beginsector, sectors, NULL);
+      }
+    }
+    return(sectors);
+  }
+  
+  cderror(d,"400: Device not open\n");
+  return(-400);
 }
 
 void 

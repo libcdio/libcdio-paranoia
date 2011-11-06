@@ -232,9 +232,6 @@ extern int     cdio_cddap_open(cdrom_drive_t *d);
 extern long    cdio_cddap_read(cdrom_drive_t *d, void *p_buffer,
 			       lsn_t beginsector, long sectors);
 
-extern long    cdio_cddap_read_timed(cdrom_drive_t *d, void *p_buffer,
-                                     lsn_t beginsector, long sectors, int *ms);
-
 /*! Return the lsn for the start of track i_track */
 extern lsn_t   cdio_cddap_track_firstsector(cdrom_drive_t *d, 
 				      track_t i_track);
@@ -354,8 +351,6 @@ const char *strerror_tr[]={
 401: Invalid track number
 402: Track not audio data
 403: No audio tracks on disc
-404: No medium present
-405: Option not supported by drive
 \endverbatim
 
 */
@@ -371,7 +366,6 @@ const char *strerror_tr[]={
 #define cdda_close              cdio_cddap_close
 #define cdda_open               cdio_cddap_open
 #define cdda_read               cdio_cddap_read
-#define cdda_read_timed         cdio_cddap_read_timed
 #define cdda_track_firstsector  cdio_cddap_track_firstsector 
 #define cdda_track_lastsector   cdio_cddap_track_lastsector 
 #define cdda_tracks             cdio_cddap_tracks 
