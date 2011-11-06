@@ -422,14 +422,15 @@ paranoia_init(cdrom_drive_t *d)
   p->fragments=new_list((void *)&i_vfragment_constructor,
 			(void *)&i_v_fragment_destructor);
 
-  p->readahead=150;
-  p->sortcache=sort_alloc(p->readahead*CD_FRAMEWORDS);
+  p->cdcache_begin= 9999999;
+  p->cdcache_end= 9999999;
+  p->cdcache_size=CACHEMODEL_SECTORS;
+  p->sortcache=sort_alloc(p->cdcache_size*CD_FRAMEWORDS);
   p->d=d;
   p->dynoverlap=MAX_SECTOR_OVERLAP*CD_FRAMEWORDS;
   p->cache_limit=JIGGLE_MODULO;
   p->enable=PARANOIA_MODE_FULL;
   p->cursor=cdda_disc_firstsector(d);
-  p->lastread=LONG_MAX;
 
   /* One last one... in case data and audio tracks are mixed... */
   i_paranoia_firstlast(p);
@@ -443,3 +444,17 @@ void paranoia_set_range(cdrom_paranoia_t *p, long start, long end)
   p->current_firstsector = start;
   p->current_lastsector = end;
 }
+
+/*
+ * sectors < 0 indicates a query.
+ * Returns the number of sectors before the call
+ */
+int paranoia_cachemodel_size(cdrom_paranoia *p,int sectors){
+  int ret = p->cdcache_size;
+  if(sectors>=0)
+    p->cdcache_size=sectors;
+  return ret;
+}
+
+
+

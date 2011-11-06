@@ -1,6 +1,7 @@
 /*
   Copyright (C) 2004, 2005, 2006, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
+  CopyPolicy: GNU Lesser General Public License 2.1 applies
   
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -89,6 +90,10 @@
 # define __CDIO_CONFIG_H__ 1
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -119,7 +124,8 @@ const char *paranoia_cb_mode2str[] = {
   "overlap",
   "fixup dropped",
   "fixup duplicated",
-  "read error"
+  "read error",
+  "cache error"
 };
 
 /** The below variables are trickery to force the above enum symbol
@@ -131,6 +137,8 @@ const char *paranoia_cb_mode2str[] = {
 paranoia_mode_t    debug_paranoia_mode;
 paranoia_cb_mode_t debug_paranoia_cb_mode;
 
+#define MIN_SEEK_MS 6
+ 
 static inline long 
 re(root_block *root)
 {
@@ -181,7 +189,6 @@ enum  {
   FLAGS_VERIFIED=0x4  /**< block read and verified */
 } paranoia_read_flags;
 
-
 /**** matching and analysis code *****************************************/
 
 /* ===========================================================================
@@ -212,7 +219,7 @@ i_paranoia_overlap(int16_t *buffA,int16_t *buffB,
     if (buffA[beginA] != buffB[beginB]) break;
   beginA++;
   beginB++;
-
+  
   /* Scan forward to extend the matching run in that direction. */
   for(; endA<sizeA && endB<sizeB; endA++,endB++)
     if (buffA[endA] != buffB[endB]) break;
@@ -254,12 +261,14 @@ i_paranoia_overlap2(int16_t *buffA,int16_t *buffB,
   for (; beginA>=0 && beginB>=0; beginA--,beginB--) {
     if (buffA[beginA] != buffB[beginB]) break;
 
-    /* don't allow matching across matching sector boundaries */
-    /* Stop if both samples were at the edges of a low-level read.
-     * ???: What implications does this have?
-     * ???: Why do we include the first sample for which this is true?
-     */
-    if ((flagsA[beginA]&flagsB[beginB]&FLAGS_EDGE)) {
+    /* don't allow matching across matching sector boundaries. The
+       liklihood of the drive skipping identically in two
+       different reads with the same sector read boundary is actually
+       relatively very high compared to the liklihood of it skipping
+       when one read is continuous across the boundary and other was
+       discontinuous */
+    /* Stop if both samples were at the edges of a low-level read. */
+    if((flagsA[beginA]&flagsB[beginB]&FLAGS_EDGE)){
       beginA--;
       beginB--;
       break;
@@ -278,8 +287,6 @@ i_paranoia_overlap2(int16_t *buffA,int16_t *buffB,
 
     /* don't allow matching across matching sector boundaries */
     /* Stop if both samples were at the edges of a low-level read.
-     * ???: What implications does this have?
-     * ???: Why do we not stop if endA == beginA?
      */
     if ((flagsA[endA]&flagsB[endB]&FLAGS_EDGE) && endA!=beginA){
       break;
@@ -416,25 +423,10 @@ try_sort_sync(cdrom_paranoia_t *p,
 	   * in both directions.  We only consider it a match if more
 	   * than MIN_WORDS_SEARCH consecutive samples match.
 	   */
-	  if (do_const_sync(B, A, Aflags,
-			    post-cb(B), zeropos,
-			    begin, end, offset) ) {
-
-	    /* ???BUG??? Jitter cannot be accurately detected when there are
-	     * large regions of silence.  Silence all looks alike, so if
-	     * there is actually jitter but lots of silence, jitter (offset)
-	     * will be incorrectly identified as 0.  When the incorrect zero
-	     * jitter is passed to offset_add_value, it eventually reduces
-	     * dynoverlap so much that it's impossible for stage 2 to merge
-	     * jittered fragments into the root (it doesn't search far enough).
-	     *
-	     * A potential solution (tested, but not committed) is to check
-	     * for silence in do_const_sync and simply not call
-	     * offset_add_value if the match is all silence.
-	     *
-	     * This bug is not fixed yet.
-	     */
-	    /* ???: To be studied. */
+	  if(do_const_sync(B,A,Aflags,
+			   post-cb(B),zeropos,
+			   begin,end,offset)){
+	    
 	    offset_add_value(p,&(p->stage1),*offset,callback);
 	    
 	    return(1);
@@ -463,21 +455,6 @@ try_sort_sync(cdrom_paranoia_t *p,
 		     post-cb(B),ipos(A,ptr),
 		     begin,end,offset)){
 
-      /* ???BUG??? Jitter cannot be accurately detected when there are
-       * large regions of silence.  Silence all looks alike, so if
-       * there is actually jitter but lots of silence, jitter (offset)
-       * will be incorrectly identified as 0.  When the incorrect zero
-       * jitter is passed to offset_add_value, it eventually reduces
-       * dynoverlap so much that it's impossible for stage 2 to merge
-       * jittered fragments into the root (it doesn't search far enough).
-       *
-       * A potential solution (tested, but not committed) is to check
-       * for silence in do_const_sync and simply not call
-       * offset_add_value if the match is all silence.
-       *
-       * This bug is not fixed yet.
-       */
-      /* ???: To be studied. */
       offset_add_value(p,&(p->stage1),*offset,callback);
       return(1);
     }
@@ -488,7 +465,7 @@ try_sort_sync(cdrom_paranoia_t *p,
      */
     ptr=sort_nextmatch(A,ptr);
   }
-
+  
   /* We didn't find any matches. */
   *begin=-1;
   *end=-1;
@@ -499,8 +476,6 @@ try_sort_sync(cdrom_paranoia_t *p,
 
 /* ===========================================================================
  * STAGE 1 MATCHING
- *
- * ???: Insert high-level explanation here.
  * ===========================================================================
  */
 
@@ -544,42 +519,38 @@ stage1_matched(c_block_t *old, c_block_t *new,
   long oldadjend=matchend-cb(old);
   long newadjbegin=matchbegin-matchoffset-cb(new);
   long newadjend=matchend-matchoffset-cb(new);
-
+  
 
   /* Provide feedback via the callback about the samples we've just
    * verified.
    *
-   * ???: How can matchbegin ever be < cb(old)?
+   * "???: How can matchbegin ever be < cb(old)?"
+   *      Sorry, old bulletproofing habit.  I often use <= to mean "not >" 
+   *      --Monty
    *
-   * ???: Why do edge samples get logged only when there's jitter
-   * between the matched runs (matchoffset != 0)?
+   * "???: Why do edge samples get logged only when there's jitter
+   * between the matched runs (matchoffset != 0)?"
+   *      FIXUP_EDGE is actually logging a jitter event, not a rift-- 
+   *      a rift is FIXUP_ATOM --Monty
    */
-  if ( matchbegin-matchoffset<=cb(new)
-       || matchbegin<=cb(old)
-       || (new->flags[newadjbegin]&FLAGS_EDGE) 
-       || (old->flags[oldadjbegin]&FLAGS_EDGE) ) {
-    if ( matchoffset && callback )
-	(*callback)(matchbegin,PARANOIA_CB_FIXUP_EDGE);
-  } else
-    if (callback)
-      (*callback)(matchbegin,PARANOIA_CB_FIXUP_ATOM);
+  if(matchbegin-matchoffset<=cb(new) ||
+     matchbegin<=cb(old) ||
+     (new->flags[newadjbegin]&FLAGS_EDGE) ||
+     (old->flags[oldadjbegin]&FLAGS_EDGE)){
+    if(matchoffset)
+      if(callback)(*callback)(matchbegin,PARANOIA_CB_FIXUP_EDGE);
+  }else
+    if(callback)(*callback)(matchbegin,PARANOIA_CB_FIXUP_ATOM);
   
-  if ( matchend-matchoffset>=ce(new) ||
-       (new->flags[newadjend]&FLAGS_EDGE) ||
-       matchend>=ce(old) ||
-       (old->flags[oldadjend]&FLAGS_EDGE) ) {
-    if ( matchoffset && callback )
-      (*callback)(matchend,PARANOIA_CB_FIXUP_EDGE);
-  } else
-    if (callback) 
-      (*callback)(matchend, PARANOIA_CB_FIXUP_ATOM);
-
-
-#if TRACE_PARANOIA & 1
-  fprintf(stderr, "-   Matched [%ld-%ld] against [%ld-%ld]\n",
-	  newadjbegin+cb(new), newadjend+cb(new),
-	  oldadjbegin+cb(old), oldadjend+cb(old));
-#endif
+  if(matchend-matchoffset>=ce(new) ||
+     (new->flags[newadjend]&FLAGS_EDGE) ||
+     matchend>=ce(old) ||
+     (old->flags[oldadjend]&FLAGS_EDGE)){
+    if(matchoffset)
+      if(callback)(*callback)(matchend,PARANOIA_CB_FIXUP_EDGE);
+  }else
+    if(callback)(*callback)(matchend,PARANOIA_CB_FIXUP_ATOM);
+  
 
   /* Mark verified samples as "verified," but trim the verified region
    * by OVERLAP_ADJ samples on each side.  There are several significant
@@ -623,9 +594,6 @@ stage1_matched(c_block_t *old, c_block_t *new,
    * we compensate for this trimming.  Thus the verified fragment will
    * contain the full length of verified samples.  Only the c_blocks
    * will reflect this trimming.
-   *
-   * ???: The comment below indicates that the sort cache is updated in
-   * some way, but this does not appear to be the case.
    */
 
   /* Mark the verification flags.  Don't mark the first or
@@ -633,7 +601,7 @@ stage1_matched(c_block_t *old, c_block_t *new,
      have to overlap by OVERLAP to actually merge. We also
      remove elements from the sort such that later sorts do
      not have to sift through already matched data */
-
+  
   newadjbegin+=OVERLAP_ADJ;
   newadjend-=OVERLAP_ADJ;
   for(i=newadjbegin;i<newadjend;i++)
@@ -643,6 +611,7 @@ stage1_matched(c_block_t *old, c_block_t *new,
   oldadjend-=OVERLAP_ADJ;
   for(i=oldadjbegin;i<oldadjend;i++)
     old->flags[i]|=FLAGS_VERIFIED; /* mark verified */
+    
 }
 
 
@@ -677,12 +646,18 @@ i_iterate_stage1(cdrom_paranoia_t *p, c_block_t *old, c_block_t *new,
   long matchend   = -1;
   long matchoffset;
 
-  /* ???: Why do we limit our search only to the samples with overlapping
+  /* "???: Why do we limit our search only to the samples with overlapping
    * absolute positions?  It could be because it eliminates some further
-   * bounds checking.
+   * bounds checking."
+   *  Short answer is yes --Monty
    *
-   * Why do we "no longer try to spread the ... search" as mentioned below?
+   * "Why do we "no longer try to spread the ... search" as mentioned
+   * below?"  
+   * The search is normally much faster without the spread,
+   * even in heavy jitter.  Dynoverlap tends to be a bigger deal in
+   * stage 2. --Monty
    */
+
   /* we no longer try to spread the stage one search area by dynoverlap */
   long searchend   = min(ce(old), ce(new));
   long searchbegin = max(cb(old), cb(new));
@@ -698,10 +673,9 @@ i_iterate_stage1(cdrom_paranoia_t *p, c_block_t *old, c_block_t *new,
     return(0);
 
   /* match return values are in terms of the new vector, not old */
+  /* "???: Why 23?" Odd, prime number --Monty  */
 
-  /* ???: Why 23?  */
-
-  for (j=searchbegin; j<searchend; j+=23) {
+  for(j=searchbegin;j<searchend;j+=23){
 
     /* Skip past any samples verified in previous comparisons to
      * other old c_blocks.  Also, obviously, don't bother verifying
@@ -869,7 +843,7 @@ i_stage1(cdrom_paranoia_t *p, c_block_t *p_new,
 
     begin=end;
   }
-
+  
   /* Return the number of distinct verified fragments we found with
    * stage 1 matching.
    */
@@ -879,8 +853,6 @@ i_stage1(cdrom_paranoia_t *p, c_block_t *p_new,
 
 /* ===========================================================================
  * STAGE 2 MATCHING
- *
- * ???: Insert high-level explanation here.
  * ===========================================================================
  */
 
@@ -984,7 +956,7 @@ i_iterate_stage2(cdrom_paranoia_t *p,
    * there's probably no match to be found (because this fragment doesn't
    * overlap with the root).
    *
-   * ??? Is this why?  Why 256?
+   * "??? Is this why?  Why 256?" 256 is simply a 'large enough number'. --Monty 
    */
   fev = min(min(fbv+256, re(root)+p->dynoverlap), fe(v));
   
@@ -1006,8 +978,7 @@ i_iterate_stage2(cdrom_paranoia_t *p,
      */
     sort_setup(i, fv(v), &fb(v), fs(v), fbv, fev);
 
-    /* ??? Why 23? */
-    for(j=searchbegin; j<searchend; j+=23){
+    for(j=searchbegin;j<searchend;j+=23){
 
       /* Skip past silence in the root.  If there are just a few silent
        * samples, the effect is minimal.  The real reason we need this is
@@ -1095,60 +1066,44 @@ i_silence_test(root_block *root)
    * the silence flag.
    */
   if (j<0 || end-j>MIN_SILENCE_BOUNDARY) {
-    /* ???BUG???:
-     *
-     * The original code appears to have a bug, as it points to the
-     * last non-zero sample, and silence matching appears to treat
-     * silencebegin as the first silent sample.  As a result, in certain
-     * situations, the last non-zero sample can get clobbered.
-     *
-     * This bug has been tentatively fixed, since it allows more regression
-     * tests to pass.  The original code was:
-     *   if (j<0)j=0;
-     */
-    j++;
-
     root->silenceflag=1;
-    root->silencebegin=rb(root)+j;
-
-    /* ???: To be studied. */
-    if (root->silencebegin<root->returnedlimit)
+    root->silencebegin=rb(root)+j+1;
+    if(root->silencebegin<root->returnedlimit)
       root->silencebegin=root->returnedlimit;
   }
 }
 
-
-/* ===========================================================================
- * i_silence_match() (internal)
- *
- * This function is merges verified fragments into the verified root in cases
- * where there is a problematic amount of silence (MIN_SILENCE_BOUNDARY
- * samples) at the end of the root.
- *
- * We need a special approach because if there's a long enough span of
- * silence, we can't reliably detect jitter or dropped samples within that
- * span (since all silence looks alike).
- *
- * Only fragments that begin with MIN_SILENCE_BOUNDARY samples are eligible
- * to be merged in this case.  Fragments that are too far beyond the edge
- * of the root to possibly overlap are also disregarded.
- *
- * Our first approach is to assume that such fragments have no jitter (since
- * we can't establish otherwise) and merge them.  However, if it's clear
- * that there must be jitter (i.e. because non-silent samples overlap when
- * we assume no jitter), we assume the fragment has the minimum possible
- * jitter and then merge it.
- *
- * This function extends silence fairly aggressively, so it must be called
- * with fragments in ascending order (beginning position) in case there are
- * small non-silent regions within the silence.
- */
+ 
+ /* ===========================================================================
+  * i_silence_match() (internal)
+  *
+  * This function is merges verified fragments into the verified root in cases
+  * where there is a problematic amount of silence (MIN_SILENCE_BOUNDARY
+  * samples) at the end of the root.
+  *
+  * We need a special approach because if there's a long enough span of
+  * silence, we can't reliably detect jitter or dropped samples within that
+  * span (since all silence looks alike).
+  *
+  * Only fragments that begin with MIN_SILENCE_BOUNDARY samples are eligible
+  * to be merged in this case.  Fragments that are too far beyond the edge
+  * of the root to possibly overlap are also disregarded.
+  *
+  * Our first approach is to assume that such fragments have no jitter (since
+  * we can't establish otherwise) and merge them.  However, if it's clear
+  * that there must be jitter (i.e. because non-silent samples overlap when
+  * we assume no jitter), we assume the fragment has the minimum possible
+  * jitter and then merge it.
+  *
+  * This function extends silence fairly aggressively, so it must be called
+  * with fragments in ascending order (beginning position) in case there are
+  * small non-silent regions within the silence.
+  */
 static long int 
-i_silence_match(root_block *root, v_fragment_t *v, 
-		void(*callback)(long int, paranoia_cb_mode_t))
-{
+i_silence_match(root_block *root, v_fragment_t *v,
+		void(*callback)(long, paranoia_cb_mode_t)){
 
-  cdrom_paranoia_t *p=v->p;
+  cdrom_paranoia *p=v->p;
   int16_t *vec=fv(v);
   long end=fs(v),begin;
   long j;
@@ -1195,8 +1150,8 @@ i_silence_match(root_block *root, v_fragment_t *v,
      */
     long addto   = fb(v) + MIN_SILENCE_BOUNDARY - re(root);
     int16_t *vec = calloc(addto, sizeof(int16_t));
+    memset(vec,0,sizeof(vec));
     c_append(rc(root), vec, addto);
-    free(vec);
 
 #if TRACE_PARANOIA & 2
     fprintf(stderr, "* Adding silence [%ld-%ld] to root\n",
@@ -1253,13 +1208,20 @@ i_silence_match(root_block *root, v_fragment_t *v,
       /* We're going to append the non-silent samples of the fragment
        * to the root where its silence begins.
        *
-       * ??? This seems to be a very strange approach.  At this point
-       * the root has a lot of trailing silence, and the fragment has
-       * the lot of leading silence.  This merge will drop the silence
-       * and just splice the non-silence together.
+       * "??? This seems to be a very strange approach.  At this point
+       *  the root has a lot of trailing silence, and the fragment has
+       *  the lot of leading silence.  This merge will drop the silence
+       *  and just splice the non-silence together.
        *
-       * In theory, rift analysis will either confirm or fix this result.
-       * What circumstances motivated this approach?
+       *  In theory, rift analysis will either confirm or fix this result.
+       *  What circumstances motivated this approach?"
+       *
+       * This is an 'all bets are off' situation and we choose to make
+       * the best guess we can, based on absolute position being
+       * returned by the most recent reads.  There are drives that
+       * will randomly lose what they're doing during a read and just
+       * pad out the results with zeros and return no error.  This at
+       * least has a shot of addressing that situation. --Monty
        */
 
       /* Compute the amount of silence at the beginning of the fragment.
@@ -1356,14 +1318,14 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	      void(*callback)(long int, paranoia_cb_mode_t))
 {
 
+  cdrom_paranoia_t *p=v->p;
+  long dynoverlap=p->dynoverlap/2*2;
+  /* "??? Why do we round down to an even dynoverlap?" Dynoverlap is
+     in samples, not stereo frames --Monty */
+  
   /* If this fragment has already been merged & freed, abort. */
   if (!v || !v->one) return(0);
 
-  cdrom_paranoia_t *p=v->p;
-
-  /* ??? Why do we round down to an even dynoverlap? */
-  long dynoverlap=p->dynoverlap/2*2;
-  
   /* If there's no verified root yet, abort. */
   if (!rv(root)){
     return(0);
@@ -1494,10 +1456,12 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	fprintf(stderr,"matching rootR: matchA:%ld matchB:%ld matchC:%ld\n",
 		matchA,matchB,matchC);
 #endif		
-	
-	/* ??? The root.returnedlimit checks below are presently a mystery. */
-
-	if (matchA){
+	/* "??? The root.returnedlimit checks below are presently a mystery." */
+	/* Those are for the case where our backtracking wants to take
+	   us to back before bytes we've already returned to the
+	   application.  In short, it's a "we're screwed"
+	   check. --Monty */
+	if(matchA){
 	  /* There's a problem with the root */
 
 	  if (matchA>0){
@@ -1604,8 +1568,11 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	   * as either a stutter or dropped samples, and we have no way of
 	   * telling whether the fragment or the root is right.
 	   *
-	   * The original comment indicated that we set "disagree" flags
-	   * in the root, but it seems to be historical.
+	   * "The original comment indicated that we set "disagree"
+	   * flags in the root, but it seems to be historical."  The
+	   * disagree flags were from a time when we did interpolation
+	   * over samples we simply couldn't get to agree.  Yes,
+	   * historical functionality that didn;t work well. --Monty
 	   */
 
 	  if (rb(root)+begin-matchC<p->root.returnedlimit)
@@ -1614,9 +1581,10 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	  /* Overwrite the mismatching (matchC) samples in root with the
 	   * samples from the fixed up fragment.
 	   *
-	   * ??? Do we think the fragment is more likely correct, is this
+	   * "??? Do we think the fragment is more likely correct, is this
 	   * just arbitrary, or is there some other reason for overwriting
-	   * the root?
+	   * the root?"
+	   *   We think these samples are more likely to be correct --Monty
 	   */
 	  c_overwrite(rc(root),begin-matchC,
 			cv(l)+beginL-matchC,matchC);
@@ -1625,11 +1593,16 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 
 	  /* We may have had a mismatch because we ran into leading silence.
 	   *
-	   * ??? To be studied: why would this cause a mismatch?  Neither
-	   * i_analyze_rift_r nor i_iterate_stage2() nor i_paranoia_overlap()
-	   * appear to take silence into consideration in this regard.
-	   * It could be due to our skipping of silence when searching for
-	   * a match.
+	   * "??? To be studied: why would this cause a mismatch?
+	   * Neither i_analyze_rift_r nor i_iterate_stage2() nor
+	   * i_paranoia_overlap() appear to take silence into
+	   * consideration in this regard.  It could be due to our
+	   * skipping of silence when searching for a match."  Jitter
+	   * and or skipping in sections of silence could end up with
+	   * two sets of verified vectors that agree completely except
+	   * for the length of the silence.  Silence is a huge bugaboo
+	   * in general because there's no entropy within it to base
+	   * verification on. --Monty
 	   *
 	   * Since we don't extend the root in that direction, we don't
 	   * do anything, just move on to trailing rifts.
@@ -1646,8 +1619,9 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	/* Recalculate the offset of the edge of the rift in the fixed
 	 * up fragment, in case it changed.
 	 *
-	 * ??? Why is this done here rather than in the (matchB) case above,
-	 * which should be the only time beginL will change.
+	 * "??? Why is this done here rather than in the (matchB) case above,
+	 * which should be the only time beginL will change."
+	 * Because there's no reason not to? --Monty
 	 */
 	beginL=begin+offset;
 
@@ -1662,7 +1636,7 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 			   &begin,&end);	
 
       } /* end while (leading rift) */
-
+      
 
       /* Second, check for a trailing rift, fix it if possible, and then
        * extend the match forward until either we hit the limit of the
@@ -1740,8 +1714,6 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 		matchA,matchB,matchC);
 #endif
 
-	/* ??? The root.returnedlimit checks below are presently a mystery. */
-	
 	if (matchA){
 	  /* There's a problem with the root */
 
@@ -1834,22 +1806,12 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 
           /* Overwrite the mismatching (matchC) samples in root with the
            * samples from the fixed up fragment.
-           *
-           * ??? Do we think the fragment is more likely correct, is this
-           * just arbitrary, or is there some other reason for overwriting
-           * the root?
            */
 	  c_overwrite(rc(root),end,cv(l)+endL,matchC);
 
 	} else {
 
 	  /* We may have had a mismatch because we ran into trailing silence.
-	   *
-	   * ??? To be studied: why would this cause a mismatch?  Neither
-	   * i_analyze_rift_f nor i_iterate_stage2() nor i_paranoia_overlap()
-	   * appear to take silence into consideration in this regard.
-           * It could be due to our skipping of silence when searching for
-           * a match.
 	   */
 
 	  /* At this point we have a trailing rift.  We check whether
@@ -1869,11 +1831,7 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	     * This will have the effect of eliminating the trailing
 	     * rift, causing the fragment's samples to be appended to
 	     * the root.
-	     *
-	     * ??? Does this have any negative side effects?  Why is this
-	     * a good idea?
 	     */
-	    /* ??? TODO: returnedlimit */
 	    /* Can only do this if we haven't already returned data */
 	    if (end+rb(root)>=p->root.returnedlimit){
 	      c_remove(rc(root),end,-1);
@@ -1918,13 +1876,7 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 			   rs(root),cs(l),
 			   NULL,&end);
 
-	/* ???BUG??? (temp) never gets updated within the loop, even if the
-	 * fragment gets fixed up.  In contrast, rs(root) is inherently
-	 * updated when the verified root gets fixed up.
-	 *
-	 * This bug is not fixed yet.
-	 */
-
+	temp=cs(l);
       } /* end while (trailing rift) */
 
 
@@ -1940,19 +1892,23 @@ i_stage2_each(root_block *root, v_fragment_t *v,
        * slide from earlier samples to later samples across multiple calls
        * to paranoia_read().
        *
-       * ??? But, is this actually right?  Because of this, we don't
-       * extend the root to hold the earliest read sample, if we happened
-       * to initialize the root with a later sample due to jitter.
-       * There are probably some ugly side effects from extending the root
-       * backward, in the general case, but it may not be so dire if we're
-       * near sample 0.  To be investigated.
+       * "??? But, is this actually right?  Because of this, we don't
+       * extend the root to hold the earliest read sample, if we
+       * happened to initialize the root with a later sample due to
+       * jitter.  There are probably some ugly side effects from
+       * extending the root backward, in the general case, but it may
+       * not be so dire if we're near sample 0.  To be investigated."
+       * In the begin case, any start position is arbitrary due to
+       * inexact seeking.  Later, we can't back-extend the root as the
+       * samples preceeding the beginning have already been returned
+       * to the application! --Monty
        */
       {
 	long sizeA=rs(root);
 	long sizeB;
 	long vecbegin;
 	int16_t *vector;
-
+	  
 	/* If there were any rifts, we'll use the fixed up fragment (l),
 	 * otherwise, we use the original fragment (v).
 	 */
@@ -1971,20 +1927,26 @@ i_stage2_each(root_block *root, v_fragment_t *v,
 	 * end of the root (> sizeA).  If it is, this fragment will extend
 	 * our root.
 	 *
-	 * ??? Why do we check for v->lastsector separately?
+	 * "??? Why do we check for v->lastsector separately?" Because
+	 * of the case where root extends *too* far; if we never get a
+	 * read that accidentally extends that far again, we could
+	 * hang and loop forever. --Monty
 	 */
-	if (sizeB-offset>sizeA || v->lastsector){	  
-	  if (v->lastsector){
+	if(sizeB-offset>sizeA || v->lastsector){	  
+	  if(v->lastsector){
 	    root->lastsector=1;
 	  }
-
-	  /* ??? Why would end be < sizeA? Why do we truncate root? */
-	  if (end<sizeA)c_remove(rc(root),end,-1);
-
+	  
+	  /* "??? Why would end be < sizeA? Why do we truncate root?"
+	     Because it can happen (seeking is very very inexact) and
+	     end of disk tends to be very problematic in terms of
+	     stopping point.  We also generally believe more recent
+	     information over previous information when they disagree
+	     and both are 'verified'. --Monty */
+	  if(end<sizeA)c_remove(rc(root),end,-1);
+	  
 	  /* Extend the root with the samples from the end of the
 	   * (potentially fixed up) fragment.
-	   *
-	   * ??? When would this condition not be true?
 	   */
 	  if (sizeB-offset-end)c_append(rc(root),vector+end+offset,
 					 sizeB-offset-end);
@@ -2196,7 +2158,7 @@ i_stage2(cdrom_paranoia_t *p, long int beginword, long int endword,
 	   * fragment (with lowest beginning sample) to be the verified
 	   * root.
 	   *
-	   * ??? It seems that this could be fairly arbitrary if jitter
+	   * "??? It seems that this could be fairly arbitrary if jitter
 	   * is an issue.  If we've verified two fragments allegedly
 	   * beginning at "0" (which are actually slightly offset due to
 	   * jitter), the root might not begin at the earliest read
@@ -2207,10 +2169,17 @@ i_stage2(cdrom_paranoia_t *p, long int beginword, long int endword,
 	   * Practically, this ends up not being critical since most
 	   * drives insert some extra silent samples at the beginning
 	   * of the stream.  Missing a few of them doesn't cause any
-	   * real lost data.  But it is non-deterministic.
-	   */
-	  if (rv(root)==NULL){
-	    if (i_init_root(&(p->root),first,beginword,callback)){
+	   * real lost data.  But it is non-deterministic." 
+	   *
+	   * On such a drive, the entire act of CDDA read is highly
+	   * nondeterministic.  All redbook says is +/- 75 sectors.
+	   * If you insist on the earliest possible sample, you can
+	   * get into a situation where the first read was far earlier
+	   * than all the others and no other read ever repeats the
+	   * early positioning. --Monty */
+
+	  if(rv(root)==NULL){
+	    if(i_init_root(&(p->root),first,beginword,callback)){
 	      free_v_fragment(first);
 
 	      /* Consider this a merged fragment, so set the flag
@@ -2505,6 +2474,58 @@ paranoia_seek(cdrom_paranoia_t *p, int32_t seek, int whence)
   return(ret);
 }
 
+static void
+cdrom_cache_update(cdrom_paranoia_t *p, int lba, int sectors)
+{
+
+  if(lba+sectors > p->cdcache_size){
+    int end = lba+sectors;
+    lba=end-p->cdcache_size;
+    sectors = end-lba;
+  }
+
+  if(lba < p->cdcache_begin){
+    /* a backseek flushes the cache */
+    p->cdcache_begin=lba;
+    p->cdcache_end=lba+sectors;
+  }else{
+    if(lba+sectors>p->cdcache_end)
+      p->cdcache_end = lba+sectors;
+    if(lba+sectors-p->cdcache_size > p->cdcache_begin){
+      if(lba+sectors-p->cdcache_size < p->cdcache_end){
+      p->cdcache_begin = lba+sectors-p->cdcache_size;
+      }else{
+      p->cdcache_begin = lba;
+      }
+    }
+  }
+}
+
+static void
+cdrom_cache_handler(cdrom_paranoia_t *p, int lba, void(*callback)(long int, paranoia_cb_mode_t))
+{
+  int seekpos;
+  int ms;
+  if(lba>=p->cdcache_end)return; /* nothing to do */
+
+  if(lba<0)lba=0;
+
+  if(lba<p->cdcache_begin){
+    /* should always trigger a backseek so let's do that here and look for the timing */
+    seekpos=(lba==0 || lba-1<cdda_disc_firstsector(p->d) ? lba : lba-1); /* keep reads linear when possible */
+  }else{
+    int pre = p->cdcache_begin-1;
+    int post = lba+p->cdcache_size;
+
+    seekpos = (pre<cdda_disc_firstsector(p->d) ? post : pre);
+  }
+
+  if(cdda_read_timed(p->d,NULL,seekpos,1,&ms)==1)
+    if(seekpos<p->cdcache_begin && ms<MIN_SEEK_MS)
+      callback(seekpos*CD_FRAMEWORDS,PARANOIA_CB_CACHEERR);
+  cdrom_cache_update(p,seekpos,1);
+  return;
+}
 
 
 /* ===========================================================================
@@ -2551,7 +2572,7 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
    drives with unaddressable sectors behave more often). */
       
   long readat,firstread;
-  long totaltoread=p->readahead;
+  long totaltoread=p->cdcache_size;
   long sectatonce=p->d->nsectors;
   long driftcomp=(float)p->dyndrift/CD_FRAMEWORDS+.5;
   c_block_t *new=NULL;
@@ -2567,9 +2588,6 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
    * into account the need to jitter the starting point of the read
    * to reveal consistent errors as well as the low reliability of
    * the edge words of a read.
-   *
-   * ???: Document more clearly how dynoverlap and MIN_SECTOR_BACKUP
-   * are calculated and used.
    */
 
   /* What is the first sector to read?  want some pre-buffer if
@@ -2577,16 +2595,12 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
   
   if (p->enable&(PARANOIA_MODE_VERIFY|PARANOIA_MODE_OVERLAP)){
     
-    /* we want to jitter the read alignment boundary */
     long target;
     if (rv(root)==NULL || rb(root)>beginword)
       target=p->cursor-dynoverlap; 
     else
       target=re(root)/(CD_FRAMEWORDS)-dynoverlap;
 	
-    if (target+MIN_SECTOR_BACKUP>p->lastread && target<=p->lastread)
-      target=p->lastread-MIN_SECTOR_BACKUP;
-
     /* we want to jitter the read alignment boundary, as some
        drives, beginning from a specific point, will tend to
        lose bytes between sectors in the same place.  Also, as
@@ -2594,10 +2608,9 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
        the overlap boundaries to move.... */
     
     readat=(target&(~((long)JIGGLE_MODULO-1)))+p->jitter;
-    if (readat>target)readat-=JIGGLE_MODULO;
-    p->jitter++;
-    if (p->jitter>=JIGGLE_MODULO)
-      p->jitter=0;
+    if(readat>target)readat-=JIGGLE_MODULO;
+    p->jitter--;
+    if(p->jitter<0)p->jitter+=JIGGLE_MODULO;
      
   } else {
     readat=p->cursor; 
@@ -2628,19 +2641,15 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
 	  readat*CD_FRAMEWORDS, (readat+totaltoread)*CD_FRAMEWORDS);
 #endif
 
-  /* Issue each of the low-level reads until we've read enough sectors
-   * to exhaust the drive's cache.
+   /* we have a read span; flush the drive cache if needed */
+   cdrom_cache_handler(p, readat, callback);
+ 
+   /* Issue each of the low-level reads; the optimal read size is
+   * approximately the cachemodel's cdrom cache size.  The only reason
+   * to read less would be memory considerations.
    *
    * p->readahead   = total number of sectors to read
    * p->d->nsectors = number of sectors to read per request
-   *
-   * The driver determines this latter number, which is the maximum
-   * number of sectors the kernel can reliably read per request.  In
-   * old Linux kernels, there was a hard limit of 8 sectors per read.
-   * While this limit has since been removed, certain motherboards
-   * can't handle DMA requests larger than 64K.  And other operating
-   * systems may have similar limitations.  So the method of splitting
-   * up reads is still useful.
    */
 
   /* actual read loop */
@@ -2682,19 +2691,31 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
        * because we're going to be appending further reads to the current
        * c_block.
        *
-       * ???: Why not re-read?  It might be to keep you from getting
-       * hung up on a bad sector.  Or it might be to avoid interrupting
-       * the streaming as much as possible.
+       * "???: Why not re-read?  It might be to keep you from getting
+       * hung up on a bad sector.  Or it might be to avoid
+       * interrupting the streaming as much as possible."  
+       *
+       * There are drives on which you will never get a full read in
+       * some positions.  They always abort out early due to firmware
+       * boundary cases.  Reread will cause exactly the same thing to
+       * happen again.  NEC MultiSpeed 4x is one such drive. In these
+       * cases, you take what part of the read you know is good, and
+       * you get substantially better performance. --Monty
        */
-      if ( thisread < secread) {
 
-	if (thisread<0) thisread=0;
+      if((thisread=cdda_read(p->d,buffer+sofar*CD_FRAMEWORDS,adjread,
+			    secread))<secread){
 
-#if TRACE_PARANOIA & 1
-	fprintf(stderr, " -- couldn't read [%ld-%ld]\n",
-		(adjread+thisread)*CD_FRAMEWORDS,
-		(adjread+secread)*CD_FRAMEWORDS);
-#endif
+	if(thisread<0){
+	  if(errno==ENOMEDIUM){
+	    /* the one error we bail on immediately */
+	    if(new)free_c_block(new);
+	    if(buffer)free(buffer);
+	    if(flags)free(flags);
+	    return NULL;
+	  }
+	  thisread=0;
+	}
 
 	/* Uhhh... right.  Make something up. But don't make us seek
            backward! */
@@ -2732,18 +2753,11 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
       }
 
 
-      /* Move the read cursor ahead by the number of sectors we attempted
-       * to read.
-       *
-       * ???: Again, why not move it ahead by the number actually read?
-       */
-      p->lastread=adjread+secread;
-      
       if (adjread+secread-1==p->current_lastsector)
 	new->lastsector=-1;
       
       if (callback)(*callback)((adjread+secread-1)*CD_FRAMEWORDS,PARANOIA_CB_READ);
-      
+      cdrom_cache_update(p,adjread,secread);
       sofar+=secread;
       readat=adjread+secread; 
     } else /* secread <= 0 */
@@ -2814,6 +2828,11 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
   long int retry_count=  0;
   long int lastend    = -2;
   root_block *root    = &p->root;
+
+  if(p->d->opened==0){
+    errno=EBADF;
+    return NULL;
+  }
 
   if (beginword > p->root.returnedlimit)
     p->root.returnedlimit=beginword;
@@ -2929,11 +2948,7 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
 	    long begin=0,end=0;
 	    
 	    while (begin<cs(new)){
-	      /* ???BUG??? This while() should probably read begin<cs(new).
-	       *
-	       * This bug is not fixed yet.
-	       */
-	      while (end<cs(new) && (new->flags[begin]&FLAGS_EDGE))begin++;
+              while (begin<cs(new) && (new->flags[begin]&FLAGS_EDGE))begin++;
 	      end=begin+1;
 	      while (end<cs(new) && (new->flags[end]&FLAGS_EDGE)==0)end++;
 	      {
@@ -2960,14 +2975,17 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
 			  callback);
       
 	}
+      }else{
+
+	/* Was the medium removed or the device closed out from
+	   under us? */
+	if(errno==ENOMEDIUM) return NULL;
+      
       }
     }
 
     /* Are we doing lots of retries?  **************************************/
-
-    /* ???: To be studied
-     */
-
+    
     /* Check unaddressable sectors first.  There's no backoff here; 
        jiggle and minimum backseek handle that for us */
     

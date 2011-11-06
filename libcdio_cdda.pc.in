@@ -7,5 +7,5 @@ Name: libcdio_cdda
 Description: CD paranoia CD-DA library from libcdio
 Version: @PACKAGE_VERSION@
 #Requires: glib-2.0 
-Libs: -L${libdir} -lcdio_cdda -lcdio @COS_LIB@
+Libs: -L${libdir} -lcdio_cdda -lcdio @COS_LIB@ -lrt
 Cflags: -I${includedir}

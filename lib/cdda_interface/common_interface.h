@@ -12,8 +12,8 @@
 # define __CDIO_CONFIG_H__ 1
 #endif
 
-#include <cdio/types.h>
 #include "low_interface.h"
+#include <cdio/types.h>
 
 #if defined(HAVE_LSTAT) && !defined(HAVE_WIN32_CDROM) && !defined(HAVE_OS2_CDROM)
 /* Define this if the CD-ROM device is a file in the filesystem

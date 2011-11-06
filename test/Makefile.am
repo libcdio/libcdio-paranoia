@@ -9,7 +9,7 @@
 SUBDIRS = data
 
 testparanoia=testparanoia
-testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIBS) $(LTLIBICONV)
+testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIBS) $(LTLIBICONV) -lrt
 
 hack = $(testparanoia) 
 

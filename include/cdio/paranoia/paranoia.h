@@ -67,7 +67,8 @@ typedef enum  {
   PARANOIA_CB_OVERLAP,        /**< Dynamic overlap adjust */
   PARANOIA_CB_FIXUP_DROPPED,  /**< Fixed dropped bytes */
   PARANOIA_CB_FIXUP_DUPED,    /**< Fixed duplicate bytes */
-  PARANOIA_CB_READERR         /**< Hard read error */
+  PARANOIA_CB_READERR,       /**< Hard read error */
+  PARANOIA_CB_CACHEERR        /**< Cache error */
 } paranoia_cb_mode_t;
 
   extern const char *paranoia_cb_mode2str[];
@@ -161,6 +162,8 @@ extern "C" {
   extern void cdio_paranoia_set_range(cdrom_paranoia_t *p, long int start, 
 				      long int end);
 
+  extern int cdio_paranoia_cachemodel_size(cdrom_paranoia_t *p,int sectors);
+
 #ifndef DO_NOT_WANT_PARANOIA_COMPATIBILITY
 /** For compatibility with good ol' paranoia */
 #define cdrom_paranoia        cdrom_paranoia_t
@@ -172,6 +175,7 @@ extern "C" {
 #define paranoia_read_limited cdio_paranoia_read_limited
 #define paranoia_overlapset   cdio_paranoia_overlapset
 #define paranoia_set_range    cdio_paranoia_set_range
+#define paranoia_cachemodel_size cdio_paranoia_cachemodel_size
 #endif /*DO_NOT_WANT_PARANOIA_COMPATIBILITY*/
 
 #ifdef __cplusplus
