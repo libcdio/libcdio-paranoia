@@ -1,6 +1,4 @@
 /*
-  $Id: interface.c,v 1.26 2008/04/16 17:00:40 karl Exp $
-
   Copyright (C) 2005, 2008 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
   

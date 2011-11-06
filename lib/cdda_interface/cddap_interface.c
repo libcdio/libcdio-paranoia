@@ -1,24 +1,9 @@
 /*
-  $Id: cddap_interface.c,v 1.8 2008/06/13 19:26:22 flameeyes Exp $
-
   Copyright (C) 2004, 2005, 2007, 2008 Rocky Bernstein <rocky@gnu.org>
   Original interface.c Copyright (C) 1994-1997 
              Eissfeldt heiko@colossus.escape.de
   Current blenderization Copyright (C) 1998-1999 Monty xiphmont@mit.edu
   Copyright (C) 1998 Monty xiphmont@mit.edu
-  
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /**
  

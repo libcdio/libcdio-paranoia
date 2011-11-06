@@ -130,13 +130,6 @@ AC_CHECK_HEADERS(errno.h fcntl.h glob.h limits.h pwd.h)
 AC_CHECK_HEADERS(stdarg.h stdbool.h stdio.h sys/cdio.h sys/param.h \
 		 sys/time.h sys/timeb.h sys/utsname.h)
 
-# We have to disable cdda_player unless we have either ncurses.h or
-# curses.h
-if test $enable_cdda_player = 'yes' ; then 
-  enable_cdda_player='no'
-  AC_CHECK_HEADERS(ncurses.h curses.h, enable_cdda_player='yes')
-fi
-
 # FreeBSD 4 has getopt in unistd.h. So we include that before
 # getopt.h 
 AC_CHECK_HEADERS(unistd.h getopt.h)
@@ -253,9 +246,10 @@ AM_CONDITIONAL(CYGWIN, test "x$CYGWIN" = "xyes")
 dnl Checks for header files.
      
 LIBCDIO_CDDA_LIBS='$(top_builddir)/lib/cdda_interface/libcdio_cdda.la'
-LIBCDIO_CFLAGS='-I$(top_srcdir)/lib/driver -I$(top_builddir)/include -I$(top_srcdir)/include/'
+LIBCDIO_PARANOIA_CFLAGS='-I$(top_builddir)/include -I$(top_srcdir)/include/'
 LIBCDIO_PARANOIA_LIBS='$(top_builddir)/lib/paranoia/libcdio_paranoia.la'
 AC_SUBST(LIBCDIO_CDDA_LIBS)
+AC_SUBST(LIBCDIO_PARANOIA_CFLAGS)
 AC_SUBST(LIBCDIO_PARANOIA_LIBS)
 
 dnl Libtool flag for strict linkage
@@ -413,6 +407,7 @@ AC_CONFIG_FILES([
        libcdio_paranoia.pc \
        src/Makefile \
        src/usage.txt \
+       test/data/Makefile
        test/Makefile
        ])
 
