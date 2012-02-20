@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005, 2006, 2008, 2009, 2010, 2011
+  Copyright (C) 2005, 2006, 2008, 2009, 2010, 2011, 2012
    Rocky Bernstein <rocky@gnu.org>
 
   This program is free software: you can redistribute it and/or modify
@@ -94,7 +94,7 @@ main(int argc, const char *argv[])
   /* See if we can find a device with a loaded CD-DA in it. */
   ppsz_cd_drives = cdio_get_devices_with_cap(NULL, CDIO_FS_AUDIO, false);
 
-  if (ppsz_cd_drives) {
+  if (ppsz_cd_drives && *ppsz_cd_drives) {
     /* Found such a CD-ROM with a CD-DA loaded. Use the first drive in
        the list. */
     d=cdda_identify(*ppsz_cd_drives, 1, NULL);
