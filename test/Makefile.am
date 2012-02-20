@@ -3,8 +3,6 @@
 ####################################################
 #
 #
-# There's a problem with doing make distcheck for testdefault. 
-# A reminder of why I hate automake.
 
 SUBDIRS = data
 
@@ -13,7 +11,6 @@ testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIB
 
 hack = $(testparanoia) 
 
-EXTRA_PROGRAMS = testdefault 
 DATA_DIR       = @abs_top_srcdir@/test/data
 
 INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS) $(LIBCDIO_PARANOIA_CFLAGS)

@@ -19,8 +19,7 @@
 #
 paranoia_progs = paranoia paranoia2
 if BUILD_EXAMPLES
-noinst_PROGRAMS = device eject isofile isofile2 isolist \
-	          mmc1 mmc2 $(paranoia_progs)
+noinst_PROGRAMS = $(paranoia_progs)
 endif
 INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS)
 

@@ -8,7 +8,7 @@ transform = s,cd-paranoia,@CDPARANOIA_NAME@,
 GETOPT_C = getopt1.c getopt.c
 
 EXTRA_DIST = usage.txt.in usage-copy.h pod2c.pl \
-             doc/FAQ.txt doc/overlapdef.txt $(GETOPT_C) getopt.h
+             $(GETOPT_C) getopt.h
 
 noinst_HEADERS = header.h report.h $(GETOPT_H)
 
