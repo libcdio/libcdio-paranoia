@@ -51,12 +51,25 @@ enable_versioned_libs="${withval}", enable_versioned_libs=yes)
 AC_ARG_ENABLE(example-progs,
 	AC_HELP_STRING([--disable-example-progs], [Don't build libcdio-paranoia sample programs]))
 
+AC_ARG_ENABLE([cxx],
+	AC_HELP_STRING([--disable-cxx], [Disable C++ bindings (default enabled)]))
+AM_CONDITIONAL([ENABLE_CXX_BINDINGS], [test "x$enable_cxx" != "xno"])
+
+AC_ARG_ENABLE(cpp-progs,
+	AC_HELP_STRING([--enable-cpp-progs], [make C++ example programs (default enabled)]))
+AM_CONDITIONAL(ENABLE_CPP, test x"$enable_cpp_progs" = "xyes")
+
+AC_ARG_ENABLE(example-progs,
+	AC_HELP_STRING([--disable-example-progs], [Don't build libcdio sample programs]))
+
 AM_CONDITIONAL(BUILD_EXAMPLES, test "x$enable_example_progs" != "xno")
 AM_CONDITIONAL(BUILD_VERSIONED_LIBS, test "x$enable_versioned_libs" = "xyes")
 
 dnl We use C 
 AC_PROG_CC
 AM_PROG_CC_C_O
+dnl We also use C++ in example programs and for CXX bindings
+AC_PROG_CXX
 
 dnl Checks for programs.
 AC_AIX
@@ -396,6 +409,7 @@ AC_CONFIG_FILES([
        doc/ja/Makefile \
        doc/ja/cd-paranoia.1 \
        example/Makefile \
+       example/C++/Makefile \
        include/Makefile \
        include/cdio/Makefile \
        include/cdio/paranoia/Makefile \
@@ -415,3 +429,5 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([test/check_paranoia.sh], [chmod +x test/check_paranoia.sh])
 AC_OUTPUT
 
+AC_MSG_NOTICE([
+Building C++ programs: $(test "x$enable_cxx" != "xno" && echo yes || echo no)])

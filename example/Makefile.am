@@ -2,6 +2,10 @@
 # Sample programs
 ####################################################
 #
+if ENABLE_CPP
+SUBDIRS =  C++
+endif
+
 noinst_PROGRAMS = paranoia paranoia2
 
 INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS)
