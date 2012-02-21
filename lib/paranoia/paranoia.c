@@ -2803,7 +2803,7 @@ cdio_paranoia_read(cdrom_paranoia_t *p,
 }
 
 /* I added max_retry functionality this way in order to avoid
-   breaking any old apps using the nerw libs.  cdparanoia 9.8 will
+   breaking any old apps using the new libs.  cdparanoia 9.8 will
    need the updated libs, but nothing else will require it. */
 int16_t *
 cdio_paranoia_read_limited(cdrom_paranoia_t *p, 
