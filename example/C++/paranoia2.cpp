@@ -20,14 +20,20 @@
    calling paranoia's open. I imagine in many cases such as media
    players this may be what will be done since, one may want to get
    CDDB/CD-Text info beforehand.  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#define __CDIO_CONFIG_H__ 1
+#endif
 
-#include <cdio/cdda.h>
-#include <cdio/cd_types.h>
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
-
+#endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+
+#include <cdio/cdda.h>
+#include <cdio/cd_types.h>
 
 int
 main(int argc, const char *argv[])

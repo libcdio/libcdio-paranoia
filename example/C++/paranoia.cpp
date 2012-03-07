@@ -17,6 +17,10 @@
 
 /* Simple program to show using libcdio's version of the CD-DA paranoia. 
    library.  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#define __CDIO_CONFIG_H__ 1
+#endif
 
 #include <iostream>
 #include <cstdlib>
@@ -25,14 +29,15 @@
 using namespace std;
 
 extern "C"{
+  #ifdef HAVE_STDIO_H
+  #include <stdio.h>
+  #endif
+  #ifdef HAVE_STDLIB_H
+  #include <stdlib.h>
+  #endif
+
   #include <cdio/paranoia.h>
   #include <cdio/cd_types.h>
-  #include <stdio.h>
-
-#ifdef HAVE_STDLIB_H
-  #include <stdlib.h>
-#endif
-
 }
 
 
