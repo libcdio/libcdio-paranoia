@@ -1,5 +1,6 @@
 /*
-  Copyright (C) 2004, 2005, 2006, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2005, 2006, 2008, 2011, 2012
+  Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2001 Xiph.org and Heiko Eissfeldt heiko@escape.colossus.de
   CopyPolicy: GNU Lesser General Public License 2.1 applies
 */
@@ -11,8 +12,8 @@
  *
  ******************************************************************/
 
-#ifndef _CDDA_INTERFACE_H_
-#define _CDDA_INTERFACE_H_
+#ifndef CDIO__PARANOIA__CDDA_H_
+#define CDIO__PARANOIA__CDDA_H_
 
 #include <cdio/cdio.h>
 
@@ -393,5 +394,5 @@ const char *strerror_tr[]={
 extern paranoia_jitter_t     debug_paranoia_jitter;
 extern paranoia_cdda_enums_t debug_paranoia_cdda_enums;
 
-#endif /*_CDDA_INTERFACE_H_*/
+#endif /*CDIO__PARANOIA__CDDA_H_*/
 

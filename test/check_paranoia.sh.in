@@ -1,36 +1,36 @@
 #!/bin/sh
 # Compare our cd-paranoia with known good results.
 
-if test "X$srcdir" = "X" ; then
-  srcdir=`pwd`
+if test ! -d "$abs_top_builddir" ; then
+  abs_top_builddir=@abs_top_builddir@
 fi
 
-if test "X$top_builddir" = "X" ; then
-  top_builddir=`pwd`/..
+if test ! -d "$abs_top_srcdir" ; then
+  abs_top_srcdir=@abs_top_srcdir@
 fi
 
-if test "X$top_srcdir" = "X" ; then
-  top_srcdir=`pwd`/..
-fi
+cue_file=$abs_top_srcdir/test/data/cdda.cue
 
 if test "@CMP@" != no ; then
-  cd_paranoia=$top_builddir/src/cd-paranoia@EXEEXT@ 
-  $cd_paranoia -d $srcdir/data/cdda.cue -v -r -- "1-"
+  cd_paranoia=$abs_top_builddir/src/cd-paranoia@EXEEXT@ 
+  $cd_paranoia -d $cue_file -v -r -- "1-"
   if test $? -ne 0 ; then
     exit 6
   fi
-  dd bs=16 if=cdda.raw of=cdda-1.raw
-  dd bs=16 if=cdda.bin of=cdda-2.raw
-  if @CMP@ cdda-1.raw cdda-2.raw ; then
+  cdda1_file=$abs_top_builddir/test/cdda-1.raw
+  cdda2_file=$abs_top_builddir/test/cdda-2.raw
+  dd bs=16 if=$abs_top_builddir/test/cdda.raw of=$cdda1_file
+  dd bs=16 if=$abs_top_srcdir/test/data/cdda.bin of=$cdda2_file
+  if @CMP@ $cdda1_file $cdda2_file ; then
     echo "** Raw cdda.bin extraction okay"
   else
     echo "** Raw cdda.bin extraction differ"
     exit 3
   fi
   mv cdda.raw cdda-good.raw
-  $cd_paranoia -d $srcdir/data/cdda.cue -x 64 -v -r -- "1-"
+  $cd_paranoia -d $cue_file -x 64 -v -r -- "1-"
   mv cdda.raw cdda-underrun.raw
-  $cd_paranoia -d $srcdir/data/cdda.cue -r -- "1-"
+  $cd_paranoia -d $cue_file -r -- "1-"
   if test $? -ne 0 ; then
     exit 6
   fi
@@ -41,7 +41,7 @@ if test "@CMP@" != no ; then
     exit 3
   fi
   # Start out with small jitter
-  $cd_paranoia -l ./cd-paranoia.log -d $srcdir/data/cdda.cue -x 5 -v -r -- "1-"
+  $cd_paranoia -l ./cd-paranoia.log -d $cue_file -x 5 -v -r -- "1-"
   if test $? -ne 0 ; then
     exit 6
   fi
@@ -53,7 +53,7 @@ if test "@CMP@" != no ; then
     exit 3
   fi
   tail -3 ./cd-paranoia.log | sed -e's/\[.*\]/\[\]/' > ./cd-paranoia-filtered.log
-  if @CMP@ $srcdir/cd-paranoia-log.right ./cd-paranoia-filtered.log ; then
+  if @CMP@ $abs_top_srcdir/test/cd-paranoia-log.right ./cd-paranoia-filtered.log ; then
     echo "** --log option okay"
     rm ./cd-paranoia.log ./cd-paranoia-filtered.log
   else
@@ -61,7 +61,7 @@ if test "@CMP@" != no ; then
     exit 4
   fi
   # A more massive set of failures: underrun + small jitter
-  $cd_paranoia -d $srcdir/data/cdda.cue -x 69 -v -r -- "1-"
+  $cd_paranoia -d $cue_file -x 69 -v -r -- "1-"
   if test $? -ne 0 ; then
     exit 6
   fi

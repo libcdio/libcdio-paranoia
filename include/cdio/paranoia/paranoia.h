@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2011 
+    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2011, 2012
     Rocky Bernstein <rocky@gnu.org>
     Copyright (C) 1998 Monty xiphmont@mit.edu
     CopyPolicy: GNU Lesser General Public License 2.1 applies
@@ -12,10 +12,10 @@
  *  repair. Applications include this for paranoia access.
  */
 
-#ifndef _CDIO_PARANOIA_H_
-#define _CDIO_PARANOIA_H_
+#ifndef CDIO__PARANOIA__PARANOIA_H_
+#define CDIO__PARANOIA__PARANOIA_H_
 
-#include <cdio/cdda.h>
+#include <cdio/paranoia/cdda.h>
 
 /*! Paranoia likes to work with 16-bit numbers rather than
     (possibly byte-swapped) bytes. So there are this many 
@@ -187,4 +187,4 @@ extern "C" {
 extern paranoia_mode_t    debug_paranoia_mode;
 extern paranoia_cb_mode_t debug_paranoia_cb_mode;
 
-#endif /*_CDIO_PARANOIA_H_*/
+#endif /*CDIO__PARANOIA__PARANOIA_H_*/
