@@ -22,7 +22,7 @@ cd_paranoia_DEPENDENCIES =  $(LIBCDIO_DEPS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_PARAN
 
 bin_PROGRAMS = cd-paranoia
 
-INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS)
+INCLUDES = -I$(top_srcdir) $(LIBCDIO_PARANOIA_CFLAGS) $(LIBCDIO_CFLAGS)
 
 cd-paranoia.$(OBJEXT): usage.h
 

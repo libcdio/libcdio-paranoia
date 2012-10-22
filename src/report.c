@@ -18,7 +18,7 @@
 #endif
 
 #include <stdio.h>
-#include <cdio/cdda.h>
+#include <cdio/paranoia/cdda.h>
 #include "report.h"
 
 int quiet=0;

@@ -43,7 +43,7 @@
 #endif
 #include <fcntl.h>
 
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/paranoia.h>
 #include <cdio/cd_types.h>
 
 static void 

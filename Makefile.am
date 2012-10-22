@@ -1,4 +1,4 @@
-#   Copyright (C) 2011 
+#   Copyright (C) 2011, 2012
 #   Rocky Bernstein <rocky@gnu.org>
 #
 ## Process this file with automake to produce Makefile.in
@@ -9,6 +9,7 @@ AUTOMAKE_OPTIONS = dist-bzip2
 
 EXTRA_DIST = \
 	THANKS \
+	make-check-filter.rb \
 	example/README
 
 SUBDIRS = doc include lib src test example
@@ -23,6 +24,10 @@ $(pkgconfig_DATA): config.status
 
 #: run regression tests
 test: check
+
+#: Run all tests without bloated output
+check-short:
+	$(MAKE) check 2>&1  | ruby @abs_top_srcdir@/make-check-filter.rb
 
 #: Make documentation via Doxygen http://www.stack.nl/~dimitri/doxygen/
 doxygen:

@@ -77,8 +77,8 @@ static void gettimeofday(struct timeval* tv, void* timezone);
 
 #include <cdio/cdio.h>
 #include <cdio/cd_types.h>
-#include <cdio/cdda.h>
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/cdda.h>
+#include <cdio/paranoia/paranoia.h>
 #include <cdio/bytesex.h>
 #include <cdio/mmc.h>
 #include "utils.h"

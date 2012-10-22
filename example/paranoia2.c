@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #endif
 
-#include <cdio/cdda.h>
+#include <cdio/paranoia/cdda.h>
 #include <cdio/cd_types.h>
 
 int

@@ -22,7 +22,7 @@
 # define __CDIO_CONFIG_H__ 1
 #endif
 
-#include <cdio/paranoia.h>
+#include <cdio/paranoia/paranoia.h>
 #include <cdio/cd_types.h>
 #include <stdio.h>
 
@@ -71,7 +71,7 @@ main(int argc, const char *argv[])
        the list. */
     d=cdda_identify(*ppsz_cd_drives, 1, NULL);
   } else {
-    printf("Unable find or access a CD-ROM drive with an audio CD in it.\n");
+    printf("-- Unable find or access a CD-ROM drive with an audio CD in it.\n");
     exit(SKIP_TEST_RC);
   }
 
@@ -117,7 +117,7 @@ main(int argc, const char *argv[])
 	i_lsn = i_first_lsn + (rand() % i_sectors);
 	paranoia_seek(p, i_lsn, SEEK_SET);
 
-	printf("Testing %d sectors starting at %ld\n",
+	printf("-- Testing %d sectors starting at %ld\n",
 	       MAX_SECTORS, (long int) i_lsn);
 	for ( i = 0; 
 	      i < MAX_SECTORS && i_lsn <= i_last_lsn; 
@@ -177,7 +177,7 @@ main(int argc, const char *argv[])
 	  }
 	}
       }
-      printf("%u sectors compared okay %u sectors were different\n",
+      printf("-- %u sectors compared okay %u sectors were different\n",
 	     i_good, i_bad);
       if (i_bad > i_good) i_rc = 1;
     }
