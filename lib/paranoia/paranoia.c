@@ -168,7 +168,7 @@ rv(root_block *root){
 /** 
     Flags indicating the status of a read samples.
 
-    Imagine the below enumeration values are #defines to be used in a
+    Imagine the below enumeration values are \#defines to be used in a
     bitmask rather than distinct values of an enum.
 
     The variable part of the declaration is trickery to force the enum
@@ -2452,10 +2452,9 @@ paranoia_free(cdrom_paranoia_t *p)
   Set the kind of repair you want to on for reading. 
   The modes are listed above
   
-  @param p       paranoia type
-  @mode  mode    paranoia mode flags built from values in 
-  paranoia_mode_t, e.g. 
-  PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP
+  @param p           paranoia type
+  @param  mode_flags paranoia mode flags built from values in  paranoia_mode_t, 
+  e.g. PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP
 */
 void 
 paranoia_modeset(cdrom_paranoia_t *p, int mode_flags)

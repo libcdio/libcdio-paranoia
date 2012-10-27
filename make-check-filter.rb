@@ -6,8 +6,8 @@
 pats = '(' + 
   ["^  CC",
    "^  CXX",
-   '^(re)?make\[',
-   "^(re)?make ",
+   '^(re|g)?make\[',
+   "^(re|g)?make ",
    "Making check in",
    '^[+]{2} WARN: ',
    '^m4/',              # doesn't work always
