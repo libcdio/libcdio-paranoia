@@ -10,7 +10,9 @@ AUTOMAKE_OPTIONS = dist-bzip2
 EXTRA_DIST = \
 	THANKS \
 	make-check-filter.rb \
-	example/README
+	example/README \
+	COPYING-GPL \
+	COPYING-LGPL
 
 SUBDIRS = doc include lib src test example
 

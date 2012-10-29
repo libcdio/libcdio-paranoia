@@ -16,7 +16,7 @@ dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 dnl 02110-1301 USA.
 
-define(RELEASE_NUM, 91)
+define(RELEASE_NUM, 90+1)
 define(PARANOIA_VERSION, 10.2)
 define(LIBCDIO_PARANOIA_VERSION_STR, $1+0.$2git)
 
