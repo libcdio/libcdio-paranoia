@@ -575,7 +575,6 @@ static const struct option options [] = {
         {"query",                     no_argument,       NULL, 'Q'},
         {"quiet",                     no_argument,       NULL, 'q'},
         {"sample-offset",             required_argument, NULL, 'O'},
-        {"search-for-drive",          no_argument,       NULL, 's'},
         {"stderr-progress",           no_argument,       NULL, 'e'},
         {"test-mode",                 required_argument, NULL, 'x'},
         {"toc-bias",                  no_argument,       NULL, 'T'},
@@ -680,7 +679,6 @@ main(int argc,char *argv[])
 
   int out;
 
-  int search=0;
   int c,long_option_index;
 
   atexit(cleanup);
@@ -773,9 +771,6 @@ main(int argc,char *argv[])
     case 'R':
       output_type=0;
       output_endian=1;
-      break;
-    case 's':
-      search=1;
       break;
     case 'S':
       get_int_arg(c, &force_cdrom_speed);

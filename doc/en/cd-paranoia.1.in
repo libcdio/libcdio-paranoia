@@ -48,10 +48,6 @@ Perform CD-ROM drive autosense, query and print the CD-ROM table of
 contents, then quit.
 
 .TP
-.B \-s --search-for-drive
-Forces a complete search for a cdrom drive, even if the /dev/cdrom link exists.
-
-.TP
 .B \-h --help
 Print a brief synopsis of 
 .B @CDPARANOIA_NAME@ 
