@@ -1,12 +1,12 @@
 /*
   Copyright (C) 2004, 2005, 2007, 2008 Rocky Bernstein <rocky@gnu.org>
-  Original interface.c Copyright (C) 1994-1997 
+  Original interface.c Copyright (C) 1994-1997
              Eissfeldt heiko@colossus.escape.de
   Current blenderization Copyright (C) 1998-1999 Monty xiphmont@mit.edu
   Copyright (C) 1998 Monty xiphmont@mit.edu
 */
 /**
- 
+
   CD-ROM code which interfaces between user-level visible CD paranoia
   routines and libddio routines. (There is some GNU/Linux-specific
   code here too that should probably be removed.
@@ -27,10 +27,10 @@
 paranoia_jitter_t     debug_paranoia_jitter;
 paranoia_cdda_enums_t debug_paranoia_cdda_enums;
 
-/*! reads TOC via libcdio and returns the number of tracks in the disc. 
+/*! reads TOC via libcdio and returns the number of tracks in the disc.
     0 is returned if there was an error.
 */
-static int 
+static int
 cddap_readtoc (cdrom_drive_t *d)
 {
   int i;
@@ -42,7 +42,7 @@ cddap_readtoc (cdrom_drive_t *d)
   if (CDIO_INVALID_TRACK == d->tracks) return 0;
 
   i_track   = cdio_get_first_track_num(d->p_cdio);
-  
+
   for ( i=0; i < d->tracks; i++) {
     d->disc_toc[i].bTrack = i_track;
     d->disc_toc[i].dwStartSector = cdio_get_track_lsn(d->p_cdio, i_track);
@@ -50,16 +50,16 @@ cddap_readtoc (cdrom_drive_t *d)
   }
 
   d->disc_toc[i].bTrack = i_track;
-  d->disc_toc[i].dwStartSector = cdio_get_track_lsn(d->p_cdio, 
+  d->disc_toc[i].dwStartSector = cdio_get_track_lsn(d->p_cdio,
 						    CDIO_CDROM_LEADOUT_TRACK);
 
-  d->cd_extra=FixupTOC(d, i_track);
-  return --i_track;  /* without lead-out */
+  d->cd_extra=FixupTOC(d, d->tracks+1); /* fixup includes lead-out */
+  return --i_track;  /* number of tracks returned does not include lead-out */
 }
 
 
 /* Set operating speed */
-static int 
+static int
 cddap_setspeed(cdrom_drive_t *d, int i_speed)
 {
   return cdio_set_speed(d->p_cdio, i_speed);
@@ -78,17 +78,17 @@ read_blocks (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors)
 
   do {
     err = cdio_read_audio_sectors( d->p_cdio, buffer, begin, i_sectors);
-    
+
     if ( DRIVER_OP_SUCCESS != err ) {
       if (!d->error_retry) return -7;
-      
+
       if (i_sectors==1) {
 	/* *Could* be I/O or media error.  I think.  If we're at
 	   30 retries, we better skip this unhappy little
 	   sector. */
 	if (retry_count>MAX_RETRIES-1) {
 	  char b[256];
-	  snprintf(b, sizeof(b), 
+	  snprintf(b, sizeof(b),
 		   "010: Unable to access sector %ld: skipping...\n",
 		   (long int) begin);
 	  cderror(d, b);
@@ -107,7 +107,7 @@ read_blocks (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors)
     } else
       break;
   } while (err);
-  
+
   return(i_sectors);
 }
 
@@ -130,18 +130,18 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
   int jitter_flag;
   long i_sectors_orig = i_sectors;
   long i_jitter_offset = 0;
-  
+
   char *p_buf=malloc(CDIO_CD_FRAMESIZE_RAW*(i_sectors+1));
-  
+
   if (d->i_test_flags & CDDA_TEST_ALWAYS_JITTER)
     jitter_flag = 1;
-  else 
+  else
 #ifdef HAVE_DRAND48
     jitter_flag = (drand48() > .9) ? 1 : 0;
 #else
     jitter_flag = (rand() > .9) ? 1 : 0;
 #endif
-  
+
   if (jitter_flag) {
     int i_coeff = 0;
     int i_jitter_sectors = 0;
@@ -157,42 +157,42 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
 #else
     i_jitter = i_coeff * (int)((rand()-.5)*CDIO_CD_FRAMESIZE_RAW/8);
 #endif
-    
+
     /* We may need to add another sector to compensate for the bytes that
        will be dropped off when jittering, and the begin location may
        be a little different.
     */
     i_jitter_sectors = i_jitter / CDIO_CD_FRAMESIZE_RAW;
 
-    if (i_jitter >= 0) 
+    if (i_jitter >= 0)
       i_jitter_offset  = i_jitter % CDIO_CD_FRAMESIZE_RAW;
     else {
-      i_jitter_offset  = CDIO_CD_FRAMESIZE_RAW - 
+      i_jitter_offset  = CDIO_CD_FRAMESIZE_RAW -
 	(-i_jitter % CDIO_CD_FRAMESIZE_RAW);
       i_jitter_sectors--;
     }
-    
-    
+
+
     if (begin + i_jitter_sectors > 0) {
 #if !TRACE_PARANOIA
       char buffer[256];
-      sprintf(buffer, "jittering by %d, offset %ld\n", i_jitter, 
+      sprintf(buffer, "jittering by %d, offset %ld\n", i_jitter,
 	      i_jitter_offset);
-      cdmessage(d,buffer); 
+      cdmessage(d,buffer);
 #endif
 
       begin += i_jitter_sectors;
-      i_sectors ++; 
-    } else 
+      i_sectors ++;
+    } else
       i_jitter_offset = 0;
-    
+
   }
 
   i_sectors = read_blocks(d, p_buf, begin, i_sectors);
 
   if (i_sectors < 0) return i_sectors;
-  
-  if (i_sectors < i_sectors_orig) 
+
+  if (i_sectors < i_sectors_orig)
     /* Had to reduce # of sectors due to read errors. So give full amount,
        with no jittering. */
     memcpy(p, p_buf, i_sectors*CDIO_CD_FRAMESIZE_RAW);
@@ -216,22 +216,22 @@ cddap_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors)
   jitter_baddness_t jitter_badness = d->i_test_flags & 0x3;
 
   /* read d->nsectors at a time, max. */
-  i_sectors = ( i_sectors > d->nsectors && d->nsectors > 0 ) 
+  i_sectors = ( i_sectors > d->nsectors && d->nsectors > 0 )
     ? d->nsectors : i_sectors;
 
   /* If we are testing under-run correction, we will deliberately set
      what we read a frame short.  */
-  if (d->i_test_flags & CDDA_TEST_UNDERRUN ) 
+  if (d->i_test_flags & CDDA_TEST_UNDERRUN )
     i_sectors--;
 
   if (jitter_badness) {
     return jitter_read(d, p, begin, i_sectors, jitter_badness);
-  } else 
+  } else
     return read_blocks(d, p, begin, i_sectors);
-  
+
 }
 
-static int 
+static int
 verify_read_command(cdrom_drive_t *d)
 {
   int i;
@@ -261,7 +261,7 @@ verify_read_command(cdrom_drive_t *d)
       }
     }
   }
- 
+
   d->enable_cdda(d,0);
 
   if(!audioflag){
@@ -272,7 +272,7 @@ verify_read_command(cdrom_drive_t *d)
 
   cdmessage(d,"\n\tUnable to read any data; "
 	    "drive probably not CDDA capable.\n");
-  
+
   cderror(d,"006: Could not read any data from drive\n");
 
   free(buff);
@@ -282,7 +282,7 @@ verify_read_command(cdrom_drive_t *d)
 #include "drive_exceptions.h"
 
 #ifdef HAVE_LINUX_MAJOR_H
-static void 
+static void
 check_exceptions(cdrom_drive_t *d, const exception_t *list)
 {
 
@@ -298,7 +298,7 @@ check_exceptions(cdrom_drive_t *d, const exception_t *list)
 #endif /* HAVE_LINUX_MAJOR_H */
 
 /* set function pointers to use the ioctl routines */
-int 
+int
 cddap_init_drive (cdrom_drive_t *d)
 {
   int ret;
@@ -358,13 +358,13 @@ cddap_init_drive (cdrom_drive_t *d)
     d->nsectors=25;  /* The max for SCSI MMC2 */
   }
 #else
-  { 	 
-    char buffer[256]; 	 
-    d->nsectors = 8; 	 
-    sprintf(buffer,"\tSetting read block size at %d sectors (%ld bytes).\n", 	 
-	    d->nsectors,(long)d->nsectors*CDIO_CD_FRAMESIZE_RAW); 	 
-    cdmessage(d,buffer); 	 
-  } 	 
+  {
+    char buffer[256];
+    d->nsectors = 8;
+    sprintf(buffer,"\tSetting read block size at %d sectors (%ld bytes).\n",
+	    d->nsectors,(long)d->nsectors*CDIO_CD_FRAMESIZE_RAW);
+    cdmessage(d,buffer);
+  }
 #endif /*HAVE_LINUX_MAJOR_H*/
 
   d->enable_cdda = dummy_exception;
@@ -384,4 +384,3 @@ cddap_init_drive (cdrom_drive_t *d)
 
   return(0);
 }
-

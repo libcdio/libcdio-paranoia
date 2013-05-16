@@ -4,12 +4,12 @@
 #
 #
 
-SUBDIRS = data
+SUBDIRS = cdda_interface data
 
 testparanoia=testparanoia
 testparanoia_LDADD = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_LIBS) $(LTLIBICONV)
 
-hack = $(testparanoia) 
+hack = $(testparanoia)
 
 DATA_DIR       = @abs_top_srcdir@/test/data
 
@@ -22,11 +22,11 @@ check_SCRIPTS = check_paranoia.sh
 
 check_PROGRAMS = testparanoia
 
-check_DATA = cd-paranoia-log.right 
+check_DATA = cd-paranoia-log.right
 
 EXTRA_DIST = $(check_SCRIPTS) $(check_DATA)
 
-TESTS = $(check_PROGRAMS) $(check_SCRIPTS) 
+TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
 MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw
 

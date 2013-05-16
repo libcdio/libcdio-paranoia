@@ -1,4 +1,4 @@
-/*~
+*~
 /ChangeLog
 /Makefile
 /Makefile.in
@@ -24,3 +24,5 @@
 /ltmain.sh
 /missing
 /stamp-h1
+/*.directive
+/*.directive.asc

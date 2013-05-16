@@ -43,7 +43,7 @@
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
-#endif 
+#endif
 
 #ifdef HAVE_STRING_H
 # include <string.h>
@@ -93,7 +93,7 @@ extern int quiet;
 /* I wonder how many alignment issues this is gonna trip in the
    future...  it shouldn't trip any...  I guess we'll find out :) */
 
-static int 
+static int
 bigendianp(void)
 {
   int test=1;
@@ -102,7 +102,7 @@ bigendianp(void)
   return(1);
 }
 
-static long 
+static long
 parse_offset(cdrom_drive_t *d, char *offset, int begin)
 {
   track_t i_track= CDIO_INVALID_TRACK;
@@ -138,7 +138,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
       if ( i_track > d->tracks ) {
         /*take track i_first_track-1 as pre-gap of 1st track*/
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), 
+        snprintf(buffer, sizeof(buffer),
                  "Track #%d does not exist.", i_track);
         report(buffer);
         exit(1);
@@ -157,7 +157,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
       val=atoi(sec+1);
     else
       val=0;
-    
+
     switch(*sec){
     case '.':
       if(sectors!=-1){
@@ -181,7 +181,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
           }
       break;
     }
-         
+
     if (sec<=time) break;
     *sec='\0';
   }
@@ -194,7 +194,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
       ret = begin;
   } else {
     if ( seconds==-1 && sectors==-1 ) {
-      if (begin==-1){ 
+      if (begin==-1){
         /* first half of a span */
         return(cdda_track_firstsector(d, i_track));
       }else{
@@ -205,7 +205,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
       ret=cdda_track_firstsector(d, i_track);
     }
   }
-   
+
   /* OK, we had some sort of offset into a track */
 
   if (sectors != -1) ret += sectors;
@@ -231,16 +231,16 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
   return(ret);
 }
 
-static void 
+static void
 display_toc(cdrom_drive_t *d)
 {
   long audiolen=0;
   track_t i;
-  
+
   report("\nTable of contents (audio tracks only):\n"
          "track        length               begin        copy pre ch\n"
          "===========================================================");
-  
+
   for( i=1; i<=d->tracks; i++)
     if ( cdda_track_audiop(d,i) ) {
       char buffer[256];
@@ -314,12 +314,12 @@ static const char *callback_strings[15]={
   "duped",
   "transport error"};
 
-static void 
+static void
 callback(long int inpos, paranoia_cb_mode_t function)
 {
   /*
 
- (== PROGRESS == [--+!---x-------------->           | 007218 01 ] == :-) . ==) 
+ (== PROGRESS == [--+!---x-------------->           | 007218 01 ] == :-) . ==)
 
  */
 
@@ -340,7 +340,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
   static int slast=0;
   static int stimeout=0;
   const char *smilie="= :-)";
-  
+
   if (callscript)
     fprintf(stderr, "##: %d [%s] @ %ld\n",
             function, ((int) function >= -2 && (int) function < 13 ?
@@ -351,7 +351,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
     long test;
     osector=inpos;
     sector=inpos/CD_FRAMEWORDS;
-    
+
     if(printit==-1){
        if(isatty(STDERR_FILENO) || (logfile != NULL)){
         printit=1;
@@ -360,14 +360,14 @@ callback(long int inpos, paranoia_cb_mode_t function)
       }
     }
 
-    if(printit==1){  /* else don't bother; it's probably being 
+    if(printit==1){  /* else don't bother; it's probably being
                         redirected */
       position=((float)(sector-callbegin)/
                 (callend-callbegin))*graph;
-      
+
       aheadposition=((float)(c_sector-callbegin)/
                      (callend-callbegin))*graph;
-      
+
       if(function==-2){
         v_sector=sector;
         return;
@@ -391,7 +391,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
           case PARANOIA_CB_READ:
             if(sector>c_sector)c_sector=sector;
             break;
-            
+
           case PARANOIA_CB_FIXUP_EDGE:
             if(stimeout>=5){
               if(overlap>CD_FRAMEWORDS)
@@ -399,7 +399,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
               else
                 slevel=1;
             }
-            if(dispcache[position]==' ') 
+            if(dispcache[position]==' ')
               dispcache[position]='-';
             break;
           case PARANOIA_CB_FIXUP_ATOM:
@@ -438,7 +438,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
           case PARANOIA_CB_BACKOFF:
             break;
           }
-    
+
       switch(slevel){
       case 0:  /* finished, or no jitter */
         if(skipped_flag)
@@ -451,7 +451,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
         break;
       case 2:  /* normal, overlap > 1 */
         smilie=" :-|";
-        break; 
+        break;
       case 4:  /* drift */
         smilie=" :-/";
         break;
@@ -471,9 +471,9 @@ callback(long int inpos, paranoia_cb_mode_t function)
         smilie=" ;-(";
         skipped_flag=1;
         break;
-        
+
       }
-      
+
       gettimeofday(&thistime,NULL);
       test=thistime.tv_sec*10+thistime.tv_usec/100000;
 
@@ -493,7 +493,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
           case 2:case 6:
             heartbeat='o';
             break;
-          case 3:case 5:  
+          case 3:case 5:
             heartbeat='0';
             break;
           case 4:
@@ -508,7 +508,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
           stimeout=0;
         }
         slast=slevel;
-        
+
         if(abort_on_skip && skipped_flag && function !=-1){
           sprintf(buffer,
                   "\r (== PROGRESS == [%s| %06ld %02d ] ==%s %c ==)   ",
@@ -519,16 +519,16 @@ callback(long int inpos, paranoia_cb_mode_t function)
             sprintf(buffer,
                     "\r (== PROGRESS == [%s| ...... %02d ] ==%s %c ==)   ",
                     dispcache,overlap/CD_FRAMEWORDS,smilie,heartbeat);
-          
+
           else
             sprintf(buffer,
                     "\r (== PROGRESS == [%s| %06ld %02d ] ==%s %c ==)   ",
                     dispcache,v_sector,overlap/CD_FRAMEWORDS,smilie,heartbeat);
-          
+
           if(aheadposition>=0 && aheadposition<graph && !(function==-1))
             buffer[aheadposition+19]='>';
         }
-   
+
         if(isatty(STDERR_FILENO))
             fprintf(stderr, "%s", buffer);
 
@@ -592,12 +592,12 @@ static char *force_cdrom_device   = NULL;
 
 #define free_and_null(p) \
   free(p);               \
-  p=NULL;                
+  p=NULL;
 
 #if !defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIME_H) && defined(HAVE_SYS_TIMEB_H)
-static void 
+static void
 gettimeofday(struct timeval* tv, void* timezone)
-{ 
+{
   struct timeb timebuffer;
   ftime( &timebuffer );
   tv->tv_sec=timebuffer.time;
@@ -605,11 +605,11 @@ gettimeofday(struct timeval* tv, void* timezone)
 }
 #endif
 
-/* This is run automatically before leaving the program. 
+/* This is run automatically before leaving the program.
    Free allocated resources.
-*/  
-static void 
-cleanup (void) 
+*/
+static void
+cleanup (void)
 {
   if (p) paranoia_free(p);
   if (d) cdda_close(d);
@@ -621,13 +621,13 @@ cleanup (void)
     }
 }
 
-/* Returns true if we have an integer argument. 
+/* Returns true if we have an integer argument.
    If so, pi_arg is set.
    If no argument or integer argument found, we give an error
    message and return false.
 */
-static bool 
-get_int_arg(char c, long int *pi_arg) 
+static bool
+get_int_arg(char c, long int *pi_arg)
 {
   long int i_arg;
   char *p_end;
@@ -657,7 +657,7 @@ get_int_arg(char c, long int *pi_arg)
   }
 }
 
-int 
+int
 main(int argc,char *argv[])
 {
   int   toc_bias             =  0;
@@ -675,7 +675,7 @@ main(int argc,char *argv[])
   long int max_retries          = 20;
 
   /* full paranoia, but allow skipping */
-  int paranoia_mode=PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP; 
+  int paranoia_mode=PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP;
 
   int out;
 
@@ -805,12 +805,12 @@ main(int argc,char *argv[])
       abort_on_skip=1;
       break;
     case 'Y':
-      paranoia_mode|=PARANOIA_MODE_OVERLAP; /* cdda2wav style overlap 
+      paranoia_mode|=PARANOIA_MODE_OVERLAP; /* cdda2wav style overlap
                                                 check only */
       paranoia_mode&=~PARANOIA_MODE_VERIFY;
       break;
     case 'Z':
-      paranoia_mode=PARANOIA_MODE_DISABLE; 
+      paranoia_mode=PARANOIA_MODE_DISABLE;
       break;
     case 'z':
       if (optarg) {
@@ -825,14 +825,14 @@ main(int argc,char *argv[])
       exit(1);
     }
   }
-  
+
   if(logfile){
     /* log command line and version */
     int i;
-    for (i = 0; i < argc; i++) 
+    for (i = 0; i < argc; i++)
       fprintf(logfile,"%s ",argv[i]);
     fprintf(logfile,"\n");
-    
+
     fprintf(logfile,VERSION);
     fprintf(logfile,"\n");
     fflush(logfile);
@@ -857,8 +857,8 @@ main(int argc,char *argv[])
     d=cdda_identify(force_cdrom_device,verbose,NULL);
   else {
     driver_id_t driver_id;
-    char **ppsz_cd_drives = cdio_get_devices_with_cap_ret(NULL,  
-                                                          CDIO_FS_AUDIO, 
+    char **ppsz_cd_drives = cdio_get_devices_with_cap_ret(NULL,
+                                                          CDIO_FS_AUDIO,
                                                           false,
                                                           &driver_id);
     if (ppsz_cd_drives && *ppsz_cd_drives) {
@@ -870,16 +870,16 @@ main(int argc,char *argv[])
              " mixed-mode (and non-audio) format tracks");
       exit(1);
     }
-    
+
     cdio_free_device_list(ppsz_cd_drives);
   }
-  
+
   if(!d){
     if(!verbose)
       report("\nUnable to open cdrom drive; -v might give more information.");
     exit(1);
   }
-  
+
   if(verbose)
     cdda_verbose_set(d,CDDA_MESSAGE_PRINTIT,CDDA_MESSAGE_PRINTIT);
   else
@@ -951,7 +951,7 @@ main(int argc,char *argv[])
   if (query_only) exit(0);
 
   /* bias the disc.  A hack.  Of course. this is never the default. */
-  /* 
+  /*
      Some CD-ROM/CD-R drives will add an offset to the position on
      reading audio data. This is usually around 500-700 audio samples
      (ca. 1/75 second) on reading. So when this program queries a
@@ -962,7 +962,7 @@ main(int argc,char *argv[])
      cause this program to attempt to read partial sectors before or
      past the known user data area of the disc, probably causing read
      errors on most drives and possibly even hard lockups on some
-     buggy hardware. 
+     buggy hardware.
 
      [Note to libcdio driver hackers: make sure all CD-drivers don't
      try to read outside of the stated disc boundaries.]
@@ -979,7 +979,7 @@ main(int argc,char *argv[])
   if (toc_bias) {
     toc_offset = -cdda_track_firstsector(d,1);
   }
-  
+
   {
     int i;
     for( i=0; i < d->tracks+1; i++ )
@@ -1007,18 +1007,18 @@ main(int argc,char *argv[])
     int batch_track;
 
     if (span) {
-      /* look for the hyphen */ 
+      /* look for the hyphen */
       char *span2=strchr(span,'-');
       if(strrchr(span,'-')!=span2){
         report("Error parsing span argument");
         exit(1);
       }
-      
+
       if (span2!=NULL) {
         *span2='\0';
         span2++;
       }
-      
+
       i_first_lsn=parse_offset(d, span, -1);
 
       if(i_first_lsn==-1)
@@ -1026,7 +1026,7 @@ main(int argc,char *argv[])
 
       else
         i_last_lsn=parse_offset(d, span2, i_first_lsn);
-      
+
       if (i_first_lsn == -1) {
         if (i_last_lsn == -1) {
           report("Error parsing span argument");
@@ -1057,26 +1057,31 @@ main(int argc,char *argv[])
       long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
       int i;
 
+      if (track2 < d->tracks) track2 = d->tracks;
       for( i=track1; i<=track2; i++ )
         if(i != 0 && !cdda_track_audiop(d,i)){
-          report("Selected span contains non audio tracks.  Aborting.\n\n");
+	    snprintf(buffer, sizeof(buffer),
+		     "Selected span contains non audio tracks at track %02d.  Aborting.\n\n",
+		     i);
+          report(buffer);
           exit(1);
         }
 
-      sprintf(buffer, "Ripping from sector %7ld (track %2d [%d:%02d.%02d])\n"
-              "\t  to sector %7ld (track %2d [%d:%02d.%02d])\n",
-              i_first_lsn,
-              track1,
-              (int) (off1/(CDIO_CD_FRAMES_PER_MIN)),
-              (int) ((off1/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-              (int) (off1 % CDIO_CD_FRAMES_PER_SEC),
-              i_last_lsn,
-              track2,
-              (int) (off2/(CDIO_CD_FRAMES_PER_MIN)),
-              (int) ((off2/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-              (int) (off2 % CDIO_CD_FRAMES_PER_SEC));
+      snprintf(buffer, sizeof(buffer),
+	       "Ripping from sector %7ld (track %2d [%d:%02d.%02d])\n"
+	       "\t  to sector %7ld (track %2d [%d:%02d.%02d])\n",
+	       i_first_lsn,
+	       track1,
+	       (int) (off1/(CDIO_CD_FRAMES_PER_MIN)),
+	       (int) ((off1/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+	       (int) (off1 % CDIO_CD_FRAMES_PER_SEC),
+	       i_last_lsn,
+	       track2,
+	       (int) (off2/(CDIO_CD_FRAMES_PER_MIN)),
+	       (int) ((off2/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+	       (int) (off2 % CDIO_CD_FRAMES_PER_SEC));
       report(buffer);
-      
+
     }
 
     {
@@ -1094,8 +1099,8 @@ main(int argc,char *argv[])
         cdio_loglevel_default = CDIO_LOG_INFO;
       } else
         cdda_verbose_set(d,CDDA_MESSAGE_FORGETIT,CDDA_MESSAGE_FORGETIT);
-      
-      paranoia_seek(p,cursor=i_first_lsn,SEEK_SET);      
+
+      paranoia_seek(p,cursor=i_first_lsn,SEEK_SET);
 
       /* this is probably a good idea in general */
 #if defined(HAVE_GETUID) && defined(HAVE_SETEUID)
@@ -1125,12 +1130,12 @@ main(int argc,char *argv[])
           batch_last  = i_last_lsn;
           batch_track = -1;
         }
-        
+
         callbegin=batch_first;
         callend=batch_last;
-        
+
         /* argv[optind] is the span, argv[optind+1] (if exists) is outfile */
-        
+
         if (optind+1<argc) {
           if (!strcmp(argv[optind+1],"-") ){
             out = dup(fileno(stdout));
@@ -1154,14 +1159,14 @@ main(int argc,char *argv[])
             char *post=strrchr(argv[optind+1],'/');
             int pos=(post?post-argv[optind+1]+1:0);
             char *file=argv[optind+1]+pos;
-            
+
             path[0]='\0';
 
             if(pos)
               strncat(path,argv[optind+1],pos>256?256:pos);
 
             if(batch)
-              snprintf(outfile_name, 246, " %strack%02d.%s", path, 
+              snprintf(outfile_name, 246, " %strack%02d.%s", path,
                        batch_track, file);
             else
               snprintf(outfile_name, 246, "%s%s", path, file);
@@ -1182,7 +1187,7 @@ main(int argc,char *argv[])
                 break;
               }
             }
-            
+
             out=open(outfile_name,O_RDWR|O_CREAT|O_TRUNC,0666);
             if(out==-1){
               report3("Cannot open specified output file %s: %s",
@@ -1201,7 +1206,7 @@ main(int argc,char *argv[])
             sprintf(outfile_name,"track%02d.", batch_track);
           else
             outfile_name[0]='\0';
-          
+
           switch(output_type){
           case 0: /* raw */
             strncat(outfile_name, "cdda.raw", sizeof("cdda.raw"));
@@ -1216,7 +1221,7 @@ main(int argc,char *argv[])
             strncat(outfile_name, "cdda.aiff", sizeof("cdda.aiff"));
             break;
           }
-          
+
           out = open(outfile_name, O_RDWR|O_CREAT|O_TRUNC, 0666);
           if(out==-1){
             report3("Cannot open default output file %s: %s", outfile_name,
@@ -1230,7 +1235,7 @@ main(int argc,char *argv[])
           }
 
         }
-        
+
         switch(output_type) {
         case 0: /* raw */
           break;
@@ -1244,7 +1249,7 @@ main(int argc,char *argv[])
           WriteAiff(out, (batch_last-batch_first+1)*CDIO_CD_FRAMESIZE_RAW);
           break;
         }
-        
+
         /* Off we go! */
 
         if(offset_buffer_used){
@@ -1257,7 +1262,7 @@ main(int argc,char *argv[])
             exit(1);
           }
         }
-        
+
         skipped_flag=0;
         while(cursor<=batch_last){
           /* read a sector */
@@ -1269,7 +1274,7 @@ main(int argc,char *argv[])
             fprintf(stderr,"\r                               "
                     "                                           \r%s%s\n",
                     mes?mes:"",err?err:"");
-          
+
           if (err) free(err);
           if (mes) free(mes);
           if( readbuf==NULL) {
@@ -1284,13 +1289,13 @@ main(int argc,char *argv[])
 
           skipped_flag=0;
           cursor++;
-          
+
           if (output_endian!=bigendianp()) {
             int i;
             for (i=0; i<CDIO_CD_FRAMESIZE_RAW/2; i++)
               readbuf[i]=UINT16_SWAP_LE_BE_C(readbuf[i]);
           }
-          
+
           callback(cursor*(CD_FRAMEWORDS)-1,-2);
 
           if (buffering_write(out,((char *)readbuf)+offset_skip,
@@ -1299,7 +1304,7 @@ main(int argc,char *argv[])
             exit(1);
           }
           offset_skip=0;
-          
+
           if (output_endian != bigendianp()){
             int i;
             for (i=0; i<CDIO_CD_FRAMESIZE_RAW/2; i++)
@@ -1318,7 +1323,7 @@ main(int argc,char *argv[])
               fprintf(stderr,"\r                               "
                       "                                           \r%s%s\n",
                       mes?mes:"",err?err:"");
-          
+
             if(err)free(err);if(mes)free(mes);
             if(readbuf==NULL){
               skipped_flag=1;
@@ -1329,14 +1334,14 @@ main(int argc,char *argv[])
             if (skipped_flag && abort_on_skip) break;
             skipped_flag=0;
             /* do not move the cursor */
-          
+
             if(output_endian!=bigendianp())
               for(i=0;i<CDIO_CD_FRAMESIZE_RAW/2;i++)
                 offset_buffer[i]=UINT16_SWAP_LE_BE_C(readbuf[i]);
             else
               memcpy(offset_buffer,readbuf,CDIO_CD_FRAMESIZE_RAW);
             offset_buffer_used=sample_offset*4;
-          
+
             callback(cursor*(CD_FRAMEWORDS),-2);
 
             if(buffering_write(out,(char *)offset_buffer,
