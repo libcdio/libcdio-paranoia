@@ -74,6 +74,8 @@ AC_PROG_CXX
 dnl Checks for programs.
 AC_AIX
 
+AC_PROG_MKDIR_P
+
 if test "x$GCC" != "xyes"
 then
   AC_MSG_WARN([

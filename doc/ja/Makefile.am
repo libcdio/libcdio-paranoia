@@ -25,7 +25,7 @@ EXTRA_DIST = $(manfiles) cd-paranoia.1.in
 
 install-man1: $(man_MANS)
 	@$(NORMAL_INSTALL)
-	test -z "$(man1dir)" || $(mkdir_p) "$(DESTDIR)$(mandir)$(mansubdir)"
+	test -z "$(man1dir)" || $(MKDIR_P) "$(DESTDIR)$(mandir)$(mansubdir)"
 	@list='$(man1_MANS)'; \
 	l2='$(man_MANS)'; for i in $$l2; do \
 	  case "$$i" in \

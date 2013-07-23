@@ -1061,7 +1061,7 @@ main(int argc,char *argv[])
       for( i=track1; i<=track2; i++ )
         if(i != 0 && !cdda_track_audiop(d,i)){
 	    snprintf(buffer, sizeof(buffer),
-		     "Selected span contains non audio tracks at track %02d.  Aborting.\n\n",
+		     "Selected span contains non audio track at track %02d.  Aborting.\n\n",
 		     i);
           report(buffer);
           exit(1);
