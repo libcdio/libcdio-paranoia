@@ -406,11 +406,6 @@ AC_CHECK_FUNCS( [bzero chdir drand48 ftruncate geteuid getgid \
 		 sleep usleep vsnprintf readlink realpath gmtime_r localtime_r] )
 
 dnl
-dnl Newest automake workaround - needed for multi-language manual pages
-dnl
-AC_SUBST(mkdir_p)
-
-dnl
 dnl Output configuration files
 dnl
 ## AC_CONFIG_FILES([  po/Makefile.in\
