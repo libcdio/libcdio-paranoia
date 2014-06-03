@@ -39,7 +39,8 @@ cderror(cdrom_drive_t *d,const char *s)
       d->errorbuf=catstring(d->errorbuf,s);
       break;
     case CDDA_MESSAGE_FORGETIT:
-    default: ;
+    default:
+      break;
     }
   }
 }
@@ -57,7 +58,8 @@ cdmessage(cdrom_drive_t *d, const char *s)
       d->messagebuf=catstring(d->messagebuf,s);
       break;
     case CDDA_MESSAGE_FORGETIT:
-    default: ;
+    default:
+      break;
     }
   }
 }
@@ -102,7 +104,8 @@ idperror(int messagedest,char **messages,const char *f,
       }
       break;
     case CDDA_MESSAGE_FORGETIT:
-    default: ;
+    default:
+      break;
     }
   }
   if(malloced)free(buffer);
@@ -142,7 +145,8 @@ idmessage(int messagedest,char **messages,const char *f,
 	}
       break;
     case CDDA_MESSAGE_FORGETIT:
-    default: ;
+    default:
+      break;
     }
   }
   if(malloced)free(buffer);

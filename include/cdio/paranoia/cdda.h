@@ -198,6 +198,7 @@ cdrom_drive_t *cdio_cddap_identify_cdio(CdIo_t *p_cdio,
 
 /** drive-oriented functions */
 
+extern char   *cdio_cddap_version();
 extern int     cdio_cddap_speed_set(cdrom_drive_t *d, int speed);
 extern void    cdio_cddap_verbose_set(cdrom_drive_t *d, int err_action, 
 				      int mes_action);
@@ -352,6 +353,8 @@ const char *strerror_tr[]={
 401: Invalid track number
 402: Track not audio data
 403: No audio tracks on disc
+404: No medium present
+405: Option not supported by drive
 \endverbatim
 
 */
@@ -360,6 +363,7 @@ const char *strerror_tr[]={
 /** For compatibility with good ol' paranoia */
 #define cdda_find_a_cdrom       cdio_cddap_find_a_cdrom
 #define cdda_identify           cdio_cddap_identify
+#define cdda_version            cdio_cddap_version
 #define cdda_speed_set          cdio_cddap_speed_set
 #define cdda_verbose_set        cdio_cddap_verbose_set
 #define cdda_messages           cdio_cddap_messages

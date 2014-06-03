@@ -77,6 +77,13 @@ extern "C" {
 #endif
 
   /*! 
+    Get libcdio-paranoia version.
+
+    @return paranoia version string
+   */
+  extern char *cdio_paranoia_version();
+
+  /*! 
     Get and initialize a new cdrom_paranoia object from cdrom_drive.
     Run this before calling any of the other paranoia routines below.
 
@@ -164,6 +171,7 @@ extern "C" {
 #ifndef DO_NOT_WANT_PARANOIA_COMPATIBILITY
 /** For compatibility with good ol' paranoia */
 #define cdrom_paranoia        cdrom_paranoia_t
+#define paranoia_version      cdio_paranoia_version
 #define paranoia_init         cdio_paranoia_init
 #define paranoia_free         cdio_paranoia_free
 #define paranoia_modeset      cdio_paranoia_modeset

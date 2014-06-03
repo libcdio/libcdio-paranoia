@@ -87,9 +87,6 @@ static void gettimeofday(struct timeval* tv, void* timezone);
 #include "header.h"
 #include "buffering_write.h"
 
-extern int verbose;
-extern int quiet;
-
 /* I wonder how many alignment issues this is gonna trip in the
    future...  it shouldn't trip any...  I guess we'll find out :) */
 
@@ -137,10 +134,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
       i_track=atoi(offset);
       if ( i_track > d->tracks ) {
         /*take track i_first_track-1 as pre-gap of 1st track*/
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer),
-                 "Track #%d does not exist.", i_track);
-        report(buffer);
+	report("Track #%d does not exist.",i_track);
         exit(1);
       }
     }
@@ -242,39 +236,32 @@ display_toc(cdrom_drive_t *d)
          "===========================================================");
 
   for( i=1; i<=d->tracks; i++)
-    if ( cdda_track_audiop(d,i) ) {
-      char buffer[256];
+    if ( cdda_track_audiop(d,i) > 0 ) {
 
       lsn_t sec=cdda_track_firstsector(d,i);
       lsn_t off=cdda_track_lastsector(d,i)-sec+1;
 
-      sprintf(buffer,
-              "%3d.  %7ld [%02d:%02d.%02d]  %7ld [%02d:%02d.%02d]  %s %s %s",
-              i,
-              (long int) off,
-              (int) (off/(CDIO_CD_FRAMES_PER_MIN)),
-              (int) ((off/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-              (int) (off % CDIO_CD_FRAMES_PER_SEC),
-              (long int) sec,
-              (int) (sec/(CDIO_CD_FRAMES_PER_MIN)),
-              (int) ((sec/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-              (int) (sec % CDIO_CD_FRAMES_PER_SEC),
-              cdda_track_copyp(d,i)?"  OK":"  no",
-              cdda_track_preemp(d,i)?" yes":"  no",
-              cdda_track_channels(d,i)==2?" 2":" 4");
-      report(buffer);
+      report("%3d.  %7ld [%02d:%02d.%02d]  %7ld [%02d:%02d.%02d]  %s %s %s",
+	     i,
+	     (long int) off,
+             (int) (off/(CDIO_CD_FRAMES_PER_MIN)),
+             (int) ((off/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+             (int) (off % CDIO_CD_FRAMES_PER_SEC),
+	     (long int) sec,
+             (int) (sec/(CDIO_CD_FRAMES_PER_MIN)),
+             (int) ((sec/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+             (int) (sec % CDIO_CD_FRAMES_PER_SEC),
+	     cdda_track_copyp(d,i)?"  OK":"  no",
+	     cdda_track_preemp(d,i)?" yes":"  no",
+	     cdda_track_channels(d,i)==2?" 2":" 4");
       audiolen+=off;
     }
-  {
-    char buffer[256];
-    sprintf(buffer, "TOTAL %7ld [%02d:%02d.%02d]    (audio only)",
-            audiolen,
-            (int) (audiolen/(CDIO_CD_FRAMES_PER_MIN)),
-            (int) ((audiolen/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-            (int) (audiolen % CDIO_CD_FRAMES_PER_SEC));
-      report(buffer);
-  }
-  report("");
+  report("TOTAL %7ld [%02d:%02d.%02d]    (audio only)",
+	 audiolen,
+         (int) (audiolen/(CDIO_CD_FRAMES_PER_MIN)),
+         (int) ((audiolen/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+	 (int) (audiolen % CDIO_CD_FRAMES_PER_SEC));
+  report(" ");
 }
 
 #include "usage.h"
@@ -290,6 +277,8 @@ static long callscript=0;
 static int skipped_flag=0;
 static int abort_on_skip=0;
 static FILE *logfile = NULL;
+static int logfile_open=0;
+static int reportfile_open=0;
 
 #if TRACE_PARANOIA
 static void
@@ -410,12 +399,13 @@ callback(long int inpos, paranoia_cb_mode_t function)
             break;
           case PARANOIA_CB_READERR:
             slevel=6;
-            if(dispcache[position]!='V')
+	    if(dispcache[position]!='V' && dispcache[position]!='C')
               dispcache[position]='e';
             break;
           case PARANOIA_CB_SKIP:
             slevel=8;
-            dispcache[position]='V';
+	    if(dispcache[position]!='C')
+	      dispcache[position]='V';
             break;
           case PARANOIA_CB_OVERLAP:
             overlap=osector;
@@ -547,7 +537,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
 }
 #endif /* !TRACE_PARANOIA */
 
-static const char optstring[] = "aBcCd:efg:hi:l:m:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
+static const char optstring[] = "aBcCd:efg:k:hi:l:L:m:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
 
 static const struct option options [] = {
         {"abort-on-skip",             no_argument,       NULL, 'X'},
@@ -559,11 +549,13 @@ static const struct option options [] = {
         {"force-cdrom-device",        required_argument, NULL, 'd'},
         {"force-cdrom-little-endian", no_argument,       NULL, 'c'},
         {"force-default-sectors",     required_argument, NULL, 'n'},
+        {"force-cooked-device",       required_argument, NULL, 'k'},
         {"force-generic-device",      required_argument, NULL, 'g'},
         {"force-read-speed",          required_argument, NULL, 'S'},
         {"force-search-overlap",      required_argument, NULL, 'o'},
         {"help",                      no_argument,       NULL, 'h'},
         {"log-summary",               required_argument, NULL, 'l'},
+        {"log-debug",                 required_argument, NULL, 'L'},
         {"mmc-timeout",               required_argument, NULL, 'm'},
         {"never-skip",                optional_argument, NULL, 'z'},
         {"output-aifc",               no_argument,       NULL, 'a'},
@@ -615,9 +607,13 @@ cleanup (void)
   if (d) cdda_close(d);
   free_and_null(force_cdrom_device);
   free_and_null(span);
-  if(logfile && logfile != stdout) {
+  if(logfile_open) {
       fclose(logfile);
       logfile = NULL;
+    }
+  if(reportfile_open) {
+      fclose(reportfile);
+      reportfile = NULL;
     }
 }
 
@@ -668,11 +664,14 @@ main(int argc,char *argv[])
   int   batch                =  0;
   long int force_cdrom_overlap  = -1;
   long int force_cdrom_sectors  = -1;
-  long int force_cdrom_speed    = -1;
+  long int force_cdrom_speed    =  0;
   long int sample_offset        =  0;
   long int test_flags           =  0;
   long int toc_offset           =  0;
   long int max_retries          = 20;
+
+  char *logfile_name=NULL;
+  char *reportfile_name=NULL;
 
   /* full paranoia, but allow skipping */
   int paranoia_mode=PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP;
@@ -711,6 +710,7 @@ main(int argc,char *argv[])
       paranoia_mode&=~(PARANOIA_MODE_FRAGMENT);
       break;
     case 'g':
+    case 'k':
     case 'd':
       if (force_cdrom_device) {
         fprintf(stderr,
@@ -724,17 +724,18 @@ main(int argc,char *argv[])
       usage(stdout);
       exit(0);
     case 'l':
-      if(logfile && logfile != stdout)fclose(logfile);
-      if(!strcmp(optarg,"-"))
-        logfile=stdout;
-      else{
-        logfile=fopen(optarg,"w");
-        if(logfile==NULL){
-          report3("Cannot open log summary file %s: %s",(char*)optarg,
-                  strerror(errno));
-          exit(1);
-        }
-      }
+      if(logfile_name)free(logfile_name);
+      logfile_name=NULL;
+      if(optarg)
+	logfile_name=strdup(optarg);
+      logfile_open=1;
+      break;
+    case 'L':
+      if(reportfile_name)free(reportfile_name);
+      reportfile_name=NULL;
+      if(optarg)
+	reportfile_name=strdup(optarg);
+      reportfile_open=1;
       break;
     case 'm':
       {
@@ -826,6 +827,42 @@ main(int argc,char *argv[])
     }
   }
 
+  if(logfile_open){
+    if(logfile_name==NULL)
+      logfile_name=strdup("cdparanoia.log");
+    if(!strcmp(logfile_name,"-")){
+      logfile=stdout;
+      logfile_open=0;
+    }else{
+      logfile=fopen(logfile_name,"w");
+      if(logfile==NULL){
+	report("Cannot open log summary file %s: %s",logfile_name,
+	       strerror(errno));
+	exit(1);
+      }
+    }
+  }
+  if(reportfile_open){
+    if(reportfile_name==NULL)
+      reportfile_name=strdup("cdparanoia.log");
+    if(!strcmp(reportfile_name,"-")){
+      reportfile=stdout;
+      reportfile_open=0;
+    }else{
+      if(logfile_name && !strcmp(reportfile_name,logfile_name)){
+	reportfile=logfile;
+	reportfile_open=0;
+      }else{
+	reportfile=fopen(reportfile_name,"w");
+	if(reportfile==NULL){
+	  report("Cannot open debug log file %s: %s",reportfile_name,
+		 strerror(errno));
+	  exit(1);
+	}
+      }
+    }
+  }
+    
   if(logfile){
     /* log command line and version */
     int i;
@@ -833,9 +870,22 @@ main(int argc,char *argv[])
       fprintf(logfile,"%s ",argv[i]);
     fprintf(logfile,"\n");
 
-    fprintf(logfile,VERSION);
-    fprintf(logfile,"\n");
+    if(reportfile!=logfile){
+      fprintf(logfile,VERSION);
+      fprintf(logfile,"\n");
+      fprintf(logfile,"Using cdda library version: %s\n",cdda_version());
+      fprintf(logfile,"Using paranoia library version: %s\n",paranoia_version());
+    }
     fflush(logfile);
+  }
+
+  if(reportfile && reportfile!=logfile){
+    /* log command line */
+    int i;
+    for (i = 0; i < argc; i++) 
+      fprintf(reportfile,"%s ",argv[i]);
+    fprintf(reportfile,"\n");
+    fflush(reportfile);
   }
 
   if(optind>=argc && !query_only){
@@ -850,6 +900,10 @@ main(int argc,char *argv[])
     if (argv[optind]) span=strdup(argv[optind]);
 
   report(PARANOIA_VERSION);
+  if(verbose){
+    report("Using cdda library version: %s",cdda_version());
+    report("Using paranoia library version: %s",paranoia_version());
+  }
 
   /* Query the cdrom/disc; we may need to override some settings */
 
@@ -904,13 +958,9 @@ main(int argc,char *argv[])
       d=NULL;
       exit(1);
     }
-    {
-      char buffer[256];
-      sprintf(buffer,"Forcing default to read %ld sectors; "
-              "ignoring preset and autosense", force_cdrom_sectors);
-      report(buffer);
-      d->nsectors=force_cdrom_sectors;
-    }
+    report("Forcing default to read %ld sectors; "
+	   "ignoring preset and autosense",force_cdrom_sectors);
+    d->nsectors=force_cdrom_sectors;
   }
   if (force_cdrom_overlap!=-1) {
     if (force_cdrom_overlap<0 || force_cdrom_overlap>CDIO_CD_FRAMES_PER_SEC) {
@@ -921,12 +971,8 @@ main(int argc,char *argv[])
         fclose(logfile);
       exit(1);
     }
-    {
-      char buffer[256];
-      sprintf(buffer,"Forcing search overlap to %ld sectors; "
-              "ignoring autosense", force_cdrom_overlap);
-      report(buffer);
-    }
+    report("Forcing search overlap to %ld sectors; "
+	   "ignoring autosense",force_cdrom_overlap);
   }
 
   switch( cdda_open(d) ) {
@@ -944,6 +990,23 @@ main(int argc,char *argv[])
   }
 
   d->i_test_flags = test_flags;
+
+  if (force_cdrom_speed == 0) force_cdrom_speed = -1;
+
+  if (force_cdrom_speed != -1) {
+    report("\nAttempting to set speed to %ldx... ", force_cdrom_speed);
+  } else {
+    if (verbose)
+      report("\nAttempting to set cdrom to full speed... ");
+  }
+
+  if (cdda_speed_set(d, force_cdrom_speed)) {
+    if (verbose || force_cdrom_speed != -1)
+      report("\tCDROM speed set FAILED. Continuing anyway...");
+  } else {
+    if (verbose)
+      report("\tdrive returned OK.");
+  }
 
   /* Dump the TOC */
   if (query_only || verbose ) display_toc(d);
@@ -984,10 +1047,6 @@ main(int argc,char *argv[])
     int i;
     for( i=0; i < d->tracks+1; i++ )
       d->disc_toc[i].dwStartSector+=toc_offset;
-  }
-
-  if (force_cdrom_speed != -1) {
-    cdda_speed_set(d,force_cdrom_speed);
   }
 
   if (d->nsectors==1) {
@@ -1050,7 +1109,6 @@ main(int argc,char *argv[])
     }
 
     {
-      char buffer[250];
       int track1 = cdda_sector_gettrack(d, i_first_lsn);
       int track2 = cdda_sector_gettrack(d, i_last_lsn);
       long off1  = i_first_lsn - cdda_track_firstsector(d, track1);
@@ -1060,27 +1118,22 @@ main(int argc,char *argv[])
       if (track2 < d->tracks) track2 = d->tracks;
       for( i=track1; i<=track2; i++ )
         if(i != 0 && !cdda_track_audiop(d,i)){
-	    snprintf(buffer, sizeof(buffer),
-		     "Selected span contains non audio track at track %02d.  Aborting.\n\n",
-		     i);
-          report(buffer);
+	  report("Selected span contains non audio track at track %02d.  Aborting.\n\n", i);
           exit(1);
         }
 
-      snprintf(buffer, sizeof(buffer),
-	       "Ripping from sector %7ld (track %2d [%d:%02d.%02d])\n"
-	       "\t  to sector %7ld (track %2d [%d:%02d.%02d])\n",
-	       i_first_lsn,
-	       track1,
-	       (int) (off1/(CDIO_CD_FRAMES_PER_MIN)),
-	       (int) ((off1/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-	       (int) (off1 % CDIO_CD_FRAMES_PER_SEC),
-	       i_last_lsn,
-	       track2,
-	       (int) (off2/(CDIO_CD_FRAMES_PER_MIN)),
-	       (int) ((off2/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
-	       (int) (off2 % CDIO_CD_FRAMES_PER_SEC));
-      report(buffer);
+      report("Ripping from sector %7ld (track %2d [%d:%02d.%02d])\n"
+	     "\t  to sector %7ld (track %2d [%d:%02d.%02d])\n",
+	     i_first_lsn,
+	     track1,
+	     (int) (off1/(CDIO_CD_FRAMES_PER_MIN)),
+	     (int) ((off1/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+	     (int)(off1 % CDIO_CD_FRAMES_PER_SEC),
+	     i_last_lsn,
+	     track2,
+	     (int) (off2/(CDIO_CD_FRAMES_PER_MIN)),
+	     (int) ((off2/CDIO_CD_FRAMES_PER_SEC) % CDIO_CD_SECS_PER_MIN),
+	     (int)(off2 % CDIO_CD_FRAMES_PER_SEC));
 
     }
 
@@ -1140,8 +1193,8 @@ main(int argc,char *argv[])
           if (!strcmp(argv[optind+1],"-") ){
             out = dup(fileno(stdout));
             if(out==-1){
-              report2("Cannot dupplicate stdout: %s",
-                      strerror(errno));
+              report("Cannot dupplicate stdout: %s",
+                     strerror(errno));
               exit(1);
             }
             if(batch)
@@ -1190,11 +1243,11 @@ main(int argc,char *argv[])
 
             out=open(outfile_name,O_RDWR|O_CREAT|O_TRUNC,0666);
             if(out==-1){
-              report3("Cannot open specified output file %s: %s",
+              report("Cannot open specified output file %s: %s",
                       outfile_name, strerror(errno));
               exit(1);
             }
-            report2("outputting to %s\n", outfile_name);
+            report("outputting to %s\n", outfile_name);
             if(logfile){
               fprintf(logfile,"outputting to %s\n",outfile_name);
               fflush(logfile);
@@ -1224,11 +1277,11 @@ main(int argc,char *argv[])
 
           out = open(outfile_name, O_RDWR|O_CREAT|O_TRUNC, 0666);
           if(out==-1){
-            report3("Cannot open default output file %s: %s", outfile_name,
+            report("Cannot open default output file %s: %s", outfile_name,
                     strerror(errno));
             exit(1);
           }
-          report2("outputting to %s\n", outfile_name);
+          report("outputting to %s\n", outfile_name);
           if(logfile){
             fprintf(logfile,"outputting to %s\n",outfile_name);
             fflush(logfile);
@@ -1258,7 +1311,7 @@ main(int argc,char *argv[])
           if (buffering_write(out,
                               ((char *)offset_buffer)+offset_buffer_used,
                               CDIO_CD_FRAMESIZE_RAW-offset_buffer_used)){
-            report2("Error writing output: %s", strerror(errno));
+            report("Error writing output: %s", strerror(errno));
             exit(1);
           }
         }
@@ -1278,6 +1331,12 @@ main(int argc,char *argv[])
           if (err) free(err);
           if (mes) free(mes);
           if( readbuf==NULL) {
+#ifndef WIN32
+	    if(errno==EBADF || errno==ENOMEDIUM){
+	      report("\nparanoia_read: CDROM drive unavailable, bailing.\n");
+	      exit(1);
+	    }
+#endif
             skipped_flag=1;
             report("\nparanoia_read: Unrecoverable error, bailing.\n");
             break;
@@ -1300,7 +1359,7 @@ main(int argc,char *argv[])
 
           if (buffering_write(out,((char *)readbuf)+offset_skip,
                              CDIO_CD_FRAMESIZE_RAW-offset_skip)){
-            report2("Error writing output: %s", strerror(errno));
+            report("Error writing output: %s", strerror(errno));
             exit(1);
           }
           offset_skip=0;
@@ -1346,7 +1405,7 @@ main(int argc,char *argv[])
 
             if(buffering_write(out,(char *)offset_buffer,
                                offset_buffer_used)){
-              report2("Error writing output: %s", strerror(errno));
+              report("Error writing output: %s", strerror(errno));
               exit(1);
             }
           }
@@ -1355,7 +1414,7 @@ main(int argc,char *argv[])
         buffering_close(out);
         if(skipped_flag){
           /* remove the file */
-          report2("\nRemoving aborted file: %s", outfile_name);
+          report("\nRemoving aborted file: %s", outfile_name);
           unlink(outfile_name);
           /* make the cursor correct if we have another track */
           if(batch_track!=-1){

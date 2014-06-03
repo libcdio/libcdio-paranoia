@@ -7,6 +7,8 @@ OPTIONS:
   -e --stderr-progress            : force output of progress information to
                                     stderr (for wrapper scripts)
   -l --log-summary         <file> : save result summary to file
+  -L --log-debug           <file> : save detailed device autosense and
+                                    debugging output to file
   -V --version                    : print version info and quit
   -Q --query                      : autosense drive, query disc and quit
   -B --batch                      : 'batch' mode (saves each track to a
@@ -30,9 +32,13 @@ OPTIONS:
                                     verification to n sectors
   -d --force-cdrom-device   <dev> : use specified device; disallow 
                                     autosense
+  -k --force-cooked-device  <dev> : really an alias for -d. Kept for 
+                                    compatibility.
   -g --force-generic-device <dev> : really an alias for -d. Kept for 
                                     compatibility.
-  -S --force-read-speed <n>       : read from device at specified speed
+  -S --force-read-speed <n>       : read from device at specified speed; by
+                                    default, cdparanoia sets drive to full
+                                    speed.
   -t --toc-offset <n>             : Add <n> sectors to the values reported
                                     when addressing tracks. May be negative
   -T --toc-bias                   : Assume that the beginning offset of 

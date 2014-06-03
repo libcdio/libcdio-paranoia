@@ -29,6 +29,11 @@
 #include "utils.h"
 #include <cdio/bytesex.h>
 #include <cdio/mmc.h>
+#include <cdio/paranoia/version.h>
+
+char *cdio_cddap_version(void){
+  return LIBCDIO_PARANOIA_VERSION;
+}
 
 static void _clean_messages(cdrom_drive_t *d)
 {
@@ -129,7 +134,11 @@ cdio_cddap_open(cdrom_drive_t *d)
 int 
 cdio_cddap_speed_set(cdrom_drive_t *d, int speed)
 {
-  return d->set_speed ? d->set_speed(d, speed) : 0;
+  if(d->set_speed)
+    if(!d->set_speed(d, speed))return 0;
+  
+  cderror(d,"405: Option not supported by drive\n");
+  return -405;
 }
 
 long 

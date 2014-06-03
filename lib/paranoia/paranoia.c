@@ -101,11 +101,13 @@
 #include <math.h>
 #include <cdio/paranoia/cdda.h>
 #include "../cdda_interface/smallft.h"
+#include <cdio/paranoia/version.h>
 #include "p_block.h"
 #include <cdio/paranoia/paranoia.h>
 #include "overlap.h"
 #include "gap.h"
 #include "isort.h"
+#include <errno.h>
 
 const char *paranoia_cb_mode2str[] = {
   "read",
@@ -182,7 +184,6 @@ enum  {
   FLAGS_VERIFIED=0x4  /**< block read and verified */
 } paranoia_read_flags;
 
-
 /**** matching and analysis code *****************************************/
 
 /* ===========================================================================
@@ -243,7 +244,8 @@ i_paranoia_overlap(int16_t *buffA,int16_t *buffB,
  */
 static inline long 
 i_paranoia_overlap2(int16_t *buffA,int16_t *buffB,
-		    unsigned char *flagsA, unsigned char *flagsB,
+		    unsigned char *flagsA,
+		    unsigned char *flagsB,
 		    long offsetA, long offsetB,
 		    long sizeA,long sizeB,
 		    long *ret_begin, long *ret_end)
@@ -321,7 +323,8 @@ i_paranoia_overlap2(int16_t *buffA,int16_t *buffB,
  */
 static inline long int 
 do_const_sync(c_block_t *A,
-	      sort_info_t *B, unsigned char *flagB,
+	      sort_info_t *B,
+	      unsigned char *flagB,
 	      long posA, long posB,
 	      long *begin, long *end, long *offset)
 {
@@ -2623,16 +2626,12 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
   
   if (p->enable&(PARANOIA_MODE_VERIFY|PARANOIA_MODE_OVERLAP)){
     
-    /* we want to jitter the read alignment boundary */
     long target;
     if (rv(root)==NULL || rb(root)>beginword)
       target=p->cursor-dynoverlap; 
     else
       target=re(root)/(CD_FRAMEWORDS)-dynoverlap;
 	
-    if (target+MIN_SECTOR_BACKUP>p->lastread && target<=p->lastread)
-      target=p->lastread-MIN_SECTOR_BACKUP;
-
     /* we want to jitter the read alignment boundary, as some
        drives, beginning from a specific point, will tend to
        lose bytes between sectors in the same place.  Also, as
@@ -2641,9 +2640,9 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
     
     readat=(target&(~((long)JIGGLE_MODULO-1)))+p->jitter;
     if (readat>target)readat-=JIGGLE_MODULO;
-    p->jitter++;
-    if (p->jitter>=JIGGLE_MODULO)
-      p->jitter=0;
+    p->jitter--;
+    if (p->jitter<0)
+      p->jitter+=JIGGLE_MODULO;
      
   } else {
     readat=p->cursor; 
@@ -2674,19 +2673,12 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
 	  readat*CD_FRAMEWORDS, (readat+totaltoread)*CD_FRAMEWORDS);
 #endif
 
-  /* Issue each of the low-level reads until we've read enough sectors
-   * to exhaust the drive's cache.
+  /* Issue each of the low-level reads; the optimal read size is
+   * approximately the cachemodel's cdrom cache size.  The only reason
+   * to read less would be memory considerations.
    *
    * p->readahead   = total number of sectors to read
    * p->d->nsectors = number of sectors to read per request
-   *
-   * The driver determines this latter number, which is the maximum
-   * number of sectors the kernel can reliably read per request.  In
-   * old Linux kernels, there was a hard limit of 8 sectors per read.
-   * While this limit has since been removed, certain motherboards
-   * can't handle DMA requests larger than 64K.  And other operating
-   * systems may have similar limitations.  So the method of splitting
-   * up reads is still useful.
    */
 
   /* actual read loop */
@@ -2741,7 +2733,18 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
        */
       if ( thisread < secread) {
 
-	if (thisread<0) thisread=0;
+	if(thisread<0){
+#ifndef WIN32
+	  if(errno==ENOMEDIUM){
+	    /* the one error we bail on immediately */
+	    if(new)free_c_block(new);
+	    if(buffer)free(buffer);
+	    if(flags)free(flags);
+	    return NULL;
+	  }
+#endif
+	  thisread=0;
+	}
 
 #if TRACE_PARANOIA & 1
 	fprintf(stderr, " -- couldn't read [%ld-%ld]\n",
@@ -2784,16 +2787,6 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
 	  flags[sofar*CD_FRAMEWORDS+i]|=FLAGS_EDGE;
       }
 
-
-      /* Move the read cursor ahead by the number of sectors we attempted
-       * to read.
-       *
-       * "???: Again, why not move it ahead by the number actually
-       * read?"  Because adding zero would not be moving
-       * ahead. --Monty
-       */
-      p->lastread=adjread+secread;
-      
       if (adjread+secread-1==p->current_lastsector)
 	new->lastsector=-1;
       
@@ -2869,6 +2862,13 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
   long int retry_count=  0;
   long int lastend    = -2;
   root_block *root    = &p->root;
+
+#ifndef WIN32
+  if(p->d->opened==0){
+    errno=EBADF;
+    return NULL;
+  }
+#endif
 
   if (beginword > p->root.returnedlimit)
     p->root.returnedlimit=beginword;
@@ -3011,6 +3011,14 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
 			  callback);
       
 	}
+      }else{
+
+#ifndef WIN32
+	/* Was the medium removed or the device closed out from
+	   under us? */
+	if(errno==ENOMEDIUM) return NULL;
+#endif
+      
       }
     }
 
@@ -3072,4 +3080,8 @@ cdio_paranoia_overlapset(cdrom_paranoia_t *p, long int overlap)
 {
   p->dynoverlap=overlap*CD_FRAMEWORDS;
   p->stage1.offpoints=-1; 
+}
+
+char *cdio_paranoia_version(void){
+  return LIBCDIO_PARANOIA_VERSION;
 }

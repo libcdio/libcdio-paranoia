@@ -23,30 +23,4 @@
 
 int quiet=0;
 int verbose=CDDA_MESSAGE_FORGETIT;
-
-void 
-report(const char *s)
-{
-  if (!quiet) {
-    fprintf(stderr, "%s", s);
-    fputc('\n',stderr);
-  }
-}
-
-void 
-report2(const char *s, char *s2)
-{
-  if (!quiet) {
-    fprintf(stderr,s,s2);
-    fputc('\n',stderr);
-  }
-}
-
-void 
-report3(const char *s, char *s2, char *s3)
-{
-  if (!quiet) {
-    fprintf(stderr,s,s2,s3);
-    fputc('\n',stderr);
-  }
-}
+FILE *reportfile=NULL;

@@ -58,6 +58,10 @@ usage and options.
 Save result summary to file.
 
 .TP
+.BI "\-L --log-debug " file 
+Save detailed device autosense and debugging output to a file.
+
+.TP
 .B \-p --output-raw
 Output headerless data as raw 16 bit PCM data with interleaved samples in host byte order.  To force little or big endian byte order, use 
 .B \-r 

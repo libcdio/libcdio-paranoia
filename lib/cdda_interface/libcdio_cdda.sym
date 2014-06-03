@@ -1,6 +1,7 @@
 cdio_cddap_find_a_cdrom
 cdio_cddap_identify
 cdio_cddap_identify_cdio
+cdio_cddap_version
 cdio_cddap_speed_set
 cdio_cddap_verbose_set
 cdio_cddap_messages
