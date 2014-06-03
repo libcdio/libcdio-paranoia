@@ -224,12 +224,20 @@ offset_adjust_settings(cdrom_paranoia_t *p,
  * search for matching runs (in both stages) in low-jitter conditions
  * and also widen our search appropriately when there is jitter.
  *
- * ???BUG???:
+ *
+ * "???BUG???:
  * Note that there is a bug in the way that this is called by try_sort_sync().
  * Silence looks like zero jitter, and dynoverlap may be incorrectly reduced
- * when there's lots of silence but also jitter.
+ * when there's lots of silence but also jitter."
  *
- * See the bug notes in try_sort_sync() for details.
+ * Strictly speaking, this is only sort-of true.  The silence will
+ * incorrectly somewhat reduce dynoverlap.  However, it will increase
+ * again once past the silence (even if reduced to zero, it will be
+ * increased by the block read loop if we're not getting matches).
+ * In reality, silence usually passes rapidly.  Anyway, long streaks
+ * of silence benefit performance-wise from having dynoverlap decrease
+ * momentarily. There is no correctness bug. --Monty
+ *
  */
 void 
 offset_add_value(cdrom_paranoia_t *p,offsets *o,long value,

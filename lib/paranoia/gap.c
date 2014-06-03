@@ -58,16 +58,6 @@ i_paranoia_overlap_r(int16_t *buffA,int16_t *buffB,
   for( ; beginA>=0 && beginB>=0; beginA--,beginB-- )
     if (buffA[beginA] != buffB[beginB]) break;
 
-  /* These values will either point to the first mismatching sample, or
-   * -1 if we hit the beginning of a vector.  So increment to point to the
-   * last matching sample.
-   *
-   * ??? Why?  This would appear to return one less sample than actually
-   * matched.  E.g., no matching samples returns -1!  Is this a bug?
-   */
-  beginA++;
-  beginB++;
-  
   return(offsetA-beginA);
 }
 
@@ -99,10 +89,6 @@ i_paranoia_overlap_f(int16_t *buffA,int16_t *buffB,
   for(;endA<sizeA && endB<sizeB;endA++,endB++)
     if(buffA[endA]!=buffB[endB])break;
   
-  /* ??? Note that we don't do any post-loop tweaking of endA.  Why the
-   * asymmetry with i_paranoia_overlap_r?
-   */
-
   return(endA-offsetA);
 }
 
@@ -214,11 +200,9 @@ i_analyze_rift_f(int16_t *A,int16_t *B,
    * to fix the rift.
    */
   
-  for(i=0;;i++){
+  for(i=1;;i++){
     /* Search for whatever case we hit first, so as to end up with the
      * smallest rift.
-     *
-     * ??? Why do we start at 0?  It should never match.
      */
 
     /* Don't search for (1) past the end of B */
@@ -373,11 +357,9 @@ i_analyze_rift_r(int16_t *A,int16_t *B,
    * to fix the rift.
    */
   
-  for(i=0;;i++){
+  for(i=1;;i++){
     /* Search for whatever case we hit first, so as to end up with the
      * smallest rift.
-     *
-     * ??? Why do we start at 0?  It should never match.
      */
 
     /* Don't search for (1) past the beginning of B */
