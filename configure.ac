@@ -366,7 +366,7 @@ int has_timeout=sizeof(test.timeout);],
                   [Define 1 if you are compiling using MinGW])
      	AC_DEFINE([HAVE_WIN32_CDROM], [1],
                   [Define 1 if you have MinGW CD-ROM support])
- 	LIBS="$LIBS -lwinmm -mwindows"
+ 	LIBS="$LIBS -lwinmm"
  	LT_NO_UNDEFINED="-no-undefined"
   	cd_drivers="${cd_drivers}, MinGW "
 	;;

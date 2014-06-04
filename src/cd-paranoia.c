@@ -93,6 +93,10 @@ static void gettimeofday(struct timeval* tv, void* timezone);
 #include "buffering_write.h"
 #include "cachetest.h"
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 /* I wonder how many alignment issues this is gonna trip in the
    future...  it shouldn't trip any...  I guess we'll find out :) */
 
@@ -1297,7 +1301,7 @@ main(int argc,char *argv[])
               }
             }
 
-            out=open(outfile_name,O_RDWR|O_CREAT|O_TRUNC,0666);
+            out=open(outfile_name,O_RDWR|O_CREAT|O_TRUNC|O_BINARY,0666);
             if(out==-1){
               report("Cannot open specified output file %s: %s",
                       outfile_name, strerror(errno));
@@ -1331,7 +1335,7 @@ main(int argc,char *argv[])
             break;
           }
 
-          out = open(outfile_name, O_RDWR|O_CREAT|O_TRUNC, 0666);
+          out = open(outfile_name, O_RDWR|O_CREAT|O_TRUNC|O_BINARY, 0666);
           if(out==-1){
             report("Cannot open default output file %s: %s", outfile_name,
                     strerror(errno));
