@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2004, 2005, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
   
   This program is free software; you can redistribute it and/or modify
@@ -19,6 +20,7 @@
 
 #include <cdio/bytesex.h>
 #include <stdio.h>
+#include <time.h>
 
 /* I wonder how many alignment issues this is gonna trip in the
    future...  it shouldn't trip any...  I guess we'll find out :) */
@@ -34,6 +36,7 @@ bigendianp(void)
 
 extern char *catstring(char *buff, const char *s);
 
+extern int gettime(struct timespec *);
 
 /*#if BYTE_ORDER == LITTLE_ENDIAN*/
 

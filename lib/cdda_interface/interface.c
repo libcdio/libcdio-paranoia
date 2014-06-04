@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2005, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
   
   This program is free software; you can redistribute it and/or modify
@@ -142,9 +143,10 @@ cdio_cddap_speed_set(cdrom_drive_t *d, int speed)
 }
 
 long 
-cdio_cddap_read(cdrom_drive_t *d, void *buffer, lsn_t beginsector, 
-		long sectors)
+cdio_cddap_read_timed(cdrom_drive_t *d, void *buffer, lsn_t beginsector, 
+		long sectors, int *ms)
 {
+  if(ms)*ms= -1;
   if (d->opened) {
     if (sectors>0) {
       sectors=d->read_audio(d, buffer, beginsector, sectors);
@@ -164,11 +166,16 @@ cdio_cddap_read(cdrom_drive_t *d, void *buffer, lsn_t beginsector,
 	}
       }
     }
+    if(ms)*ms=d->last_milliseconds;
     return(sectors);
   }
   
   cderror(d,"400: Device not open\n");
   return(-400);
+}
+
+long cdio_cddap_read(cdrom_drive_t *d, void *buffer, lsn_t beginsector, long sectors){
+  return cdda_read_timed(d,buffer,beginsector,sectors,NULL);
 }
 
 void 

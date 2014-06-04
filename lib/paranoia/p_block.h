@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2004, 2005, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) by Monty (xiphmont@mit.edu)
 
   This library is free software; you can redistribute it and/or
@@ -31,6 +32,7 @@
 #define MIN_SECTOR_BACKUP    16     /* sectors */
 #define JIGGLE_MODULO        15     /* sectors */
 #define MIN_SILENCE_BOUNDARY 1024   /* 16 bit words */
+#define CACHEMODEL_SECTORS   1200
 
 #define min(x,y) ((x)>(y)?(y):(x))
 #define max(x,y) ((x)<(y)?(y):(x))
@@ -158,9 +160,11 @@ struct cdrom_paranoia_s {
   linked_list_t *fragments;  /* fragments of blocks that have been 'verified' */
   sort_info_t *sortcache;
 
-  int readahead;             /* sectors of readahead in each readop */
+  /* cache tracking */
+  int cdcache_size;
+  int cdcache_begin;
+  int cdcache_end;
   int jitter;           
-  long lastread;
 
   paranoia_cb_mode_t enable;
   long int cursor;

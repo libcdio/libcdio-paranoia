@@ -14,6 +14,7 @@ noinst_HEADERS = header.h report.h $(GETOPT_H)
 
 cd_paranoia_SOURCES = cd-paranoia.c \
 	buffering_write.c buffering_write.h \
+	cachetest.c cachetest.h \
 	header.c report.c utils.h version.h $(GETOPT_C)
 
 cd_paranoia_LDADD =  $(LIBCDIO_LIBS) $(LIBCDIO_CDDA_LIBS) $(LIBCDIO_PARANOIA_LIBS) $(LTLIBICONV)

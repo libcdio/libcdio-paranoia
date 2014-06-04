@@ -1,6 +1,7 @@
 /*
   Copyright (C) 2004, 2005, 2006, 2008, 2011, 2012
   Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 2001 Xiph.org and Heiko Eissfeldt heiko@escape.colossus.de
   CopyPolicy: GNU Lesser General Public License 2.1 applies
 */
@@ -116,6 +117,8 @@ struct cdrom_drive_s {
 
   int is_atapi;
   int is_mmc;
+
+  int last_milliseconds;
 
   int i_test_flags; /**< Normally set 0. But if we are testing
 		       paranoia operation this can be set to one of
@@ -233,6 +236,9 @@ extern int     cdio_cddap_open(cdrom_drive_t *d);
 
 extern long    cdio_cddap_read(cdrom_drive_t *d, void *p_buffer,
 			       lsn_t beginsector, long sectors);
+
+extern long    cdio_cddap_read_timed(cdrom_drive_t *d, void *p_buffer,
+				     lsn_t beginsector, long sectors, int *milliseconds);
 
 /*! Return the lsn for the start of track i_track */
 extern lsn_t   cdio_cddap_track_firstsector(cdrom_drive_t *d, 
@@ -371,6 +377,7 @@ const char *strerror_tr[]={
 #define cdda_close              cdio_cddap_close
 #define cdda_open               cdio_cddap_open
 #define cdda_read               cdio_cddap_read
+#define cdda_read_timed         cdio_cddap_read_timed
 #define cdda_track_firstsector  cdio_cddap_track_firstsector 
 #define cdda_track_lastsector   cdio_cddap_track_lastsector 
 #define cdda_tracks             cdio_cddap_tracks 

@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2004, 2008, 2010, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
   
   This program is free software; you can redistribute it and/or modify
@@ -164,4 +165,38 @@ catstring(char *buff, const char *s) {
     strncat(buff, s, add_len);
   }
   return(buff);
+}
+
+int
+gettime(struct timespec *ts) {
+  int ret = -1;
+  if (!ts) return ret;
+
+#if defined(HAVE_CLOCK_GETTIME)
+  /* Use clock_gettime if available, preferably using the monotonic clock.
+   */
+  static clockid_t clock = (clockid_t)-1;
+  if ((int)clock == -1) clock = (clock_gettime(CLOCK_MONOTONIC, ts) < 0 ? CLOCK_REALTIME : CLOCK_MONOTONIC);
+  ret = clock_gettime(clock, ts);
+#elif defined(WIN32)
+  /* clock() returns wall time (not CPU time) on Windows, so we can use it here.
+   */
+  clock_t time = clock();
+  if ((int)time != -1) {
+    ts->tv_sec  = time/CLOCKS_PER_SEC;
+    ts->tv_nsec = time%CLOCKS_PER_SEC*(1000000000/CLOCKS_PER_SEC);
+    ret = 0;
+  }
+#else
+  /* In other cases use gettimeofday.
+   */
+  struct timeval tv;
+  ret = gettimeofday(&tv, NULL);
+  if (ret == 0) {
+    ts->tv_sec  = tv.tv_sec;
+    ts->tv_nsec = tv.tv_usec*1000;
+  }
+#endif
+
+  return ret;
 }

@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2004, 2005, 2007, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Original interface.c Copyright (C) 1994-1997
              Eissfeldt heiko@colossus.escape.de
   Current blenderization Copyright (C) 1998-1999 Monty xiphmont@mit.edu
@@ -74,13 +75,31 @@ read_blocks (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors)
 {
   int retry_count = 0;
   int err;
+  int ret = 0;
   char *buffer=(char *)p;
 
+  if(p==NULL)buffer = malloc(i_sectors*CD_FRAMESIZE_RAW);
+
   do {
-    err = cdio_read_audio_sectors( d->p_cdio, buffer, begin, i_sectors);
+    struct timespec tv1;
+    struct timespec tv2;
+    int ret1,ret2;
+
+    ret1 = gettime(&tv1);
+    err  = cdio_read_audio_sectors( d->p_cdio, buffer, begin, i_sectors);
+    ret2 = gettime(&tv2);
+
+    if(ret1<0 || ret2<0) {
+      d->last_milliseconds=-1;
+    } else {
+      d->last_milliseconds = (tv2.tv_sec-tv1.tv_sec)*1000. + (tv2.tv_nsec-tv1.tv_nsec)/1000000.;
+    }
 
     if ( DRIVER_OP_SUCCESS != err ) {
-      if (!d->error_retry) return -7;
+      if (!d->error_retry) {
+	ret=-7;
+	goto done;
+      }
 
       if (i_sectors==1) {
 	/* *Could* be I/O or media error.  I think.  If we're at
@@ -92,7 +111,8 @@ read_blocks (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors)
 		   "010: Unable to access sector %ld: skipping...\n",
 		   (long int) begin);
 	  cderror(d, b);
-	  return -10;
+	  ret=-10;
+	  goto done;
 	}
       }
 
@@ -102,13 +122,18 @@ read_blocks (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors)
       retry_count++;
       if (retry_count>MAX_RETRIES) {
 	cderror(d,"007: Unknown, unrecoverable error reading data\n");
-	return(-7);
+	ret=-7;
+	goto done;
       }
     } else
       break;
   } while (err);
 
-  return(i_sectors);
+  ret=i_sectors;
+
+ done:
+  if(p==NULL && buffer)free(buffer);
+  return ret;
 }
 
 typedef enum  {
@@ -139,7 +164,7 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
 #ifdef HAVE_DRAND48
     jitter_flag = (drand48() > .9) ? 1 : 0;
 #else
-    jitter_flag = (rand() > .9) ? 1 : 0;
+    jitter_flag = (((float)rand()/RAND_MAX) > .9) ? 1 : 0;
 #endif
 
   if (jitter_flag) {
@@ -155,7 +180,7 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
 #ifdef HAVE_DRAND48
     i_jitter = i_coeff * (int)((drand48()-.5)*CDIO_CD_FRAMESIZE_RAW/8);
 #else
-    i_jitter = i_coeff * (int)((rand()-.5)*CDIO_CD_FRAMESIZE_RAW/8);
+    i_jitter = i_coeff * (int)((((float)rand()/RAND_MAX)-.5)*CDIO_CD_FRAMESIZE_RAW/8);
 #endif
 
     /* We may need to add another sector to compensate for the bytes that
@@ -174,7 +199,7 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
 
 
     if (begin + i_jitter_sectors > 0) {
-#if !TRACE_PARANOIA
+#if TRACE_PARANOIA
       char buffer[256];
       sprintf(buffer, "jittering by %d, offset %ld\n", i_jitter,
 	      i_jitter_offset);
@@ -192,13 +217,13 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
 
   if (i_sectors < 0) return i_sectors;
 
-  if (i_sectors < i_sectors_orig)
+  if (i_sectors < i_sectors_orig) {
     /* Had to reduce # of sectors due to read errors. So give full amount,
        with no jittering. */
-    memcpy(p, p_buf, i_sectors*CDIO_CD_FRAMESIZE_RAW);
-  else {
+    if (p) memcpy(p, p_buf, i_sectors*CDIO_CD_FRAMESIZE_RAW);
+  } else {
     /* Got full amount, but now adjust size for jittering. */
-    memcpy(p, p_buf+i_jitter_offset, i_sectors_orig*CDIO_CD_FRAMESIZE_RAW);
+    if (p) memcpy(p, p_buf+i_jitter_offset, i_sectors_orig*CDIO_CD_FRAMESIZE_RAW);
     i_sectors = i_sectors_orig;
   }
 

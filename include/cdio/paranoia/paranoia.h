@@ -1,6 +1,7 @@
 /*
     Copyright (C) 2004, 2005, 2006, 2007, 2008, 2011, 2012
     Rocky Bernstein <rocky@gnu.org>
+    Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
     Copyright (C) 1998 Monty xiphmont@mit.edu
     CopyPolicy: GNU Lesser General Public License 2.1 applies
 */
@@ -67,7 +68,8 @@ typedef enum  {
   PARANOIA_CB_OVERLAP,        /**< Dynamic overlap adjust */
   PARANOIA_CB_FIXUP_DROPPED,  /**< Fixed dropped bytes */
   PARANOIA_CB_FIXUP_DUPED,    /**< Fixed duplicate bytes */
-  PARANOIA_CB_READERR         /**< Hard read error */
+  PARANOIA_CB_READERR,        /**< Hard read error */
+  PARANOIA_CB_CACHEERR        /**< Bad cache management */
 } paranoia_cb_mode_t;
 
   extern const char *paranoia_cb_mode2str[];
@@ -168,18 +170,30 @@ extern "C" {
   extern void cdio_paranoia_set_range(cdrom_paranoia_t *p, long int start, 
 				      long int end);
 
+  /*! 
+    Set or query the number of sectors used for paranoia cache modelling.
+
+    @param p       paranoia object
+    @param sectors number of sectors to use, default is 1200 (pass -1 to
+		   query current model size without setting a new value)
+
+    @return        number of cache sectors before the call
+   */
+  extern int cdio_paranoia_cachemodel_size(cdrom_paranoia_t *p,int sectors);
+
 #ifndef DO_NOT_WANT_PARANOIA_COMPATIBILITY
 /** For compatibility with good ol' paranoia */
-#define cdrom_paranoia        cdrom_paranoia_t
-#define paranoia_version      cdio_paranoia_version
-#define paranoia_init         cdio_paranoia_init
-#define paranoia_free         cdio_paranoia_free
-#define paranoia_modeset      cdio_paranoia_modeset
-#define paranoia_seek         cdio_paranoia_seek
-#define paranoia_read         cdio_paranoia_read
-#define paranoia_read_limited cdio_paranoia_read_limited
-#define paranoia_overlapset   cdio_paranoia_overlapset
-#define paranoia_set_range    cdio_paranoia_set_range
+#define cdrom_paranoia           cdrom_paranoia_t
+#define paranoia_version         cdio_paranoia_version
+#define paranoia_init            cdio_paranoia_init
+#define paranoia_free            cdio_paranoia_free
+#define paranoia_modeset         cdio_paranoia_modeset
+#define paranoia_seek            cdio_paranoia_seek
+#define paranoia_read            cdio_paranoia_read
+#define paranoia_read_limited    cdio_paranoia_read_limited
+#define paranoia_overlapset      cdio_paranoia_overlapset
+#define paranoia_set_range       cdio_paranoia_set_range
+#define paranoia_cachemodel_size cdio_paranoia_cachemodel_size
 #endif /*DO_NOT_WANT_PARANOIA_COMPATIBILITY*/
 
 #ifdef __cplusplus

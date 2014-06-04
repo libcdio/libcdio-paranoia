@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2004, 2005, 2006, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
   This library is free software; you can redistribute it and/or
@@ -108,6 +109,8 @@
 #include "gap.h"
 #include "isort.h"
 #include <errno.h>
+
+#define MIN_SEEK_MS 6
 
 const char *paranoia_cb_mode2str[] = {
   "read",
@@ -2554,6 +2557,55 @@ paranoia_seek(cdrom_paranoia_t *p, int32_t seek, int whence)
   return(ret);
 }
 
+static void cdrom_cache_update(cdrom_paranoia_t *p, int lba, int sectors){
+
+  if(lba+sectors > p->cdcache_size){
+    int end = lba+sectors;
+    lba=end-p->cdcache_size;
+    sectors = end-lba;
+  }
+    
+  if(lba < p->cdcache_begin){
+    /* a backseek flushes the cache */
+    p->cdcache_begin=lba;
+    p->cdcache_end=lba+sectors;
+  }else{
+    if(lba+sectors>p->cdcache_end)
+      p->cdcache_end = lba+sectors;
+    if(lba+sectors-p->cdcache_size > p->cdcache_begin){
+      if(lba+sectors-p->cdcache_size < p->cdcache_end){
+	p->cdcache_begin = lba+sectors-p->cdcache_size;
+      }else{
+	p->cdcache_begin = lba;
+      }
+    }
+  }
+}
+
+static void cdrom_cache_handler(cdrom_paranoia_t *p, int lba, void(*callback)(long, paranoia_cb_mode_t)){
+  int seekpos;
+  int ms;
+  if(lba>=p->cdcache_end)return; /* nothing to do */
+
+  if(lba<0)lba=0;
+
+  if(lba<p->cdcache_begin){
+    /* should always trigger a backseek so let's do that here and look for the timing */
+    seekpos=(lba==0 || lba-1<cdda_disc_firstsector(p->d) ? lba : lba-1); /* keep reads linear when possible */
+  }else{
+    int pre = p->cdcache_begin-1;
+    int post = lba+p->cdcache_size;
+
+    seekpos = (pre<cdda_disc_firstsector(p->d) ? post : pre);
+  }
+
+  if(cdda_read_timed(p->d,NULL,seekpos,1,&ms)==1)
+    if(seekpos<p->cdcache_begin && ms<MIN_SEEK_MS)
+      if(cdio_get_driver_id(p->d->p_cdio)==cdio_os_driver)
+        callback(seekpos*CD_FRAMEWORDS,PARANOIA_CB_CACHEERR);
+  cdrom_cache_update(p,seekpos,1);
+  return;
+}
 
 
 /* ===========================================================================
@@ -2600,7 +2652,7 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
    drives with unaddressable sectors behave more often). */
       
   long readat,firstread;
-  long totaltoread=p->readahead;
+  long totaltoread=p->cdcache_size;
   long sectatonce=p->d->nsectors;
   long driftcomp=(float)p->dyndrift/CD_FRAMEWORDS+.5;
   c_block_t *new=NULL;
@@ -2668,6 +2720,9 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
   sofar=0;
   firstread=-1;
 
+  /* we have a read span; flush the drive cache if needed */
+  cdrom_cache_handler(p, readat, callback);
+
 #if TRACE_PARANOIA
   fprintf(stderr, "Reading [%ld-%ld] from media\n",
 	  readat*CD_FRAMEWORDS, (readat+totaltoread)*CD_FRAMEWORDS);
@@ -2734,7 +2789,7 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
       if ( thisread < secread) {
 
 	if(thisread<0){
-#ifndef WIN32
+#ifdef ENOMEDIUM
 	  if(errno==ENOMEDIUM){
 	    /* the one error we bail on immediately */
 	    if(new)free_c_block(new);
@@ -2792,6 +2847,7 @@ i_read_c_block(cdrom_paranoia_t *p,long beginword,long endword,
       
       if (callback)(*callback)((adjread+secread-1)*CD_FRAMEWORDS,PARANOIA_CB_READ);
       
+      cdrom_cache_update(p,adjread,secread);
       sofar+=secread;
       readat=adjread+secread; 
     } else /* secread <= 0 */
@@ -2863,12 +2919,10 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
   long int lastend    = -2;
   root_block *root    = &p->root;
 
-#ifndef WIN32
   if(p->d->opened==0){
     errno=EBADF;
     return NULL;
   }
-#endif
 
   if (beginword > p->root.returnedlimit)
     p->root.returnedlimit=beginword;
@@ -3013,7 +3067,7 @@ cdio_paranoia_read_limited(cdrom_paranoia_t *p,
 	}
       }else{
 
-#ifndef WIN32
+#ifdef ENOMEDIUM
 	/* Was the medium removed or the device closed out from
 	   under us? */
 	if(errno==ENOMEDIUM) return NULL;

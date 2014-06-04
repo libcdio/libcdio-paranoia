@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2004, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
   
   This program is free software; you can redistribute it and/or modify
@@ -91,6 +92,11 @@ test_read(cdrom_drive *d, void *p, long begin, long sectors)
   static long lastread=0;
 
   if(!fd)fd=fdopen(d->cdda_fd,"r");
+
+  if(begin<lastread)
+    d->last_milliseconds=20;
+  else
+    d->last_milliseconds=sectors;
 
 #ifdef CDDA_TEST_UNDERRUN
   sectors-=1;

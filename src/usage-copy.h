@@ -1,5 +1,6 @@
 /*
   Copyright (C) 1999, 2005, 2008, 2009 Rocky Bernstein
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
 */
 
 const char usage_help[] =
@@ -7,6 +8,12 @@ const char usage_help[] =
 "  cd-paranoia [options] <span> [outfile]\n"
 "\n"
 "OPTIONS:\n"
+"  -A --analyze-drive              : run and log a complete analysis of drive\n"
+"                                    caching, timing and reading behavior;\n"
+"                                    verifies that cdparanoia is correctly\n"
+"                                    modelling a specific drive's cache and\n"
+"                                    read behavior. Implies -vQL\n"
+"\n"
 "  -v --verbose                    : extra verbose operation\n"
 "  -q --quiet                      : quiet operation\n"
 "  -e --stderr-progress            : force output of progress information to\n"

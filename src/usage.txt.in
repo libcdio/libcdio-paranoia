@@ -2,6 +2,12 @@ USAGE:
   @CDPARANOIA_NAME@ [options] <span> [outfile]
 
 OPTIONS:
+  -A --analyze-drive              : run and log a complete analysis of drive
+                                    caching, timing and reading behavior;
+                                    verifies that cdparanoia is correctly
+                                    modelling a specific drive's cache and
+                                    read behavior. Implies -vQL
+
   -v --verbose                    : extra verbose operation
   -q --quiet                      : quiet operation
   -e --stderr-progress            : force output of progress information to

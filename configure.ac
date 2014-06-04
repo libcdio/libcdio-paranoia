@@ -246,6 +246,9 @@ AC_CHECK_LIB(m, cos, [LIBS="$LIBS -lm"; COS_LIB="-lm"])
 CFLAGS="$CFLAGS $WARN_CFLAGS"
 AC_SUBST(COS_LIB)
 
+# Linux has clock_gettime in librt
+AC_CHECK_LIB(rt, clock_gettime)
+
 # Do we have GNU ld? If we don't, we can't build versioned symbols.
 if test "$with_gnu_ld" != yes; then
    AC_MSG_WARN([I don't see GNU ld. I'm going to assume --without-versioned-libs])
@@ -403,7 +406,8 @@ AC_SUBST(LIBCDIO_PARANOIA_SOURCE_PATH)
 AC_CHECK_FUNCS( [bzero chdir drand48 ftruncate geteuid getgid \
 		 getuid getpwuid gettimeofday lstat memcpy memset \
 		 rand seteuid setegid snprintf setenv unsetenv tzset \
-		 sleep usleep vsnprintf readlink realpath gmtime_r localtime_r] )
+		 sleep usleep vsnprintf readlink realpath gmtime_r \
+		 localtime_r clock_gettime] )
 
 dnl
 dnl Output configuration files

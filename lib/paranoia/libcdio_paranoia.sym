@@ -7,4 +7,5 @@ cdio_paranoia_read_limited
 cdio_paranoia_overlapset
 cdio_paranoia_set_range
 cdio_paranoia_version
+cdio_paranoia_cachemodel_size
 paranoia_cb_mode2str

@@ -1,6 +1,7 @@
 /*
   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
   Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty <xiphmont@mit.edu>
 
   This program is free software; you can redistribute it and/or modify
@@ -59,6 +60,10 @@
 #include <errno.h>
 #endif
 
+#ifndef ENOMEDIUM
+#define ENOMEDIUM -1
+#endif
+
 #include <math.h>
 #include <sys/time.h>
 
@@ -86,6 +91,7 @@ static void gettimeofday(struct timeval* tv, void* timezone);
 #include "version.h"
 #include "header.h"
 #include "buffering_write.h"
+#include "cachetest.h"
 
 /* I wonder how many alignment issues this is gonna trip in the
    future...  it shouldn't trip any...  I guess we'll find out :) */
@@ -286,7 +292,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
 {
 }
 #else
-static const char *callback_strings[15]={
+static const char *callback_strings[16]={
   "wrote",
   "finished",
   "read",
@@ -301,7 +307,8 @@ static const char *callback_strings[15]={
   "overlap",
   "dropped",
   "duped",
-  "transport error"};
+  "transport error",
+  "cache error"};
 
 static void
 callback(long int inpos, paranoia_cb_mode_t function)
@@ -328,13 +335,28 @@ callback(long int inpos, paranoia_cb_mode_t function)
   static int slevel=0;
   static int slast=0;
   static int stimeout=0;
+  static int cacheerr=0;
   const char *smilie="= :-)";
 
   if (callscript)
     fprintf(stderr, "##: %d [%s] @ %ld\n",
-            function, ((int) function >= -2 && (int) function < 13 ?
+            function, ((int) function >= -2 && (int) function < 14 ?
                        callback_strings[function+2] : ""),
             inpos);
+  else{
+    if(function==PARANOIA_CB_CACHEERR){
+      if(!cacheerr){
+	fprintf(stderr,
+		"\rWARNING: The CDROM drive appears to be seeking impossibly quickly.\n"
+		"This could be due to timer bugs, a drive that really is improbably fast,\n"
+		"or, most likely, a bug in cdparanoia's cache modelling.\n\n"
+		"Please consider using the -A option to perform an analysis run, then mail\n"
+		"the cdparanoia.log file produced by the analysis to paranoia-dev@xiph.org\n"
+		"to assist developers in correcting the problem.\n\n");
+      }
+      cacheerr++;
+    }
+  }
 
   if(!quiet){
     long test;
@@ -402,6 +424,10 @@ callback(long int inpos, paranoia_cb_mode_t function)
 	    if(dispcache[position]!='V' && dispcache[position]!='C')
               dispcache[position]='e';
             break;
+	  case PARANOIA_CB_CACHEERR:
+	    slevel=8;
+	    dispcache[position]='C';
+	    break;
           case PARANOIA_CB_SKIP:
             slevel=8;
 	    if(dispcache[position]!='C')
@@ -537,10 +563,11 @@ callback(long int inpos, paranoia_cb_mode_t function)
 }
 #endif /* !TRACE_PARANOIA */
 
-static const char optstring[] = "aBcCd:efg:k:hi:l:L:m:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
+static const char optstring[] = "aBcCd:efg:k:hi:l:L:Am:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
 
 static const struct option options [] = {
         {"abort-on-skip",             no_argument,       NULL, 'X'},
+	{"analyze-drive",             no_argument,       NULL, 'A'},
         {"batch",                     no_argument,       NULL, 'B'},
         {"disable-extra-paranoia",    no_argument,       NULL, 'Y'},
         {"disable-fragmentation",     no_argument,       NULL, 'F'},
@@ -662,6 +689,7 @@ main(int argc,char *argv[])
   int   output_endian        =  0; /* -1=host, 0=little, 1=big */
   int   query_only           =  0;
   int   batch                =  0;
+  int   run_cache_test       =  0;
   long int force_cdrom_overlap  = -1;
   long int force_cdrom_sectors  = -1;
   long int force_cdrom_speed    =  0;
@@ -812,6 +840,12 @@ main(int argc,char *argv[])
       break;
     case 'Z':
       paranoia_mode=PARANOIA_MODE_DISABLE;
+      break;
+    case 'A':
+      run_cache_test=1;
+      query_only=1;
+      reportfile_open=1;
+      verbose=CDDA_MESSAGE_PRINTIT;
       break;
     case 'z':
       if (optarg) {
@@ -1007,6 +1041,28 @@ main(int argc,char *argv[])
     if (verbose)
       report("\tdrive returned OK.");
   }
+
+  if(run_cache_test){
+    int warn=analyze_cache(d, stderr, reportfile, force_cdrom_speed);
+    
+    if(warn==0){
+      reportC("\nDrive tests OK with Paranoia.\n\n");
+      return 0;
+    }
+
+    if(warn==1)
+      reportC("\nWARNING! PARANOIA MAY NOT BE TRUSTWORTHY WITH THIS DRIVE!\n"
+	      "\nThe Paranoia library may not model this CDROM drive's cache"
+	      "\ncorrectly according to this analysis run. Analysis is not"
+	      "\nalways accurate (it can be fooled by machine load or random"
+	      "\nkernel latencies), but if a failed result happens more often"
+	      "\nthan one time in twenty on an unloaded machine, please mail"
+	      "\nthe %s file produced by this failed analysis to"
+	      "\nparanoia-dev@xiph.org to assist developers in extending"
+	      "\nParanoia to handle this CDROM properly.\n\n",reportfile_name);
+    return 1;
+  }
+
 
   /* Dump the TOC */
   if (query_only || verbose ) display_toc(d);
@@ -1331,12 +1387,10 @@ main(int argc,char *argv[])
           if (err) free(err);
           if (mes) free(mes);
           if( readbuf==NULL) {
-#ifndef WIN32
 	    if(errno==EBADF || errno==ENOMEDIUM){
 	      report("\nparanoia_read: CDROM drive unavailable, bailing.\n");
 	      exit(1);
 	    }
-#endif
             skipped_flag=1;
             report("\nparanoia_read: Unrecoverable error, bailing.\n");
             break;
