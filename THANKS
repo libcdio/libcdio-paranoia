@@ -1,10 +1,13 @@
 Adrian Reber
  Redhat packaging and going over licensing to make like CD-Paranoia
 
-Peter J. Creath
-  removal of libpopt, paranoia documentation, some bug fixes to 
-  cd-* programs and the paranoia lib
-
 Daniel Schwarz
  log-summary option in cd-paranoia.
 
+Peter J. Creath
+  removal of libpopt, paranoia documentation, some bug fixes to
+  cd-* programs and the paranoia lib
+
+Robert Kausch
+  Update paranoia from 0.98 to 0.10.2 which includes drive cache
+  management
