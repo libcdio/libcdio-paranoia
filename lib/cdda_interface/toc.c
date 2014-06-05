@@ -120,7 +120,8 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
       }
     }
 
-    /* Safe, we've always the leadout at disc_toc[tracks] */
+    /* Index safe because we always have the leadout at
+     * disc_toc[tracks] */
     return(d->disc_toc[i_track-i_first_track+1].dwStartSector-1);
   }
 }
