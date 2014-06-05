@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2013 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -58,19 +59,61 @@ log_handler (cdio_log_level_t level, const char message[])
 }
 
 static int testit(cdrom_drive_t *d) {
-    lsn_t lsn = cdda_disc_lastsector(d);
-    track_t t = cdda_tracks(d);
+    track_t t = 0;
+    lsn_t lsn = 0;
 
+    /* Check number of tracks.
+     */
+    t = cdda_tracks(d);
     if (t != 1) {
 	printf("Should have found one track, got %d\n", t);
 	return 1;
     }
 
+    /* Check disc sector reporting.
+     */
+    lsn = cdda_disc_firstsector(d);
+    if ( lsn != 0 ) {
+	printf("Should have gotten 0 as the first sector, got %d.\n", lsn);
+	return 2;
+    }
+
+    lsn = cdda_disc_lastsector(d);
     if ( lsn != 301 ) {
 	printf("Should have gotten 301 as the last sector, got %d.\n", lsn);
 	return 2;
     }
 
+    /* Check pregap sector reporting (should fail here).
+     */
+    lsn = cdda_track_firstsector(d, 0);
+    if ( lsn != -402 ) {
+	printf("Should have gotten error code -402, got %d.\n", lsn);
+	return 3;
+    }
+
+    lsn = cdda_track_lastsector(d, 0);
+    if ( lsn != -402 ) {
+	printf("Should have gotten error code -402, got %d.\n", lsn);
+	return 3;
+    }
+
+    /* Check track sector reporting.
+     */
+    lsn  = cdda_track_firstsector(d, 1);
+    if ( lsn != 0 ) {
+	printf("Should have gotten 0 as the first sector, got %d.\n", lsn);
+	return 2;
+    }
+
+    lsn  = cdda_track_lastsector(d, 1);
+    if ( lsn != 301 ) {
+	printf("Should have gotten 301 as the last sector, got %d.\n", lsn);
+	return 2;
+    }
+
+    /* Check sector track reporting.
+     */
     t = cdda_sector_gettrack(d, 100);
     if ( 1 != t )  {
 	printf("Should have gotten 1 as the track, got %d.\n", t);
