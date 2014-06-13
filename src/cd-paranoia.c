@@ -1276,7 +1276,7 @@ main(int argc,char *argv[])
             path[0]='\0';
 
             if(pos)
-              strncat(path,argv[optind+1],pos>256?256:pos);
+              strncat(path,argv[optind+1],pos>255?255:pos);
 
             if(batch)
               snprintf(outfile_name, 246, " %strack%02d.%s", path,

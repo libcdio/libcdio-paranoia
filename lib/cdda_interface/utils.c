@@ -124,10 +124,10 @@ idmessage(int messagedest,char **messages,const char *f,
     if(!s)
       buffer=(char *)f;
     else{
-      const unsigned int i_buffer=strlen(f)+strlen(s)+10;
+      const unsigned int i_buffer=strlen(f)+strlen(s)+2;
       buffer=malloc(i_buffer);
       sprintf(buffer,f,s);
-      strncat(buffer,"\n", i_buffer);
+      strncat(buffer,"\n",1);
       malloced=1;
     }
 
@@ -156,13 +156,13 @@ idmessage(int messagedest,char **messages,const char *f,
 char *
 catstring(char *buff, const char *s) {
   if (s) {
-    const unsigned int add_len = strlen(s) + 9;
+    const unsigned int add_len = strlen(s) + 1;
     if(buff) {
       buff = realloc(buff, strlen(buff) + add_len);
     } else {
       buff=calloc(add_len, 1);
     }
-    strncat(buff, s, add_len);
+    strncat(buff, s, add_len - 1);
   }
   return(buff);
 }
