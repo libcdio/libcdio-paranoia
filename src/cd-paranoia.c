@@ -1275,7 +1275,8 @@ main(int argc,char *argv[])
             outfile_name[0]='\0';
           } else {
             char dirname[PATH_MAX];
-            char *basename=split_base_dir(argv[optind+1], dirname);
+            char *basename=split_base_dir(argv[optind+1], dirname,
+					  PATH_MAX);
 
 	    if (NULL == basename) {
 	      report("Output filename too long");
@@ -1287,7 +1288,8 @@ main(int argc,char *argv[])
 		report("Output filename too long");
 		exit(1);
 	      }
-              snprintf(outfile_name, 246, " %strack%02d.%s", dirname,
+              snprintf(outfile_name, PATH_MAX,
+		       " %strack%02d.%s", dirname,
                        batch_track, basename);
             } else
               snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
