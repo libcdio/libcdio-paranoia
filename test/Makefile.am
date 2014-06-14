@@ -20,7 +20,7 @@ check_SCRIPTS = check_paranoia.sh
 # it could be an automatic test. But for now, not so.
 #               check_paranoia.sh
 
-check_PROGRAMS = testparanoia
+check_PROGRAMS = testparanoia testutils
 
 check_DATA = cd-paranoia-log.right
 
