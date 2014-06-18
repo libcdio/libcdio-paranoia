@@ -1,4 +1,6 @@
 *~
+/*.directive
+/*.directive.asc
 /ChangeLog
 /Makefile
 /Makefile.in
@@ -13,16 +15,16 @@
 /config.status
 /config.sub
 /configure
+/cov-int
 /depcomp
 /install-sh
+/libcdio-*.sig
 /libcdio-*.tar.bz2
 /libcdio-*.tar.gz
-/libcdio-*.sig
+/libcdio-paranoia.tgz
 /libcdio_cdda.pc
 /libcdio_paranoia.pc
 /libtool
 /ltmain.sh
 /missing
 /stamp-h1
-/*.directive
-/*.directive.asc

@@ -1,6 +1,5 @@
 /*
-  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
-  Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004-2012, 2014 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty <xiphmont@mit.edu>
 
@@ -36,6 +35,14 @@
 
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
+#endif
+
+#ifndef PATH_MAX
+# ifdef MAXPATHLEN
+#  define PATH_MAX MAXPATHLEN
+# else
+#  define PATH_MAX 4096
+# endif
 #endif
 
 #ifdef HAVE_STDLIB_H
@@ -900,7 +907,7 @@ main(int argc,char *argv[])
       }
     }
   }
-    
+
   if(logfile){
     /* log command line and version */
     int i;
@@ -920,7 +927,7 @@ main(int argc,char *argv[])
   if(reportfile && reportfile!=logfile){
     /* log command line */
     int i;
-    for (i = 0; i < argc; i++) 
+    for (i = 0; i < argc; i++)
       fprintf(reportfile,"%s ",argv[i]);
     fprintf(reportfile,"\n");
     fflush(reportfile);
@@ -1048,7 +1055,7 @@ main(int argc,char *argv[])
 
   if(run_cache_test){
     int warn=analyze_cache(d, stderr, reportfile, force_cdrom_speed);
-    
+
     if(warn==0){
       reportC("\nDrive tests OK with Paranoia.\n\n");
       return 0;
@@ -1232,7 +1239,7 @@ main(int argc,char *argv[])
         d->disc_toc[d->tracks].dwStartSector++;
 
       while(cursor<=i_last_lsn){
-        char outfile_name[256];
+        char outfile_name[PATH_MAX];
         if ( batch ){
           batch_first = cursor;
           batch_track = cdda_sector_gettrack(d,cursor);
@@ -1267,24 +1274,27 @@ main(int argc,char *argv[])
             }
             outfile_name[0]='\0';
           } else {
-            char path[256];
+            char dirname[PATH_MAX];
+            char *basename=split_base_dir(argv[optind+1], dirname,
+					  PATH_MAX);
 
-            char *post=strrchr(argv[optind+1],'/');
-            int pos=(post?post-argv[optind+1]+1:0);
-            char *file=argv[optind+1]+pos;
+	    if (NULL == basename) {
+	      report("Output filename too long");
+	      exit(1);
+	    }
 
-            path[0]='\0';
+            if(batch) {
+	      if (strlen(argv[optind+1]) - 10 > PATH_MAX) {
+		report("Output filename too long");
+		exit(1);
+	      }
+              snprintf(outfile_name, PATH_MAX,
+		       " %strack%02d.%s", dirname,
+                       batch_track, basename);
+            } else
+              snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
 
-            if(pos)
-              strncat(path,argv[optind+1],pos>256?256:pos);
-
-            if(batch)
-              snprintf(outfile_name, 246, " %strack%02d.%s", path,
-                       batch_track, file);
-            else
-              snprintf(outfile_name, 246, "%s%s", path, file);
-
-            if(file[0]=='\0'){
+            if(basename[0]=='\0'){
               switch (output_type) {
               case 0: /* raw */
                 strncat(outfile_name, "cdda.raw", sizeof("cdda.raw"));
