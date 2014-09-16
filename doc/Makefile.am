@@ -15,7 +15,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 SUBDIRS = en ja
-EXTRA_DIST = FAQ.txt overlapdef.txt
+EXTRA_DIST = overlapdef.txt
 
 mostlyclean-generic:
 	-rm -f *~ \#* .*~ .\#*
