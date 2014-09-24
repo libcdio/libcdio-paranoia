@@ -176,8 +176,11 @@ struct cdrom_drive_s {
 /** autosense functions */
 
 /** Get a CD-ROM drive with a CD-DA in it. 
-    If mesagedest is 1, then any messages in the process will be stored 
-    in message.
+    If mesagedest is CDDA_MESSAGE_LOGIT, then any messages in the
+    process will be stored in message.
+
+    When using CDDA_MESSAGE_LOGIT, free the message buffer with
+    cdio_cddap_free_messages() after use.
 */
 extern cdrom_drive_t *cdio_cddap_find_a_cdrom(int messagedest, 
 					      char **ppsz_message);
@@ -185,6 +188,9 @@ extern cdrom_drive_t *cdio_cddap_find_a_cdrom(int messagedest,
 /** Returns a paranoia CD-ROM drive object with a CD-DA in it or NULL
     if there was an error.
     @see cdio_cddap_identify_cdio
+
+    When using CDDA_MESSAGE_LOGIT, free the message buffer with
+    cdio_cddap_free_messages() after use.
  */
 extern cdrom_drive_t *cdio_cddap_identify(const char *psz_device, 
 					  int messagedest, 
@@ -195,18 +201,36 @@ extern cdrom_drive_t *cdio_cddap_identify(const char *psz_device,
     start out with an initialized p_cdio object. For example you may
     have used that for other purposes such as to get CDDB/CD-Text
     information.  @see cdio_cddap_identify
+
+    When using CDDA_MESSAGE_LOGIT, free the message buffer with
+    cdio_cddap_free_messages() after use.
  */
 cdrom_drive_t *cdio_cddap_identify_cdio(CdIo_t *p_cdio, 
 					int messagedest, char **ppsz_messages);
 
-/** drive-oriented functions */
+/** informational functions */
 
 extern char   *cdio_cddap_version();
+
+/** Returns the current message buffer. Free the returned
+    string using cdio_cddap_free_messages() if not NULL.
+ */
+extern char   *cdio_cddap_messages(cdrom_drive_t *d);
+
+/** Returns the current error buffer. Free the returned
+    string using cdio_cddap_free_messages() if not NULL.
+ */
+extern char   *cdio_cddap_errors(cdrom_drive_t *d);
+
+/** Frees the message string passed in psz_messages.
+ */
+extern void    cdio_cddap_free_messages(char *psz_messages);
+
+/** drive-oriented functions */
+
 extern int     cdio_cddap_speed_set(cdrom_drive_t *d, int speed);
 extern void    cdio_cddap_verbose_set(cdrom_drive_t *d, int err_action, 
 				      int mes_action);
-extern char   *cdio_cddap_messages(cdrom_drive_t *d);
-extern char   *cdio_cddap_errors(cdrom_drive_t *d);
 
 /*!
   Closes d and releases all storage associated with it except

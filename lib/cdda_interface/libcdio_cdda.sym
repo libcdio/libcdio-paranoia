@@ -1,4 +1,5 @@
 cdio_cddap_find_a_cdrom
+cdio_cddap_free_messages
 cdio_cddap_identify
 cdio_cddap_identify_cdio
 cdio_cddap_version

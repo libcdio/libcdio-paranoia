@@ -201,3 +201,9 @@ cdio_cddap_errors(cdrom_drive_t *d)
   return(ret);
 }
 
+extern void
+cdio_cddap_free_messages(char *psz_messages)
+{
+  if (psz_messages != NULL)
+    free(psz_messages);
+}
