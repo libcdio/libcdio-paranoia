@@ -147,7 +147,7 @@ main(int argc, const char *argv[])
     return 77;
   }
 
-  d=cdio_cddap_identify_cdio(p_cdio, 1, NULL);
+  d=cdio_cddap_identify_cdio(p_cdio, CDDA_MESSAGE_PRINTIT, NULL);
 
   if ( !d ) {
     printf("Should have identified as an audio CD disc.\n");

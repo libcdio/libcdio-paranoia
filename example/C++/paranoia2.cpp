@@ -50,7 +50,7 @@ main(int argc, const char *argv[])
     /* Found such a CD-ROM with a CD-DA loaded. Use the first drive in
        the list. */
     p_cdio = cdio_open(*ppsz_cd_drives, DRIVER_UNKNOWN);
-    d=cdio_cddap_identify_cdio(p_cdio, 1, NULL);
+    d=cdio_cddap_identify_cdio(p_cdio, CDDA_MESSAGE_PRINTIT, NULL);
   } else {
     printf("Unable find or access a CD-ROM drive with an audio CD in it.\n");
     exit(1);
