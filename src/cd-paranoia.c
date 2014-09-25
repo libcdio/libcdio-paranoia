@@ -1224,10 +1224,10 @@ main(int argc,char *argv[])
 
       /* this is probably a good idea in general */
 #if defined(HAVE_GETUID) && defined(HAVE_SETEUID)
-      seteuid(getuid());
+      (void) seteuid(getuid());
 #endif
 #if defined(HAVE_GETGID) && defined(HAVE_SETEGID)
-      setegid(getgid());
+      (void) setegid(getgid());
 #endif
 
       /* we'll need to be able to read one sector past user data if we

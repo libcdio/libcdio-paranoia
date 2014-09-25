@@ -1,7 +1,7 @@
-/** \file include/cdio/paranoia/version.h 
+/** \file include/cdio/paranoia/version.h
  *
  *  \brief A file containing the libcdio-paranoia package version
- *  number (@VERSION@) and OS build name. 
+ *  number (@VERSION@) and OS build name.
  */
 
 /*! LIBCDIO_PARANOIA_VERSION is a C-Preprocessor macro of a string that

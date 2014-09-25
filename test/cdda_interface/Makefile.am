@@ -2,7 +2,7 @@
 # lib/cdda_interface regression testing
 ####################################################
 
-AM_CPPFLAGS = $(LIBCDIO_CFLAGS) $(LIBISO9660_CFLAGS)
+AM_CPPFLAGS = $(LIBCDIO_CFLAGS) $(LIBISO9660_CFLAGS) $(LIBCDIO_PARANOIA_CFLAGS)
 DATA_DIR = $(abs_top_srcdir)/test/data
 
 toc_SOURCES      = toc.c

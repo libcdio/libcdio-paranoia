@@ -6,7 +6,7 @@
     CopyPolicy: GNU Lesser General Public License 2.1 applies
 */
 
-/** \file paranoia.h 
+/** \file paranoia.h
  *
  *  \brief The top-level header for libcdda_paranoia: a device- and OS-
  *  independent library for reading CD-DA with error tolerance and
@@ -19,13 +19,13 @@
 #include <cdio/paranoia/cdda.h>
 
 /*! Paranoia likes to work with 16-bit numbers rather than
-    (possibly byte-swapped) bytes. So there are this many 
+    (possibly byte-swapped) bytes. So there are this many
     16-bit numbers block (frame, or sector) read.
 */
 #define CD_FRAMEWORDS (CDIO_CD_FRAMESIZE_RAW/2)
 
 /**
-  Flags used in paranoia_modeset. 
+  Flags used in paranoia_modeset.
 
   The enumeration type one probably wouldn't really use in a program.
   It is here instead of defines to give symbolic names that can be
@@ -40,12 +40,12 @@ typedef enum  {
   PARANOIA_MODE_OVERLAP   =  0x04, /**< Perform overlapped reads */
   PARANOIA_MODE_SCRATCH   =  0x08, /**< unsupported */
   PARANOIA_MODE_REPAIR    =  0x10, /**< unsupported */
-  PARANOIA_MODE_NEVERSKIP =  0x20, /**< Do not skip failed reads (retry 
+  PARANOIA_MODE_NEVERSKIP =  0x20, /**< Do not skip failed reads (retry
 				      maxretries) */
-  PARANOIA_MODE_FULL      =  0xff, /**< Maximum paranoia - all of the above 
+  PARANOIA_MODE_FULL      =  0xff, /**< Maximum paranoia - all of the above
 				        (except disable) */
 } paranoia_mode_t;
-  
+
 
 /**
    Flags set in a callback.
@@ -73,19 +73,19 @@ typedef enum  {
 } paranoia_cb_mode_t;
 
   extern const char *paranoia_cb_mode2str[];
-  
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-  /*! 
+  /*!
     Get libcdio-paranoia version.
 
     @return paranoia version string
    */
-  extern char *cdio_paranoia_version();
+  extern const char *cdio_paranoia_version(void);
 
-  /*! 
+  /*!
     Get and initialize a new cdrom_paranoia object from cdrom_drive.
     Run this before calling any of the other paranoia routines below.
 
@@ -93,7 +93,7 @@ extern "C" {
     done with it
    */
   extern cdrom_paranoia_t *cdio_paranoia_init(cdrom_drive_t *d);
-  
+
   /*!
     Free any resources associated with p.
 
@@ -103,32 +103,32 @@ extern "C" {
    */
   extern void cdio_paranoia_free(cdrom_paranoia_t *p);
 
-  /*! 
-    Set the kind of repair you want to on for reading. 
+  /*!
+    Set the kind of repair you want to on for reading.
     The modes are listed above
 
     @param p             paranoia type
-    @param mode_flags    paranoia mode flags built from values in 
-                         paranoia_mode_t, e.g. 
+    @param mode_flags    paranoia mode flags built from values in
+                         paranoia_mode_t, e.g.
 		         PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP
    */
   extern void cdio_paranoia_modeset(cdrom_paranoia_t *p, int mode_flags);
 
   /*!
-    reposition reading offset. 
+    reposition reading offset.
 
     @param p       paranoia type
     @param seek    byte offset to seek to
-    @param whence  like corresponding parameter in libc's lseek, e.g. 
+    @param whence  like corresponding parameter in libc's lseek, e.g.
                    SEEK_SET or SEEK_END.
   */
-  extern lsn_t cdio_paranoia_seek(cdrom_paranoia_t *p, int32_t seek, 
+  extern lsn_t cdio_paranoia_seek(cdrom_paranoia_t *p, int32_t seek,
 				  int whence);
 
   /*!
     Reads the next sector of audio data and returns a pointer to a full
-    sector of verified samples. 
-    
+    sector of verified samples.
+
     @param p paranoia object.
 
     @param callback callback routine which gets called with the status
@@ -139,7 +139,7 @@ extern "C" {
     only until the next call to paranoia_read() for this p.
   */
   extern int16_t *cdio_paranoia_read(cdrom_paranoia_t *p,
-				     void(*callback)(long int, 
+				     void(*callback)(long int,
 						     paranoia_cb_mode_t));
 
   /*! The same as cdio_paranoia_read but the number of retries is set.
@@ -156,10 +156,10 @@ extern "C" {
     been turned off the 16-bit integers Endian independent order.
 
     @see cdio_paranoia_read.
-    
+
   */
   extern int16_t *cdio_paranoia_read_limited(cdrom_paranoia_t *p,
-					     void(*callback)(long int, 
+					     void(*callback)(long int,
 							   paranoia_cb_mode_t),
 					     int max_retries);
 
@@ -167,10 +167,10 @@ extern "C" {
 /*! a temporary hack */
   extern void cdio_paranoia_overlapset(cdrom_paranoia_t *p,long overlap);
 
-  extern void cdio_paranoia_set_range(cdrom_paranoia_t *p, long int start, 
+  extern void cdio_paranoia_set_range(cdrom_paranoia_t *p, long int start,
 				      long int end);
 
-  /*! 
+  /*!
     Set or query the number of sectors used for paranoia cache modelling.
 
     @param p       paranoia object

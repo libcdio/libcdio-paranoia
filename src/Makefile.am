@@ -1,4 +1,4 @@
-#   Copyright (C) 2004, 2005, 2006, 2007, 2008, 
+#   Copyright (C) 2004, 2005, 2006, 2007, 2008,
 #   Rocky Bernstein <rocky@gnu.org>
 #   Copyright (C) 1998 Monty xiphmont@mit.edu
 #
@@ -8,7 +8,7 @@ transform = s,cd-paranoia,@CDPARANOIA_NAME@,
 GETOPT_C = getopt1.c getopt.c
 
 EXTRA_DIST = usage.txt.in usage-copy.h pod2c.pl \
-             $(GETOPT_C) getopt.h
+             $(GETOPT_C) getopt_int.h getopt.h
 
 noinst_HEADERS = header.h report.h $(GETOPT_H)
 
@@ -37,4 +37,3 @@ usage.h: usage-copy.h
 endif
 
 MOSTLYCLEANFILES = usage.h usage.txt
-
