@@ -19,11 +19,11 @@
 ########################################################
 
 #
-# From libtool documentation amended with guidance from N. Boullis: 
+# From libtool documentation amended with guidance from N. Boullis:
 #
 #  1. Start with version information of `0:0:0' for each libtool library.
 #
-#  2. It is probably not a good idea to update the version information 
+#  2. It is probably not a good idea to update the version information
 #     several times between public releases, but rather once per public
 #     release. (This seems to be more an aesthetic consideration than
 #     a hard technical one.)
@@ -43,14 +43,14 @@
 
 EXTRA_DIST = libcdio_paranoia.sym
 
-libcdio_paranoia_la_CURRENT = 1
+libcdio_paranoia_la_CURRENT = 2
 libcdio_paranoia_la_REVISION = 0
 libcdio_paranoia_la_AGE = 0
 
 noinst_HEADERS  = gap.h isort.h overlap.h p_block.h
 
 libcdio_paranoia_sources = gap.c isort.c overlap.c overlap.h \
-	p_block.c paranoia.c 
+	p_block.c paranoia.c
 
 lib_LTLIBRARIES = libcdio_paranoia.la
 
@@ -69,7 +69,7 @@ DEBUG=$(FLAGS)
 ##.c.t:
 ##	$(CC) -g -DTEST $(DEBUG) -o $@ $< $(LIBS)
 ##	$@
-##debug: 
+##debug:
 ##	$(MAKE) libcdio_paranoia.a CFLAGS="$(DEBUG)"
 
 LIBS = $(LIBCDIO_LIBS) $(LIBCDIO_CDDA_LIBS)
@@ -81,7 +81,7 @@ LIBS = $(LIBCDIO_LIBS) $(LIBCDIO_CDDA_LIBS)
 
 # An explanation of the versioning problem from Nicolas Boullis and
 # the versioned symbol solution he uses below...
-# 
+#
 # Currently, libvcdinfo uses the cdio_open function from libcdio.
 # Let's imagine a program foobar that uses both the vcdinfo_open
 # function from libvcdinfo and the cdio_open function from libcdio.
@@ -146,8 +146,8 @@ libcdio_paranoia.la.ver: $(libcdio_paranoia_la_OBJECTS) $(srcdir)/libcdio_parano
 	  nm $${objs} | sed -n -e 's/^.*[ 	][ABCDGIRSTW][ABCDGIRSTW]*[ 	][ 	]*\([_A-Za-z][_A-Za-z0-9]*\)$$/\1/p' | sort -u | { first=true; while read symbol; do if grep -q "^$${symbol}\$$" $(srcdir)/libcdio_paranoia.sym; then :; else if test $$first = true; then echo "  local:"; first=false; fi; echo "    $${symbol};"; fi; done; } >> $@; \
 	fi
 	echo '};' >> $@
-else 
+else
 libcdio_paranoia_la_LDFLAGS = $(libcdio_paranoia_la_ldflags)
-endif 
+endif
 
 MOSTLYCLEANFILES = libcdio_paranoia.la.ver

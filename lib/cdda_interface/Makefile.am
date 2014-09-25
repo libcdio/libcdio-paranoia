@@ -7,11 +7,11 @@
 ########################################################
 
 #
-# From libtool documentation amended with guidance from N. Boullis: 
+# From libtool documentation amended with guidance from N. Boullis:
 #
 #  1. Start with version information of `0:0:0' for each libtool library.
 #
-#  2. It is probably not a good idea to update the version information 
+#  2. It is probably not a good idea to update the version information
 #     several times between public releases, but rather once per public
 #     release. (This seems to be more an aesthetic consideration than
 #     a hard technical one.)
@@ -31,7 +31,7 @@
 
 EXTRA_DIST = libcdio_cdda.sym
 
-libcdio_cdda_la_CURRENT = 1
+libcdio_cdda_la_CURRENT = 2
 libcdio_cdda_la_REVISION = 0
 libcdio_cdda_la_AGE = 0
 
@@ -53,7 +53,7 @@ FLAGS=@LIBCDIO_CFLAGS@ @UCDROM_H@ @TYPESIZES@ @CFLAGS@
 OPT=$(FLAGS)
 DEBUG=$(FLAGS) -DCDDA_TEST
 
-## test:	
+## test:
 ##	$(MAKE) libcdio_cdda.a CFLAGS="$(DEBUG)"
 ##	$(CC) $(DEBUG) -c test_interface.c
 ##	$(LD) $(DEBUG) test_interface.o $(LDFLAGS) -o cdda_test $(LIBS) libcdio_cdda.a
@@ -67,7 +67,7 @@ LIBS = $(LIBCDIO_LIBS) @COS_LIB@
 
 # An explanation of the versioning problem from Nicolas Boullis and
 # the versioned symbol solution he uses below...
-# 
+#
 # Currently, libvcdinfo uses the cdio_open function from libcdio.
 # Let's imagine a program foobar that uses both the vcdinfo_open
 # function from libvcdinfo and the cdio_open function from libcdio.
@@ -132,8 +132,8 @@ libcdio_cdda.la.ver: $(libcdio_cdda_la_OBJECTS) $(srcdir)/libcdio_cdda.sym
 	  nm $${objs} | sed -n -e 's/^.*[ 	][ABCDGIRSTW][ABCDGIRSTW]*[ 	][ 	]*\([_A-Za-z][_A-Za-z0-9]*\)$$/\1/p' | sort -u | { first=true; while read symbol; do if grep -q "^$${symbol}\$$" $(srcdir)/libcdio_cdda.sym; then :; else if test $$first = true; then echo "  local:"; first=false; fi; echo "    $${symbol};"; fi; done; } >> $@; \
 	fi
 	echo '};' >> $@
-else 
+else
 libcdio_cdda_la_LDFLAGS = $(libcdio_cdda_la_ldflags)
-endif 
+endif
 
 MOSTLYCLEANFILES = libcdio_cdda.la.ver
