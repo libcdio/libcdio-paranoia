@@ -32,7 +32,7 @@
 #include <cdio/mmc.h>
 #include <cdio/paranoia/version.h>
 
-const char *cdio_cddap_version(void){
+extern const char *cdio_cddap_version(void){
   return LIBCDIO_PARANOIA_VERSION;
 }
 

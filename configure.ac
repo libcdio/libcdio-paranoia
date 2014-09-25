@@ -18,7 +18,7 @@ dnl 02110-1301 USA.
 
 define(RELEASE_NUM, 93+1)
 define(PARANOIA_VERSION, 10.2)
-define(LIBCDIO_PARANOIA_VERSION_STR, $1+0.$2)
+define(LIBCDIO_PARANOIA_VERSION_STR, $1+0.$2git)
 
 AC_DEFINE([PACKAGE], [libcdio-paranoia], [cdparanoia using libcdio])
 

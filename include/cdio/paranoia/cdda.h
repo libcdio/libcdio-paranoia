@@ -432,7 +432,9 @@ extern paranoia_cdda_enums_t debug_paranoia_cdda_enums;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  const char *cdio_cddap_version(void);
+  extern const char *cdio_cddap_version(void);
+  extern void cdio_cddap_free_messages(char *psz_messages);
+
 #ifdef __cplusplus
 }
 #endif

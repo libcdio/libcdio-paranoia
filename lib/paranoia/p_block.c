@@ -40,7 +40,7 @@ linked_element *add_elem(linked_list_t *l,void *elem)
   if(l->head)
     l->head->prev=ret;
   else
-    l->tail=ret;    
+    l->tail=ret;
   ret->next=l->head;
   ret->prev=NULL;
   l->head=ret;
@@ -56,7 +56,7 @@ new_elem(linked_list_t *p_list)
   return(add_elem(p_list,p_new));
 }
 
-void 
+void
 free_elem(linked_element *e,int free_ptr)
 {
   linked_list_t *l=e->list;
@@ -66,7 +66,7 @@ free_elem(linked_element *e,int free_ptr)
     l->head=e->next;
   if(e==l->tail)
     l->tail=e->prev;
-    
+
   if(e->prev)
     e->prev->next=e->next;
   if(e->next)
@@ -74,9 +74,9 @@ free_elem(linked_element *e,int free_ptr)
 
   l->active--;
   free(e);
-} 
+}
 
-void 
+void
 free_list(linked_list_t *list,int free_ptr)
 {
   while(list->head)
@@ -110,7 +110,7 @@ i_cblock_constructor(cdrom_paranoia_t *p)
   return(ret);
 }
 
-void 
+void
 i_cblock_destructor(c_block_t *c)
 {
   if(c){
@@ -135,12 +135,12 @@ void free_c_block(c_block_t *c)
 {
   /* also rid ourselves of v_fragments that reference this block */
   v_fragment_t *v=v_first(c->p);
-  
+
   while(v){
     v_fragment_t *next=v_next(v);
     if(v->one==c)free_v_fragment(v);
     v=next;
-  }    
+  }
 
   free_elem(c->e,1);
 }
@@ -152,7 +152,7 @@ i_vfragment_constructor(void)
   return(ret);
 }
 
-static void 
+static void
 i_v_fragment_destructor(v_fragment_t *v)
 {
   free(v);
@@ -164,7 +164,7 @@ new_v_fragment(cdrom_paranoia_t *p, c_block_t *one,
 {
   linked_element *e=new_elem(p->fragments);
   v_fragment_t *b=e->ptr;
-  
+
   b->e=e;
   b->p=p;
 
@@ -254,7 +254,7 @@ v_prev(v_fragment_t *v)
   return(NULL);
 }
 
-void 
+void
 recover_cache(cdrom_paranoia_t *p)
 {
   linked_list_t *l=p->cache;
@@ -290,7 +290,7 @@ void c_set(c_block_t *v,long begin){
 }
 
 /* pos here is vector position from zero */
-void 
+void
 c_insert(c_block_t *v,long pos,int16_t *b,long size)
 {
   int vs=cs(v);
@@ -301,7 +301,7 @@ c_insert(c_block_t *v,long pos,int16_t *b,long size)
   } else {
     v->vector = calloc(1, sizeof(int16_t)*size);
   }
-  
+
   if(pos<vs)memmove(v->vector+pos+size,v->vector+pos,
 		       (vs-pos)*sizeof(int16_t));
   memcpy(v->vector+pos,b,size*sizeof(int16_t));
@@ -309,7 +309,7 @@ c_insert(c_block_t *v,long pos,int16_t *b,long size)
   v->size+=size;
 }
 
-void 
+void
 c_remove(c_block_t *v, long cutpos, long cutsize)
 {
   int vs=cs(v);
@@ -320,11 +320,11 @@ c_remove(c_block_t *v, long cutpos, long cutsize)
 
   memmove(v->vector+cutpos,v->vector+cutpos+cutsize,
             (vs-cutpos-cutsize)*sizeof(int16_t));
-  
+
   v->size-=cutsize;
 }
 
-void 
+void
 c_overwrite(c_block_t *v,long pos,int16_t *b,long size)
 {
   int vs=cs(v);
@@ -335,7 +335,7 @@ c_overwrite(c_block_t *v,long pos,int16_t *b,long size)
   memcpy(v->vector+pos,b,size*sizeof(int16_t));
 }
 
-void 
+void
 c_append(c_block_t *v, int16_t *vector, long size)
 {
   int vs=cs(v);
@@ -351,7 +351,7 @@ c_append(c_block_t *v, int16_t *vector, long size)
   v->size+=size;
 }
 
-void 
+void
 c_removef(c_block_t *v, long cut)
 {
   c_remove(v,0,cut);
@@ -371,7 +371,7 @@ c_removef(c_block_t *v, long cut)
   is mixed and there is a data track after the cursor but before the
   last audio track, the end of the audio sector before that is used.
 */
-void 
+void
 i_paranoia_firstlast(cdrom_paranoia_t *p)
 {
   track_t i, j;
@@ -381,7 +381,7 @@ i_paranoia_firstlast(cdrom_paranoia_t *p)
 
   p->current_lastsector = p->current_firstsector = -1;
 
-  i = cdda_sector_gettrack(d, p->cursor); 
+  i = cdda_sector_gettrack(d, p->cursor);
 
   if ( CDIO_INVALID_TRACK != i ) {
     if ( 0 == i ) i++;
@@ -403,7 +403,7 @@ i_paranoia_firstlast(cdrom_paranoia_t *p)
 	break;
       }
   }
-  
+
   if (p->current_lastsector == -1)
     p->current_lastsector = cdda_disc_lastsector(d);
 
@@ -430,7 +430,7 @@ paranoia_init(cdrom_drive_t *d)
   p->d=d;
   p->dynoverlap=MAX_SECTOR_OVERLAP*CD_FRAMEWORDS;
   p->cache_limit=JIGGLE_MODULO;
-  p->enable=PARANOIA_MODE_FULL;
+  p->enable=(paranoia_cb_mode_t)PARANOIA_MODE_FULL;
   p->cursor=cdda_disc_firstsector(d);
 
   /* One last one... in case data and audio tracks are mixed... */
