@@ -46,7 +46,7 @@ lib_LTLIBRARIES = libcdio_cdda.la
 libcdio_cdda_la_SOURCES = $(libcdio_cdda_sources)
 libcdio_cdda_la_ldflags = -version-info $(libcdio_cdda_la_CURRENT):$(libcdio_cdda_la_REVISION):$(libcdio_cdda_la_AGE) @LT_NO_UNDEFINED@
 
-AM_CPPFLAGS = $(LIBCDIO_PARANOIA_CFLAGS) $(LIBCDIO_FLAGS)
+AM_CPPFLAGS = $(LIBCDIO_PARANOIA_CFLAGS) $(LIBCDIO_CFLAGS)
 
 FLAGS=@LIBCDIO_CFLAGS@ @UCDROM_H@ @TYPESIZES@ @CFLAGS@
 

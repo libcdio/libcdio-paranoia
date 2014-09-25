@@ -57,7 +57,7 @@ lib_LTLIBRARIES = libcdio_paranoia.la
 libcdio_paranoia_la_SOURCES = $(libcdio_paranoia_sources)
 libcdio_paranoia_la_ldflags = -version-info $(libcdio_paranoia_la_CURRENT):$(libcdio_paranoia_la_REVISION):$(libcdio_paranoia_la_AGE) @LT_NO_UNDEFINED@
 
-AM_CPPFLAGS = $(LIBCDIO_PARANOIA_CFLAGS) $(LIBCDIO_FLAGS)
+AM_CPPFLAGS = $(LIBCDIO_PARANOIA_CFLAGS) $(LIBCDIO_CFLAGS)
 
 FLAGS=@LIBCDIO_PARANOIA_CFLAGS@ @TYPESIZES@ @CFLAGS@ -I.. -I../..
 OPT=$(FLAGS)
