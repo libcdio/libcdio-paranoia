@@ -3,7 +3,7 @@
 #
 ## Process this file with automake to produce Makefile.in
 ##   which configure then turns into a Makefile  ...
-##     which make can then use to produce stuff. Isn't configuration simple? 
+##     which make can then use to produce stuff. Isn't configuration simple?
 
 AUTOMAKE_OPTIONS = dist-bzip2
 
@@ -11,8 +11,7 @@ EXTRA_DIST = \
 	THANKS \
 	make-check-filter.rb \
 	example/README \
-	COPYING-GPL \
-	COPYING-LGPL
+	COPYING-GPL
 
 SUBDIRS = doc include lib src test example
 
