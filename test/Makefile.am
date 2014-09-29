@@ -13,7 +13,7 @@ hack = $(testparanoia)
 
 DATA_DIR       = @abs_top_srcdir@/test/data
 
-INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS) $(LIBCDIO_PARANOIA_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) $(LIBCDIO_CFLAGS) $(LIBCDIO_PARANOIA_CFLAGS)
 
 check_SCRIPTS = check_paranoia.sh
 # If we beefed this up so it checked to see if a CD-DA was loaded

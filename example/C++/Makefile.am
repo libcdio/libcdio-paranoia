@@ -21,7 +21,7 @@ paranoia_progs = paranoia paranoia2
 if BUILD_EXAMPLES
 noinst_PROGRAMS = $(paranoia_progs)
 endif
-INCLUDES = -I$(top_srcdir) $(LIBCDIO_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) $(LIBCDIO_CFLAGS)
 
 paranoia_SOURCES  = paranoia.cpp
 paranoia_LDADD    = $(LIBCDIO_PARANOIA_LIBS) $(LIBCDIO_CDDA_LIBS) \

@@ -1,11 +1,12 @@
 version 10.2+0.93
-2014-09-
+2014-09-29
 
 - Add cdio_cddap_free_messages function
 - Start using Coverty Static analysis
 - Update OS versions we recognize
 - Upgrade libcdio-paranoia to paranoia version 10.2
 - Bug fixes on MS Windows and other bug fixes
+- Redo license so everything is GPL3
 
 version 10.2+0.90
 2012-12-24

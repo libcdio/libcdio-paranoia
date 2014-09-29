@@ -1,4 +1,4 @@
-dnl Copyright (C)  2011-2014d3
+dnl Copyright (C)  2011-2014
 dnl Rocky Bernstein <rocky@gnu.org>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 define(RELEASE_NUM, 93+1)
 define(PARANOIA_VERSION, 10.2)
-define(LIBCDIO_PARANOIA_VERSION_STR, $1+0.$2git)
+define(LIBCDIO_PARANOIA_VERSION_STR, $1+0.$2)
 
 AC_DEFINE([PACKAGE], [libcdio-paranoia], [cdparanoia using libcdio])
 
