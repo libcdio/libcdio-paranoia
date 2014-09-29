@@ -11,7 +11,7 @@ EXTRA_DIST = \
 	THANKS \
 	make-check-filter.rb \
 	example/README \
-	COPYING-GPL
+	COPYING
 
 SUBDIRS = doc include lib src test example
 
