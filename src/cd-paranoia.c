@@ -1181,7 +1181,6 @@ main(int argc,char *argv[])
       long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
       int i;
 
-      if (track2 < d->tracks) track2 = d->tracks;
       for( i=track1; i<=track2; i++ )
         if(i != 0 && !cdda_track_audiop(d,i)){
 	  report("Selected span contains non audio track at track %02d.  Aborting.\n\n", i);
