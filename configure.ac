@@ -129,12 +129,15 @@ fi
 AC_SUBST(DIFF)
 AC_SUBST(DIFF_OPTS)
 
-# We use  cmp and cdparanoia in cd-paranoia regression testing
-AC_PATH_PROG(CMP, cmp, no)
-AC_SUBST(CMP)
+# We use cmp, dd, and wc in cd-paranoia regression testing
+AC_PATH_PROG([CMP], [cmp], [no])
+AC_SUBST([CMP])
 
-AC_PATH_PROG(OLD_CDPARANOIA, cdparanoia, no)
-AC_SUBST(OLD_CDPARANOIA)
+AC_PATH_PROG([DD], [dd], [no])
+AC_SUBST([DD])
+
+AC_PATH_PROG([WC], [wc], [no])
+AC_SUBST([WC])
 
 dnl headers
 
@@ -440,6 +443,7 @@ AC_CONFIG_FILES([
 
 # AC_CONFIG_FILES([po/Makefile])
 AC_CONFIG_FILES([test/check_paranoia.sh], [chmod +x test/check_paranoia.sh])
+AC_CONFIG_FILES([test/endian.sh], [chmod +x test/endian.sh])
 AC_OUTPUT
 
 AC_MSG_NOTICE([

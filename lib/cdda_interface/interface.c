@@ -155,7 +155,7 @@ cdio_cddap_read_timed(cdrom_drive_t *d, void *buffer, lsn_t beginsector,
 	if ( d->bigendianp == -1 ) /* not determined yet */
 	  d->bigendianp = data_bigendianp(d);
 
-	if ( d->b_swap_bytes && d->bigendianp != bigendianp() ) {
+	if ( buffer && d->b_swap_bytes && d->bigendianp != bigendianp() ) {
 	  int i;
 	  uint16_t *p=(uint16_t *)buffer;
 	  long els=sectors*CDIO_CD_FRAMESIZE_RAW/2;

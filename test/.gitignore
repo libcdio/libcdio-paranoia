@@ -9,6 +9,10 @@
 /cd-paranoia.log
 /cdda-1.raw
 /cdda-2.raw
+/cdda-be.bin
+/cdda-be.cue
+/cdda-le.bin
+/cdda-le.cue
 /cdda-good.raw
 /cdda-jitter.raw
 /cdda-underrun.raw
@@ -20,6 +24,7 @@
 /check_nrg.sh
 /check_paranoia.sh
 /check_sizeof
+/endian.sh
 /isofs-m1.bin
 /test_lib_driver_util
 /testassert
