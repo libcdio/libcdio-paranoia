@@ -15,7 +15,7 @@ DATA_DIR       = @abs_top_srcdir@/test/data
 
 AM_CPPFLAGS = -I$(top_srcdir) $(LIBCDIO_CFLAGS) $(LIBCDIO_PARANOIA_CFLAGS)
 
-check_SCRIPTS = check_paranoia.sh
+check_SCRIPTS = check_paranoia.sh endian.sh
 # If we beefed this up so it checked to see if a CD-DA was loaded
 # it could be an automatic test. But for now, not so.
 #               check_paranoia.sh
@@ -28,6 +28,6 @@ EXTRA_DIST = $(check_SCRIPTS) $(check_DATA)
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
-MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw
+MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw *.bin *.cue
 
 test: check-am
