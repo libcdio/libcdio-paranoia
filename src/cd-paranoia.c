@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004-2012, 2014 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004-2012, 2014-2015 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty <xiphmont@mit.edu>
 

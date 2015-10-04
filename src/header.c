@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004 Rocky Bernstein <rocky@gnu.org
+  Copyright (C) 2004,2015 Rocky Bernstein <rocky@gnu.org
   Copyright (C) 1998 Monty xiphmont@mit.edu
   and Heiko Eissfeldt heiko@escape.colossus.de
 */
