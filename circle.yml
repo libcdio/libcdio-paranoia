@@ -5,5 +5,4 @@ checkout:
     - sh ./configure
     - make
 
-test:
-    - make check
+test: - make check
