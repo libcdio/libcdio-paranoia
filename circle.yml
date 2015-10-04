@@ -2,9 +2,10 @@ checkout:
   post:
     - sudo apt-get -y install libcdio-dev
     - sh ./autogen.sh
-    - sh ./configure
+    - sh ./configure --enable-maintainer-mode
     - make
 
 test:
   override:
     - make check
+    - make distcheck

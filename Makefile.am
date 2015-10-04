@@ -1,4 +1,4 @@
-#   Copyright (C) 2011, 2012
+#   Copyright (C) 2011, 2012, 2015
 #   Rocky Bernstein <rocky@gnu.org>
 #
 ## Process this file with automake to produce Makefile.in
@@ -9,6 +9,7 @@ AUTOMAKE_OPTIONS = dist-bzip2
 
 EXTRA_DIST = \
 	THANKS \
+        README.md \
 	make-check-filter.rb \
 	example/README \
 	COPYING

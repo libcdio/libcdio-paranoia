@@ -1,9 +1,0 @@
-libcido-cdparanoia README
-
-[September 11, 2008]
-
-Monty <monty@xiph.org>
-
-This CDDA reader distribution ('libcdio-cdparanoia') reads audio from the
-CDROM directly as data, with no analog step between, and writes the
-data to a file or pipe as .wav, .aifc or as raw 16 bit linear PCM.
