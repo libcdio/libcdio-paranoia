@@ -6,4 +6,5 @@ checkout:
     - make
 
 test:
-  - make check
+  override:
+    - make check
