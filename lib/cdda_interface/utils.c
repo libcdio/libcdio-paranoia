@@ -27,7 +27,7 @@
 void
 cderror(cdrom_drive_t *d,const char *s)
 {
-  ssize_t bytes_ret;
+  ssize_t bytes_ret __attribute__((unused));
   if(s && d){
     switch(d->errordest){
     case CDDA_MESSAGE_PRINTIT:
@@ -48,10 +48,11 @@ cderror(cdrom_drive_t *d,const char *s)
 void
 cdmessage(cdrom_drive_t *d, const char *s)
 {
+  ssize_t bytes_ret __attribute__((unused));
   if(s && d){
     switch(d->messagedest){
     case CDDA_MESSAGE_PRINTIT:
-      (void) write(STDERR_FILENO, s, strlen(s));
+      bytes_ret = write(STDERR_FILENO, s, strlen(s));
       break;
     case CDDA_MESSAGE_LOGIT:
       d->messagebuf=catstring(d->messagebuf,s);
@@ -82,14 +83,14 @@ idperror(int messagedest,char **messages,const char *f,
     }
 
   if(buffer){
-    ssize_t bytes_ret;
+    ssize_t bytes_ret __attribute__((unused));
     switch(messagedest){
     case CDDA_MESSAGE_PRINTIT:
       bytes_ret = write(STDERR_FILENO,buffer,strlen(buffer));
       if(errno){
-	(void) write(STDERR_FILENO,": ",2);
-	(void) write(STDERR_FILENO,strerror(errno),strlen(strerror(errno)));
-	(void) write(STDERR_FILENO,"\n",1);
+	bytes_ret = write(STDERR_FILENO,": ",2);
+	bytes_ret = write(STDERR_FILENO,strerror(errno),strlen(strerror(errno)));
+	bytes_ret = write(STDERR_FILENO,"\n",1);
       }
       break;
     case CDDA_MESSAGE_LOGIT:
@@ -116,6 +117,7 @@ idmessage(int messagedest,char **messages,const char *f,
 {
   char *buffer;
   int malloced=0;
+  ssize_t bytes_ret __attribute__((unused));
   if(!f)
     buffer=(char *)s;
   else
@@ -132,9 +134,9 @@ idmessage(int messagedest,char **messages,const char *f,
   if(buffer) {
     switch(messagedest){
     case CDDA_MESSAGE_PRINTIT:
-      (void) write(STDERR_FILENO,buffer,strlen(buffer));
+      bytes_ret = write(STDERR_FILENO,buffer,strlen(buffer));
       if(!malloced)
-	 (void) write(STDERR_FILENO,"\n",1);
+	 bytes_ret = write(STDERR_FILENO,"\n",1);
       break;
     case CDDA_MESSAGE_LOGIT:
       if(messages){

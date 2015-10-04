@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* Simple program to show using libcdio's version of the CD-DA paranoia. 
+/* Simple program to show using libcdio's version of the CD-DA paranoia.
    library. */
 
 /* config.h has to come first else _FILE_OFFSET_BITS are redefined in
@@ -46,7 +46,7 @@
 #include <cdio/paranoia/paranoia.h>
 #include <cdio/cd_types.h>
 
-static void 
+static void
 put_num(long int num, int f, int bytes)
 {
   unsigned int i;
@@ -65,9 +65,9 @@ put_num(long int num, int f, int bytes)
   write(fd, s, sizeof(s)-1)  /* Subtract 1 for trailing '\0'. */
 
 /* Write a the header for a WAV file. */
-static void 
+static void
 write_WAV_header(int fd, int32_t i_bytecount){
-  ssize_t bytes_ret;
+  ssize_t bytes_ret __attribute__((unused));
   /* quick and dirty */
   bytes_ret = writestr(fd, "RIFF");     /*  0-3 */
   put_num(i_bytecount+44-8, fd, 4);     /*  4-7 */
@@ -119,7 +119,7 @@ main(int argc, const char *argv[])
 
   /* Okay now set up to read up to the first 300 frames of the first
      audio track of the Audio CD. */
-  { 
+  {
     cdrom_paranoia_t *p = paranoia_init(d);
     lsn_t i_first_lsn = cdda_disc_firstsector(d);
 
@@ -127,7 +127,7 @@ main(int argc, const char *argv[])
       printf("Trouble getting starting LSN\n");
     } else {
       lsn_t   i_cursor;
-      ssize_t bytes_ret;
+      ssize_t bytes_ret __attribute__((unused));
       track_t i_track    = cdda_sector_gettrack(d, i_first_lsn);
       lsn_t   i_last_lsn = cdda_track_lastsector(d, i_track);
       int     fd         = creat("track1s.wav", 0644);
@@ -142,7 +142,7 @@ main(int argc, const char *argv[])
        */
       if ( i_last_lsn - i_first_lsn > 300) i_last_lsn = i_first_lsn + 299;
 
-      printf("Reading track %d from LSN %ld to LSN %ld\n", i_track, 
+      printf("Reading track %d from LSN %ld to LSN %ld\n", i_track,
 	     (long int) i_first_lsn, (long int) i_last_lsn);
 
       /* Set reading mode for full paranoia, but allow skipping sectors. */

@@ -1207,7 +1207,9 @@ main(int argc,char *argv[])
       int16_t offset_buffer[1176];
       int offset_buffer_used=0;
       int offset_skip=sample_offset*4;
-
+#if defined(HAVE_GETUID) && (defined(HAVE_SETEUID) || defined(HAVE_SETEGID))
+      int dummy __attribute__((unused));
+#endif
       p=paranoia_init(d);
       paranoia_modeset(p,paranoia_mode);
       if(force_cdrom_overlap!=-1)paranoia_overlapset(p,force_cdrom_overlap);
@@ -1222,10 +1224,10 @@ main(int argc,char *argv[])
 
       /* this is probably a good idea in general */
 #if defined(HAVE_GETUID) && defined(HAVE_SETEUID)
-      (void) seteuid(getuid());
+      dummy = seteuid(getuid());
 #endif
 #if defined(HAVE_GETGID) && defined(HAVE_SETEGID)
-      (void) setegid(getgid());
+      dummy = setegid(getgid());
 #endif
 
       /* we'll need to be able to read one sector past user data if we
