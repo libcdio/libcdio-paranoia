@@ -8,4 +8,4 @@ checkout:
 test:
   override:
     - make check
-    - make distcheck
+    - make GIT2CL=cat distcheck
