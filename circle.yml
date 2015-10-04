@@ -1,3 +1,9 @@
-machine:
-  pre:
+checkout:
+  post:
     - sudo apt-get -y install libcdio-dev
+    - sh ./autogen.sh
+    - sh ./configure
+    - make
+
+test:
+    - make check
