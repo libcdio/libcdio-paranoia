@@ -1,5 +1,6 @@
 /*
-  Copyright (C) 2004, 2005, 2006, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2005, 2006, 2008, 2011, 2017
+  Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
@@ -1019,16 +1020,15 @@ i_iterate_stage2(cdrom_paranoia_t *p,
     long searchbegin=max(fbv-p->dynoverlap,rb(root));
     sort_info_t *i=p->sortcache;
     long j;
+    long best_matchbegin = -1;
+    long best_matchend = -1;
+    long best_offset = -1;
 
     /* Initialize the "sort cache" index to allow for fast searching
      * through the verified fragment between (fbv,fev).  (The index will
      * actually be built the first time we search.)
      */
     sort_setup(i, fv(v), &fb(v), fs(v), fbv, fev);
-
-    long best_matchbegin = -1;
-    long best_matchend = -1;
-    long best_offset = -1;
 
     /* ??? Why 23? */
     for(j=searchbegin; j<searchend; j+=23){
