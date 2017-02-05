@@ -1062,8 +1062,6 @@ i_iterate_stage2(cdrom_paranoia_t *p,
        */
       if (try_sort_sync(p, i, NULL, rc(root), j,
 			&matchbegin,&matchend,&offset,callback)){
-
-	return(1);
         if(abs(offset) < abs(min_offset) || min_offset == -1) {
           min_matchbegin = matchbegin;
           min_matchend = matchend;
