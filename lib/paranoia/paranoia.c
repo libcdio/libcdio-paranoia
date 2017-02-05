@@ -1026,6 +1026,10 @@ i_iterate_stage2(cdrom_paranoia_t *p,
      */
     sort_setup(i, fv(v), &fb(v), fs(v), fbv, fev);
 
+    long best_matchbegin = -1;
+    long best_matchend = -1;
+    long best_offset = -1;
+
     /* ??? Why 23? */
     for(j=searchbegin; j<searchend; j+=23){
 
@@ -1059,25 +1063,33 @@ i_iterate_stage2(cdrom_paranoia_t *p,
       if (try_sort_sync(p, i, NULL, rc(root), j,
 			&matchbegin,&matchend,&offset,callback)){
 
-	/* If we found a matching run, we return the results of our match.
-	 *
-	 * Note that we flip the sign of (offset) because try_sort_sync()
-	 * returns it in terms of the fragment (i.e. what we add
-	 * to the fragment's position to yield the corresponding position
-	 * in the root), but here we consider the root to be canonical,
-	 * and so our returned "offset" reflects how the fragment is offset
-	 * from the root.
-	 *
-	 * E.g.: If the fragment's sample 10 corresponds to root's 12,
-	 * try_sort_sync() would return 2.  But since root is canonical,
-	 * we say that the fragment is off by -2.
-	 */
-	r->begin=matchbegin;
-	r->end=matchend;
-	r->offset=-offset;
-	if (offset)if (callback)(*callback)(r->begin,PARANOIA_CB_FIXUP_EDGE);
-	return(1);
+        if(matchend - matchbegin > best_matchend - best_matchbegin) {
+          best_matchbegin = matchbegin;
+          best_matchend = matchend;
+          best_offset = offset;
+        }
       }
+    }
+
+    /* If we found a matching run, we return the results of our match.
+     *
+     * Note that we flip the sign of (offset) because try_sort_sync()
+     * returns it in terms of the fragment (i.e. what we add
+     * to the fragment's position to yield the corresponding position
+     * in the root), but here we consider the root to be canonical,
+     * and so our returned "offset" reflects how the fragment is offset
+     * from the root.
+     *
+     * E.g.: If the fragment's sample 10 corresponds to root's 12,
+     * try_sort_sync() would return 2.  But since root is canonical,
+     * we say that the fragment is off by -2.
+     */
+    if(best_matchbegin != -1) {
+      r->begin=best_matchbegin;
+      r->end=best_matchend;
+      r->offset=-best_offset;
+      if(offset)if(callback)(*callback)(r->begin,PARANOIA_CB_FIXUP_EDGE);
+      return(1);
     }
   }
 
