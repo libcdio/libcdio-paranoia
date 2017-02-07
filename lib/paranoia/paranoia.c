@@ -96,6 +96,7 @@
 #endif
 #include <unistd.h>
 #include <stdio.h>
+#include <limits.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -1022,7 +1023,7 @@ i_iterate_stage2(cdrom_paranoia_t *p,
     long j;
     long min_matchbegin = -1;
     long min_matchend = -1;
-    long min_offset = -1;
+    long min_offset = LONG_MAX;
 
     /* Initialize the "sort cache" index to allow for fast searching
      * through the verified fragment between (fbv,fev).  (The index will
@@ -1060,9 +1061,8 @@ i_iterate_stage2(cdrom_paranoia_t *p,
        * Note also that flags aren't used in stage 2 (since neither verified
        * fragments nor the root have them).
        */
-      if (try_sort_sync(p, i, NULL, rc(root), j,
-			&matchbegin,&matchend,&offset,callback)){
-        if(abs(offset) < abs(min_offset) || min_offset == -1) {
+      if (try_sort_sync(p, i, NULL, rc(root), j, &matchbegin,&matchend,&offset,callback)){
+        if(labs(offset) < labs(min_offset)) {
           min_matchbegin = matchbegin;
           min_matchend = matchend;
           min_offset = offset;
@@ -1086,11 +1086,11 @@ i_iterate_stage2(cdrom_paranoia_t *p,
      * try_sort_sync() would return 2.  But since root is canonical,
      * we say that the fragment is off by -2.
      */
-   if(min_offset != -1) {
+   if(min_offset != LONG_MAX) {
       r->begin=min_matchbegin;
       r->end=min_matchend;
       r->offset=-min_offset;
-      if(offset)if(callback)(*callback)(r->begin,PARANOIA_CB_FIXUP_EDGE);
+      if(min_offset)if(callback)(*callback)(r->begin,PARANOIA_CB_FIXUP_EDGE);
       return(1);
     }
   }
