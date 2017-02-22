@@ -10,6 +10,7 @@ if test ! -d "$abs_top_srcdir" ; then
 fi
 
 cue_file=$abs_top_srcdir/test/data/cdda.cue
+cue_file2=$abs_top_srcdir/test/data/cdda2.cue
 
 if test "@CMP@" != no ; then
   cd_paranoia=$abs_top_builddir/src/cd-paranoia@EXEEXT@ 
@@ -71,6 +72,21 @@ if test "@CMP@" != no ; then
   else
     echo "** under-run + jitter correction problem"
     exit 3
+  fi
+  if test -f $abs_top_builddir/test/data/cdda2.bin ; then
+      $cd_paranoia -d $cue_file2 -v -r -- "1-"
+      if test $? -ne 0 ; then
+          exit 6
+      fi
+      mv cdda.raw cdda-matches.raw
+      if @CMP@ cdda-matches.raw $abs_top_builddir/test/data/cdda2.bin ; then
+          echo "** multiple matches okay"
+      else
+          echo "** multiple matches problem"
+          exit 3
+      fi
+  else
+      echo "** multiple matches skipped (data file not present)"
   fi
   ### FIXME: medium jitter is known to fail. Investigate.
   ### FIXME: large jitter is known to fail. Investigate.
