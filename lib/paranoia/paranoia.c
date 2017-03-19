@@ -1,5 +1,6 @@
 /*
-  Copyright (C) 2004, 2005, 2006, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2005, 2006, 2008, 2011, 2017
+  Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
@@ -95,6 +96,7 @@
 #endif
 #include <unistd.h>
 #include <stdio.h>
+#include <limits.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -1019,6 +1021,9 @@ i_iterate_stage2(cdrom_paranoia_t *p,
     long searchbegin=max(fbv-p->dynoverlap,rb(root));
     sort_info_t *i=p->sortcache;
     long j;
+    long min_matchbegin = -1;
+    long min_matchend = -1;
+    long min_offset = LONG_MAX;
 
     /* Initialize the "sort cache" index to allow for fast searching
      * through the verified fragment between (fbv,fev).  (The index will
@@ -1056,28 +1061,37 @@ i_iterate_stage2(cdrom_paranoia_t *p,
        * Note also that flags aren't used in stage 2 (since neither verified
        * fragments nor the root have them).
        */
-      if (try_sort_sync(p, i, NULL, rc(root), j,
-			&matchbegin,&matchend,&offset,callback)){
-
-	/* If we found a matching run, we return the results of our match.
-	 *
-	 * Note that we flip the sign of (offset) because try_sort_sync()
-	 * returns it in terms of the fragment (i.e. what we add
-	 * to the fragment's position to yield the corresponding position
-	 * in the root), but here we consider the root to be canonical,
-	 * and so our returned "offset" reflects how the fragment is offset
-	 * from the root.
-	 *
-	 * E.g.: If the fragment's sample 10 corresponds to root's 12,
-	 * try_sort_sync() would return 2.  But since root is canonical,
-	 * we say that the fragment is off by -2.
-	 */
-	r->begin=matchbegin;
-	r->end=matchend;
-	r->offset=-offset;
-	if (offset)if (callback)(*callback)(r->begin,PARANOIA_CB_FIXUP_EDGE);
-	return(1);
+      if (try_sort_sync(p, i, NULL, rc(root), j, &matchbegin,&matchend,&offset,callback)){
+        if(labs(offset) < labs(min_offset)) {
+          min_matchbegin = matchbegin;
+          min_matchend = matchend;
+          min_offset = offset;
+          if(min_offset >= 0) {
+            /* We will never find a smaller offset by continuing */
+            break;
+          }
+        }
       }
+    }
+    /* If we found a matching run, we return the results of our match.
+     *
+     * Note that we flip the sign of (offset) because try_sort_sync()
+     * returns it in terms of the fragment (i.e. what we add
+     * to the fragment's position to yield the corresponding position
+     * in the root), but here we consider the root to be canonical,
+     * and so our returned "offset" reflects how the fragment is offset
+     * from the root.
+     *
+     * E.g.: If the fragment's sample 10 corresponds to root's 12,
+     * try_sort_sync() would return 2.  But since root is canonical,
+     * we say that the fragment is off by -2.
+     */
+   if(min_offset != LONG_MAX) {
+      r->begin=min_matchbegin;
+      r->end=min_matchend;
+      r->offset=-min_offset;
+      if(min_offset)if(callback)(*callback)(r->begin,PARANOIA_CB_FIXUP_EDGE);
+      return(1);
     }
   }
 
