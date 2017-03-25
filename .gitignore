@@ -33,3 +33,7 @@
 /missing
 /stamp-h1
 /test-driver
+/test/data/cdda-be.bin
+/test/data/cdda-be.cue
+/test/data/cdda-le.bin
+/test/data/cdda-le.cue
