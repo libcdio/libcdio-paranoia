@@ -1,4 +1,15 @@
-version 10.2+0.93
+version 10.2+0.94+1
+2017-03-25
+
+- Fix problem where end of span seems to default to last track. Savannah bug 43444
+- Fix NULL pointer dereference that occurs when byte swapping is
+  needed. MR #4
+- Re-silence recently added gcc -Wunused-result warnings
+- Use @LIBS@ figured out by autoconf when linking (for -lrt on Linux).
+- Incorrect track was getting used in matching. See
+  Savannah bug 49831 and MR #7, #8 and #10
+
+version 10.2+0.93+1
 2014-09-29
 
 - Add cdio_cddap_free_messages function

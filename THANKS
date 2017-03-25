@@ -11,3 +11,6 @@ Peter J. Creath
 Robert Kausch
   Update paranoia from 0.98 to 0.10.2 which includes drive cache
   management
+
+a10footsquirrel
+  Paranoia bug in not finding the right track

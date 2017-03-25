@@ -22,9 +22,11 @@
      remove any errors.
 
 - Make sure sources are current and checked in:
-    git pull
+[    git pull
 
 - autogen.sh && make && make check
+
+  git commit -m"Get ready for release release-${LIBCDIO_PARANOIA_VERSION}"
 
 - Tag release in git:
   git tag release-${LIBCDIO_PARANOIA_VERSION}
