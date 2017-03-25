@@ -1,6 +1,6 @@
 /*
   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2011, 2012
-    Rocky Bernstein <rocky@gnu.org>
+    2017 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
@@ -81,7 +81,9 @@ typedef enum  {
   PARANOIA_CB_FIXUP_DROPPED,  /**< Fixed dropped bytes */
   PARANOIA_CB_FIXUP_DUPED,    /**< Fixed duplicate bytes */
   PARANOIA_CB_READERR,        /**< Hard read error */
-  PARANOIA_CB_CACHEERR        /**< Bad cache management */
+  PARANOIA_CB_CACHEERR,       /**< Bad cache management */
+  PARANOIA_CB_WROTE,          /**< Wrote block "*" */
+  PARANOIA_CB_FINISHED        /**< Finished writing "*" */
 } paranoia_cb_mode_t;
 
   extern const char *paranoia_cb_mode2str[];

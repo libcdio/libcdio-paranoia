@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004-2012, 2014-2015 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004-2012, 2014-2015, 2017 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty <xiphmont@mit.edu>
 
@@ -303,8 +303,6 @@ callback(long int inpos, paranoia_cb_mode_t function)
 }
 #else
 static const char *callback_strings[16]={
-  "wrote",
-  "finished",
   "read",
   "verify",
   "jitter",
@@ -318,7 +316,10 @@ static const char *callback_strings[16]={
   "dropped",
   "duped",
   "transport error",
-  "cache error"};
+  "cache error",
+  "wrote",
+  "finished",
+};
 
 static void
 callback(long int inpos, paranoia_cb_mode_t function)
@@ -350,8 +351,8 @@ callback(long int inpos, paranoia_cb_mode_t function)
 
   if (callscript)
     fprintf(stderr, "##: %d [%s] @ %ld\n",
-            function, ((int) function >= -2 && (int) function < 14 ?
-                       callback_strings[function+2] : ""),
+            function, ((int) function >= 0 && (int) function < 16 ?
+                       callback_strings[function] : ""),
             inpos);
   else{
     if(function==PARANOIA_CB_CACHEERR){
@@ -389,16 +390,16 @@ callback(long int inpos, paranoia_cb_mode_t function)
       aheadposition=((float)(c_sector-callbegin)/
                      (callend-callbegin))*graph;
 
-      if(function==-2){
+      if(function == PARANOIA_CB_WROTE){
         v_sector=sector;
         return;
       }
-      if(function==-1){
+      if (function == PARANOIA_CB_FINISHED) {
         last=8;
         heartbeat='*';
         slevel=0;
         v_sector=sector;
-      }else
+      } else
         if(position<graph && position>=0)
           switch(function){
           case PARANOIA_CB_VERIFY:
@@ -463,6 +464,10 @@ callback(long int inpos, paranoia_cb_mode_t function)
           case PARANOIA_CB_REPAIR:
           case PARANOIA_CB_BACKOFF:
             break;
+          case PARANOIA_CB_WROTE:
+          case PARANOIA_CB_FINISHED:
+	    /* Handled above */
+	    ;
           }
 
       switch(slevel){
@@ -503,8 +508,9 @@ callback(long int inpos, paranoia_cb_mode_t function)
       gettimeofday(&thistime,NULL);
       test=thistime.tv_sec*10+thistime.tv_usec/100000;
 
-      if(lasttime!=test || function==-1 || slast!=slevel){
-        if(lasttime!=test || function==-1){
+      if (lasttime!=test || function == PARANOIA_CB_FINISHED
+	  || slast!=slevel ) {
+        if (lasttime!=test || function == PARANOIA_CB_FINISHED) {
           last++;
           lasttime=test;
           if(last>7)last=0;
@@ -526,7 +532,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
             heartbeat='O';
             break;
           }
-          if(function==-1)
+          if(function == PARANOIA_CB_FINISHED)
             heartbeat='*';
 
         }
@@ -535,7 +541,8 @@ callback(long int inpos, paranoia_cb_mode_t function)
         }
         slast=slevel;
 
-        if(abort_on_skip && skipped_flag && function !=-1){
+        if (abort_on_skip && skipped_flag
+	    && function != PARANOIA_CB_FINISHED ) {
           sprintf(buffer,
                   "\r (== PROGRESS == [%s| %06ld %02d ] ==%s %c ==)   ",
                   "  ...aborting; please wait... ",
@@ -551,14 +558,15 @@ callback(long int inpos, paranoia_cb_mode_t function)
                     "\r (== PROGRESS == [%s| %06ld %02d ] ==%s %c ==)   ",
                     dispcache,v_sector,overlap/CD_FRAMEWORDS,smilie,heartbeat);
 
-          if(aheadposition>=0 && aheadposition<graph && !(function==-1))
+          if ( aheadposition>=0 && aheadposition<graph &&
+	       !(function == PARANOIA_CB_FINISHED) )
             buffer[aheadposition+19]='>';
         }
 
         if(isatty(STDERR_FILENO))
             fprintf(stderr, "%s", buffer);
 
-        if (logfile != NULL && function==-1) {
+        if (logfile != NULL && function == PARANOIA_CB_FINISHED) {
           fprintf(logfile, "%s", buffer+1);
           fprintf(logfile,"\n\n");
           fflush(logfile);
@@ -568,7 +576,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
   }
 
   /* clear the indicator for next batch */
-  if(function==-1)
+  if(function == PARANOIA_CB_FINISHED)
     memset(dispcache,' ',graph);
 }
 #endif /* !TRACE_PARANOIA */
@@ -1423,7 +1431,7 @@ main(int argc,char *argv[])
               readbuf[i]=UINT16_SWAP_LE_BE_C(readbuf[i]);
           }
 
-          callback(cursor*(CD_FRAMEWORDS)-1,-2);
+          callback(cursor*(CD_FRAMEWORDS)-1, PARANOIA_CB_WROTE);
 
           if (buffering_write(out,((char *)readbuf)+offset_skip,
                              CDIO_CD_FRAMESIZE_RAW-offset_skip)){
@@ -1443,7 +1451,7 @@ main(int argc,char *argv[])
             int i;
             /* read a sector and output the partial offset.  Save the
                rest for the next batch iteration */
-            readbuf=paranoia_read_limited(p,callback,max_retries);
+            readbuf=paranoia_read_limited(p, callback, max_retries);
             err=cdda_errors(d);mes=cdda_messages(d);
 
             if(mes || err)
@@ -1469,7 +1477,7 @@ main(int argc,char *argv[])
               memcpy(offset_buffer,readbuf,CDIO_CD_FRAMESIZE_RAW);
             offset_buffer_used=sample_offset*4;
 
-            callback(cursor*(CD_FRAMEWORDS),-2);
+            callback(cursor* (CD_FRAMEWORDS), PARANOIA_CB_WROTE);
 
             if(buffering_write(out,(char *)offset_buffer,
                                offset_buffer_used)){
@@ -1478,7 +1486,8 @@ main(int argc,char *argv[])
             }
           }
         }
-        callback(cursor*(CDIO_CD_FRAMESIZE_RAW/2)-1,-1);
+        callback(cursor* (CDIO_CD_FRAMESIZE_RAW/2) -1,
+		 PARANOIA_CB_FINISHED);
         buffering_close(out);
         if(skipped_flag){
           /* remove the file */
