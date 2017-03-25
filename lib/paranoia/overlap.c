@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2005, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2005, 2008, 2011, 2017 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
   This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@
 
 /**** Internal cache management *****************************************/
 
-void 
+void
 paranoia_resetcache(cdrom_paranoia_t *p)
 {
   c_block_t *c=c_first(p);
@@ -59,7 +59,7 @@ paranoia_resetcache(cdrom_paranoia_t *p)
   }
 }
 
-void 
+void
 paranoia_resetall(cdrom_paranoia_t *p)
 {
   p->root.returnedlimit=0;
@@ -74,7 +74,7 @@ paranoia_resetall(cdrom_paranoia_t *p)
   paranoia_resetcache(p);
 }
 
-void 
+void
 i_paranoia_trim(cdrom_paranoia_t *p, long int beginword, long int endword)
 {
   root_block *root=&(p->root);
@@ -85,7 +85,7 @@ i_paranoia_trim(cdrom_paranoia_t *p, long int beginword, long int endword)
 
     if(rbegin>beginword)
       goto rootfree;
-    
+
     if(rbegin+MAX_SECTOR_OVERLAP*CD_FRAMEWORDS<beginword){
       if(target+MIN_WORDS_OVERLAP>rend)
 	goto rootfree;
@@ -108,14 +108,14 @@ i_paranoia_trim(cdrom_paranoia_t *p, long int beginword, long int endword)
 
   }
   return;
-  
+
 rootfree:
 
   i_cblock_destructor(root->vector);
   root->vector=NULL;
   root->returnedlimit=-1;
   root->lastsector=0;
-  
+
 }
 
 /**** Statistical and heuristic[al? :-] management ************************/
@@ -134,21 +134,21 @@ rootfree:
  *
  * ???: To be studied further.
  */
-void 
-offset_adjust_settings(cdrom_paranoia_t *p, 
+void
+offset_adjust_settings(cdrom_paranoia_t *p,
 		       void(*callback)(long int, paranoia_cb_mode_t))
 {
   if(p->stage2.offpoints>=10){
     /* drift: look at the average offset value.  If it's over one
        sector, frob it.  We just want a little hysteresis [sp?]*/
     long av=(p->stage2.offpoints?p->stage2.offaccum/p->stage2.offpoints:0);
-    
-    if(abs(av)>p->dynoverlap/4){
+
+    if(labs(av)>p->dynoverlap/4){
       av=(av/MIN_SECTOR_EPSILON)*MIN_SECTOR_EPSILON;
-      
+
       if(callback)(*callback)(ce(p->root.vector),PARANOIA_CB_DRIFT);
       p->dyndrift+=av;
-      
+
       /* Adjust all the values in the cache otherwise we get a
 	 (potentially unstable) feedback loop */
       {
@@ -189,18 +189,18 @@ offset_adjust_settings(cdrom_paranoia_t *p,
 
     if(p->dynoverlap<-p->stage1.offmin*1.5)
       p->dynoverlap=-p->stage1.offmin*1.5;
-						     
+
     if(p->dynoverlap<p->stage1.offmax*1.5)
       p->dynoverlap=p->stage1.offmax*1.5;
 
     if(p->dynoverlap<MIN_SECTOR_EPSILON)p->dynoverlap=MIN_SECTOR_EPSILON;
     if(p->dynoverlap>MAX_SECTOR_OVERLAP*CD_FRAMEWORDS)
       p->dynoverlap=MAX_SECTOR_OVERLAP*CD_FRAMEWORDS;
-    			     
+
     if(callback)(*callback)(p->dynoverlap,PARANOIA_CB_OVERLAP);
 
     if(p->stage1.offpoints>600){ /* bit of a bug; this routine is
-				    called too often due to the overlap 
+				    called too often due to the overlap
 				    mesh alg we use in stage 1 */
       p->stage1.offpoints/=1.2;
       p->stage1.offaccum/=1.2;
@@ -238,14 +238,14 @@ offset_adjust_settings(cdrom_paranoia_t *p,
  * momentarily. There is no correctness bug. --Monty
  *
  */
-void 
+void
 offset_add_value(cdrom_paranoia_t *p,offsets *o,long value,
 		 void(*callback)(long int, paranoia_cb_mode_t))
 {
   if(o->offpoints!=-1){
 
     /* Track the average magnitude of jitter (in either direction) */
-    o->offdiff+=abs(value);
+    o->offdiff += labs(value);
     o->offpoints++;
     o->newpoints++;
 
@@ -260,4 +260,3 @@ offset_add_value(cdrom_paranoia_t *p,offsets *o,long value,
     if(o->newpoints>=10)offset_adjust_settings(p,callback);
   }
 }
-
