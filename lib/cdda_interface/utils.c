@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2008, 2010, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2008, 2010-2011, 2017 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
@@ -20,6 +20,10 @@
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 # define __CDIO_CONFIG_H__ 1
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
 #endif
 
 #include "common_interface.h"

@@ -1,4 +1,4 @@
-#   Copyright (C) 2004, 2006, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+#   Copyright (C) 2004, 2006, 2008, 2011, 2017 Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -133,6 +133,7 @@ LIBS = $(LIBCDIO_LIBS) $(LIBCDIO_CDDA_LIBS)
 # command comes from libtool.)
 
 libcdio_paranoia_la_MAJOR = $(shell expr $(libcdio_paranoia_la_CURRENT) - $(libcdio_paranoia_la_AGE))
+if VERSION_SCRIPT
 if BUILD_VERSIONED_LIBS
 libcdio_paranoia_la_LDFLAGS = $(libcdio_paranoia_la_ldflags) -Wl,--version-script=libcdio_paranoia.la.ver
 libcdio_paranoia_la_DEPENDENCIES = libcdio_paranoia.la.ver
@@ -147,6 +148,9 @@ libcdio_paranoia.la.ver: $(libcdio_paranoia_la_OBJECTS) $(srcdir)/libcdio_parano
 	echo '};' >> $@
 else
 libcdio_paranoia_la_LDFLAGS = $(libcdio_paranoia_la_ldflags)
-endif
+endif !BUILD_VERSIONED_LIBS
+else !VERSION_SCRIPT
+libcdio_paranoia_la_LDFLAGS = $(libcdio_paranoia_la_ldflags)
+endif !VERSION_SCRIPT
 
 MOSTLYCLEANFILES = libcdio_paranoia.la.ver

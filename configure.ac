@@ -57,6 +57,18 @@ AC_ARG_ENABLE(cpp-progs,
 	AC_HELP_STRING([--enable-cpp-progs], [make C++ example programs (default enabled)]))
 AM_CONDITIONAL(ENABLE_CPP, test x"$enable_cpp_progs" = "xyes")
 
+dnl cheeck whether ld supports --version-script
+
+AC_ARG_ENABLE(ld-version-script,
+  AS_HELP_STRING([--disable-ld-version-script],
+  [Disable linker vresion script for libraries (Defauilt is to use linker script if the linger supports it)]),
+  [enable_version_script=$enableval],
+  [enable_version_script=auto])
+
+AM_CONDITIONAL(VERSION_SCRIPT, test "x$enable_version_script" = "xyes")
+
+
+# Do we have GNU ld? If we don't, we can't build versioned symbols.
 AC_ARG_ENABLE(example-progs,
 	AC_HELP_STRING([--disable-example-progs], [Don't build libcdio sample programs]))
 
@@ -250,18 +262,25 @@ AC_SUBST(COS_LIB)
 # Linux has clock_gettime in librt
 AC_CHECK_LIB(rt, clock_gettime)
 
-# Do we have GNU ld? If we don't, we can't build versioned symbols.
 if test "$with_gnu_ld" != yes; then
    AC_MSG_WARN([I don't see GNU ld. I'm going to assume --without-versioned-libs])
    enable_versioned_libs='no'
 fi
 # We also need GNU make to build versioned symbols.
 if test "x$enable_versioned_libs" = "xyes" ; then
-  if test -n "$MAKE" ; then
-    $MAKE --version 2>/dev/null >/dev/null
-    if test "$?" -ne 0 ; then
-       AC_MSG_ERROR(Either set MAKE variable to GNU make or use
-   --without-versioned-libs option)
+  if test "x$enable_version_script" = "xyes"; then
+    if test -n "$MAKE" ; then
+      $MAKE --version 2>/dev/null >/dev/null
+      if test "$?" -ne 0 ; then
+         AC_MSG_ERROR(Either set MAKE variable to GNU make or use
+     --without-versioned-libs option)
+      fi
+    else
+      make --version 2>/dev/null >/dev/null
+      if test "$?" -ne 0 ; then
+         AC_MSG_ERROR(Either set MAKE variable to GNU make or use
+     --without-versioned-libs option)
+      fi
     fi
   else
     make --version 2>/dev/null >/dev/null

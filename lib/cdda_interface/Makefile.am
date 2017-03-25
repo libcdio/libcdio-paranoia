@@ -120,6 +120,7 @@ LIBS = $(LIBCDIO_LIBS) @LIBS@ @COS_LIB@
 # command comes from libtool.)
 
 libcdio_cdda_la_MAJOR = $(shell expr $(libcdio_cdda_la_CURRENT) - $(libcdio_cdda_la_AGE))
+if VERSION_SCRIPT
 if BUILD_VERSIONED_LIBS
 libcdio_cdda_la_LDFLAGS = $(libcdio_cdda_la_ldflags) -Wl,--version-script=libcdio_cdda.la.ver
 libcdio_cdda_la_DEPENDENCIES = libcdio_cdda.la.ver
@@ -132,8 +133,11 @@ libcdio_cdda.la.ver: $(libcdio_cdda_la_OBJECTS) $(srcdir)/libcdio_cdda.sym
 	  nm $${objs} | sed -n -e 's/^.*[ 	][ABCDGIRSTW][ABCDGIRSTW]*[ 	][ 	]*\([_A-Za-z][_A-Za-z0-9]*\)$$/\1/p' | sort -u | { first=true; while read symbol; do if grep -q "^$${symbol}\$$" $(srcdir)/libcdio_cdda.sym; then :; else if test $$first = true; then echo "  local:"; first=false; fi; echo "    $${symbol};"; fi; done; } >> $@; \
 	fi
 	echo '};' >> $@
-else
+else !BUILD_VERSIONED_LIBS
 libcdio_cdda_la_LDFLAGS = $(libcdio_cdda_la_ldflags)
-endif
+endif !BUILD_VERSIONED_LIBS
+else !VERSION_SCRIPT
+libcdio_cdda_la_LDFLAGS = $(libcdio_cdda_la_ldflags)
+endif !VERSION_SCRIPT
 
 MOSTLYCLEANFILES = libcdio_cdda.la.ver
