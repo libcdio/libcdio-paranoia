@@ -22,7 +22,7 @@
      remove any errors.
 
 - Make sure sources are current and checked in:
-[    git pull
+    git pull
 
 - autogen.sh && make && make check
 
@@ -47,9 +47,9 @@
   The NEWS file is your friend.
 
 - copy doxygen html to web pages:
-  cd libcdio-www/doxygen
+  cd libcdio-www/doxygen/libcdio-paranoia
   rm *.html
-  cp /src/external-vcs/github/libcdio-paranoia/doc/doxygen/html/*.html .
+  cp /src/external-vcs/github/rocky/libcdio-paranoia/doc/doxygen/html/*.html .
   cvs update .
 
     for each "U" html *except libcdio.html* that is put back, remove it
