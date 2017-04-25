@@ -581,7 +581,7 @@ callback(long int inpos, paranoia_cb_mode_t function)
 }
 #endif /* !TRACE_PARANOIA */
 
-static const char optstring[] = "aBcCd:efg:k:hi:l:L:Am:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
+static const char optstring[] = "aBcCd:eEfFg:k:hi:l:L:Am:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
 
 static const struct option options [] = {
         {"abort-on-skip",             no_argument,       NULL, 'X'},
@@ -598,6 +598,7 @@ static const struct option options [] = {
         {"force-generic-device",      required_argument, NULL, 'g'},
         {"force-read-speed",          required_argument, NULL, 'S'},
         {"force-search-overlap",      required_argument, NULL, 'o'},
+	{"force-overread",            no_argument,       NULL, 'E'},
         {"help",                      no_argument,       NULL, 'h'},
         {"log-summary",               required_argument, NULL, 'l'},
         {"log-debug",                 required_argument, NULL, 'L'},
@@ -711,6 +712,7 @@ main(int argc,char *argv[])
   long int force_cdrom_overlap  = -1;
   long int force_cdrom_sectors  = -1;
   long int force_cdrom_speed    =  0;
+  long int force_overread       =  0;
   long int sample_offset        =  0;
   long int test_flags           =  0;
   long int toc_offset           =  0;
@@ -872,6 +874,9 @@ main(int argc,char *argv[])
       } else {
         paranoia_mode|=PARANOIA_MODE_NEVERSKIP;
       }
+      break;
+    case 'E':
+      force_overread=1;
       break;
     default:
       usage(stderr);
@@ -1210,11 +1215,18 @@ main(int argc,char *argv[])
 
     }
 
+    if (toc_offset && !force_overread) {
+	d->disc_toc[d->tracks].dwStartSector -= toc_offset;
+	if (i_last_lsn > cdda_track_lastsector(d, d->tracks))
+		i_last_lsn -= toc_offset;
+    }
     {
       long cursor;
       int16_t offset_buffer[1176];
       int offset_buffer_used=0;
       int offset_skip=sample_offset*4;
+      off_t sectorlen;
+
 #if defined(HAVE_GETUID) && (defined(HAVE_SETEUID) || defined(HAVE_SETEGID))
       int dummy __attribute__((unused));
 #endif
@@ -1243,7 +1255,7 @@ main(int argc,char *argv[])
          need to set the disc length forward here so that the libs are
          willing to read past, assuming that works on the hardware, of
          course */
-      if(sample_offset)
+      if(sample_offset && force_overread)
         d->disc_toc[d->tracks].dwStartSector++;
 
       while(cursor<=i_last_lsn){
@@ -1367,17 +1379,22 @@ main(int argc,char *argv[])
 
         }
 
+	sectorlen = batch_last - batch_first + 1;
+	if (cdda_sector_gettrack(d, cursor) == d->tracks &&
+		toc_offset > 0 && !force_overread){
+		sectorlen += toc_offset;
+	}
         switch(output_type) {
         case 0: /* raw */
           break;
         case 1: /* wav */
-          WriteWav(out, (batch_last-batch_first+1)*CDIO_CD_FRAMESIZE_RAW);
+	  WriteWav(out, sectorlen * CD_FRAMESIZE_RAW);
           break;
         case 2: /* aifc */
-          WriteAifc(out, (batch_last-batch_first+1)*CDIO_CD_FRAMESIZE_RAW);
+	  WriteAifc(out, sectorlen * CD_FRAMESIZE_RAW);
           break;
         case 3: /* aiff */
-          WriteAiff(out, (batch_last-batch_first+1)*CDIO_CD_FRAMESIZE_RAW);
+	  WriteAiff(out, sectorlen * CD_FRAMESIZE_RAW);
           break;
         }
 
@@ -1448,45 +1465,71 @@ main(int argc,char *argv[])
 
           /* One last bit of silliness to deal with sample offsets */
           if(sample_offset && cursor>batch_last){
-            int i;
-            /* read a sector and output the partial offset.  Save the
-               rest for the next batch iteration */
-            readbuf=paranoia_read_limited(p, callback, max_retries);
-            err=cdda_errors(d);mes=cdda_messages(d);
+	    if (cdda_sector_gettrack(d, batch_last) < d->tracks || force_overread) {
+	      int i;
 
-            if(mes || err)
-              fprintf(stderr,"\r                               "
-                      "                                           \r%s%s\n",
-                      mes?mes:"",err?err:"");
+	      /* Need to flush the buffer when overreading into the leadout */
+	      if (cdda_sector_gettrack(d, batch_last) == d->tracks)
+		paranoia_seek(p, cursor, SEEK_SET);
 
-            if(err)free(err);if(mes)free(mes);
-            if(readbuf==NULL){
-              skipped_flag=1;
-              report("\nparanoia_read: Unrecoverable error reading through "
-                     "sample_offset shift\n\tat end of track, bailing.\n");
-              break;
-            }
-            if (skipped_flag && abort_on_skip) break;
-            skipped_flag=0;
-            /* do not move the cursor */
+	      /* read a sector and output the partial offset.  Save the
+		 rest for the next batch iteration */
+	      readbuf=paranoia_read_limited(p,callback,max_retries);
+	      err=cdda_errors(d);mes=cdda_messages(d);
 
-            if(output_endian!=bigendianp())
-              for(i=0;i<CDIO_CD_FRAMESIZE_RAW/2;i++)
-                offset_buffer[i]=UINT16_SWAP_LE_BE_C(readbuf[i]);
-            else
-              memcpy(offset_buffer,readbuf,CDIO_CD_FRAMESIZE_RAW);
-            offset_buffer_used=sample_offset*4;
+	      if(mes || err)
+		fprintf(stderr,"\r                               "
+			"                                           \r%s%s\n",
+			mes?mes:"",err?err:"");
 
-            callback(cursor* (CD_FRAMEWORDS), PARANOIA_CB_WROTE);
+	      if(err)free(err);if(mes)free(mes);
+	      if(readbuf==NULL){
+		skipped_flag=1;
+		report("\nparanoia_read: Unrecoverable error reading through "
+		       "sample_offset shift\n\tat end of track, bailing.\n");
+		break;
+	      }
+	      if (skipped_flag && abort_on_skip) break;
+	      skipped_flag=0;
+	      /* do not move the cursor */
 
-            if(buffering_write(out,(char *)offset_buffer,
-                               offset_buffer_used)){
-              report("Error writing output: %s", strerror(errno));
-              exit(1);
-            }
-          }
+	      if(output_endian!=bigendianp())
+		for(i=0;i<CD_FRAMESIZE_RAW/2;i++)
+		  offset_buffer[i]=UINT16_SWAP_LE_BE_C(readbuf[i]);
+	      else
+		memcpy(offset_buffer,readbuf,CD_FRAMESIZE_RAW);
+	      offset_buffer_used=sample_offset*4;
+	      callback(cursor* (CD_FRAMEWORDS), PARANOIA_CB_WROTE);
+	    } else {
+	      memset(offset_buffer, 0, sizeof(offset_buffer));
+	      offset_buffer_used = sample_offset * 4;
+	    }
+
+	    if(buffering_write(out,(char *)offset_buffer,
+			       offset_buffer_used)){
+	      report("Error writing output: %s", strerror(errno));
+	      exit(1);
+	    }
+	  }
         }
-        callback(cursor* (CDIO_CD_FRAMESIZE_RAW/2) -1,
+
+	/* Write sectors of silent audio to compensate for
+	   missing samples that would be in the leadout */
+	if (cdda_sector_gettrack(d, batch_last) == d->tracks &&
+		toc_offset > 0 && !force_overread)
+	{
+		char *silence;
+		size_t missing_sector_bytes = CD_FRAMESIZE_RAW * toc_offset;
+
+		silence = calloc(toc_offset, CD_FRAMESIZE_RAW);
+		if (!silence || buffering_write(out, silence, missing_sector_bytes)) {
+		      report("Error writing output: %s", strerror(errno));
+		      exit(1);
+		}
+		free(silence);
+	}
+
+        callback(cursor* (CDIO_CD_FRAMESIZE_RAW/2)-1,
 		 PARANOIA_CB_FINISHED);
         buffering_close(out);
         if(skipped_flag){
