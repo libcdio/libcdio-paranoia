@@ -243,7 +243,9 @@ dnl native_abs_top_srcdir is used here.
 case $srcdir in
   .)  # We are building in place.
    native_abs_top_srcdir=$ac_pwd ;;
+  changequote(`,')
   [\\/]* | ?:[\\/]* )  # Absolute name.
+  changequote([,])
     native_abs_top_srcdir=$srcdir ;;
   *) # Relative name.
     native_abs_top_srcdir=$ac_pwd/$srcdir ;;
