@@ -10,13 +10,14 @@
 - Go over Changelog and add NEWS. Update date of release.
 
 - Remove "git" from configure.ac's release name. E.g.
-    define(RELEASE_NUM, 93)
-                        ^^
-    define(PARANOIA_VERSION, 10.2)
-    define(LIBCDIO_PARANOIA_VERSION_STR, $1+0.$2)
-    define(RELEASE_NUM, 23)
+    define(RELEASE_NUM, 94+3)
+                           ^
     ...
 
+- Set version
+  RELEASE_NUM=9.3 what it says in configure.ac
+  PARANOIA_VERSION_STR=10.2 what it says in configure.ac
+  LIBCDIO_PARANOIA_VERSION=${PARANOIA_VERSION_STR}+0.${RELEASE_NUM}
 - make doxygen documentation
   cd doc/doxygen; ./run_doxygen
      remove any errors.

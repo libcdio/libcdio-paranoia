@@ -1,3 +1,13 @@
+version 10.2+0.94+2
+2017-08-22
+
+- Add --force-overread
+  Force overreading into the lead-out portion of the disc. This option
+  is only applicable when using the "-O" option with a positive sample
+  offset value. Many drives are not capable of reading into this
+  portion of the disc and attempting to do so on those drives will
+  produce read errors and possibly hard lockups
+
 version 10.2+0.94+1
 2017-03-25
 

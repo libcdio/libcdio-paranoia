@@ -10,6 +10,7 @@
 /Makefile.in
 /aclocal.m4
 /autom4te.cache
+/cd-paranoia
 /compile
 /config.guess
 /config.h
@@ -25,6 +26,7 @@
 /libcdio-*.sig
 /libcdio-*.tar.bz2
 /libcdio-*.tar.gz
+/libcdio-paranoia-10.2+0.94+2
 /libcdio-paranoia.tgz
 /libcdio_cdda.pc
 /libcdio_paranoia.pc
