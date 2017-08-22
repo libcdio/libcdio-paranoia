@@ -39,7 +39,7 @@
    gnu-ftp-upload libcdio-paranoia ${LIBCDIO_PARANOIA_VERSION} libcdio
 
    Also gnupload from the automake distribution.
-   /src/build/automake-1.12.4/lib/gnupload --to ftp.gnu.org:libcdio libcdio-paranoia-10.2+0.93.1.tar.gz  (Use "is" password)
+   /src/external-vcs/gnulib/modules/gnupload --to ftp.gnu.org:libcdio libcdio-paranoia-10.2+0.93.1.tar.gz  (Use "is" password)
 
 - Update/Announce on Freshmeat:
    http://freshmeat.net/add-release/36670/
