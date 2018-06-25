@@ -39,7 +39,7 @@
    gnu-ftp-upload libcdio-paranoia ${LIBCDIO_PARANOIA_VERSION} libcdio
 
    Also gnupload from the automake distribution.
-   /src/external-vcs/gnulib/modules/gnupload --to ftp.gnu.org:libcdio libcdio-paranoia-10.2+0.93.1.tar.gz  (Use "is" password)
+   /src/external-vcs/gnulib/build-aux/gnupload --to ftp.gnu.org:libcdio libcdio-paranoia-${LIBCDIO_PARANOIA_VERSION}.tar.gz  (Use "is" password)
 
 - Update/Announce on Freshmeat:
    http://freshmeat.net/add-release/36670/
@@ -48,10 +48,15 @@
   The NEWS file is your friend.
 
 - copy doxygen html to web pages:
-  cd libcdio-www/doxygen/libcdio-paranoia
+  cd ... (in savannah) libcdio-www/doxygen/libcdio-paranoia
   rm *.html
   cp /src/external-vcs/github/rocky/libcdio-paranoia/doc/doxygen/html/*.html .
-  cvs update .
+
+  export CVS_RSH=ssh
+  eval `ssh-agent -c`
+  ssh-add *appropriate-key*
+
+   cvs update .
 
     for each "U" html *except libcdio.html* that is put back, remove it
     with "rm" and then "cvs remove". For example,
