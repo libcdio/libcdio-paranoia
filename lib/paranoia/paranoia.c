@@ -2615,7 +2615,8 @@ static void cdrom_cache_handler(cdrom_paranoia_t *p, int lba, void(*callback)(lo
   if(cdda_read_timed(p->d,NULL,seekpos,1,&ms)==1)
     if(seekpos<p->cdcache_begin && ms<MIN_SEEK_MS)
       if(cdio_get_driver_id(p->d->p_cdio)==cdio_os_driver)
-        callback(seekpos*CD_FRAMEWORDS,PARANOIA_CB_CACHEERR);
+        if (callback)
+          (*callback)(seekpos*CD_FRAMEWORDS,PARANOIA_CB_CACHEERR);
   cdrom_cache_update(p,seekpos,1);
   return;
 }
