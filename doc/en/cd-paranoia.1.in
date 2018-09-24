@@ -28,7 +28,7 @@ Xiph's cdparanoia.
 .TP
 .B \-A --analyze-drive
 Run and log a complete analysis of drive caching, timing and reading behavior;
-verifies that cdparanoia is correctly modelling a sprcific drive's cache and
+verifies that cdparanoia is correctly modelling a specific drive's cache and
 read behavior. Implies -vQL.
 
 .TP
@@ -85,7 +85,7 @@ Output headerless data as raw 16 bit PCM data with interleaved samples in MSB fi
 
 .TP
 .B \-w --output-wav
-Output data in Micro$oft RIFF WAV format (note that WAV data is always
+Output data in Microsoft RIFF WAV format (note that WAV data is always
 LSB first byte order).
 
 .TP
@@ -349,7 +349,7 @@ Query only with exhaustive search for a drive and full reporting of autosense:
 .P
        @CDPARANOIA_NAME@ -vsQ
 .TP
-Extract an entire disc, putting each track in a seperate file:
+Extract an entire disc, putting each track in a separate file:
 .P
        @CDPARANOIA_NAME@ -B
 .TP
@@ -385,9 +385,9 @@ generic SCSI transport library.
 Monty <monty@xiph.org>
 .P
 Cdparanoia's homepage may be found at:
-http://www.xiph.org/paranoia/
+https://www.xiph.org/paranoia/
 .P
 Revised for use with libcdio by Rocky <rocky@gnu.org>
 .P
 The libcdio homepage may be found at:
-http://www.gnu.org/software/libcdio
+https://www.gnu.org/software/libcdio/
