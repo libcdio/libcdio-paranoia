@@ -251,7 +251,8 @@ display_toc(cdrom_drive_t *d)
          "track        length               begin        copy pre ch\n"
          "===========================================================");
 
-  for( i=1; i<=d->tracks; i++)
+  for( i=cdio_get_first_track_num(d->p_cdio);
+       i<=cdio_get_last_track_num(d->p_cdio); i++)
     if ( cdda_track_audiop(d,i) > 0 ) {
 
       lsn_t sec=cdda_track_firstsector(d,i);
