@@ -86,6 +86,9 @@ AC_AIX
 
 AC_PROG_MKDIR_P
 
+AC_PROG_AWK
+AC_SUBST(AWK)
+
 if test "x$GCC" != "xyes"
 then
   AC_MSG_WARN([
@@ -465,6 +468,7 @@ AC_CONFIG_FILES([
 # AC_CONFIG_FILES([po/Makefile])
 AC_CONFIG_FILES([test/check_paranoia.sh], [chmod +x test/check_paranoia.sh])
 AC_CONFIG_FILES([test/endian.sh], [chmod +x test/endian.sh])
+AC_CONFIG_FILES([test/start_track_not_one.sh], [chmod +x test/start_track_not_one.sh])
 AC_OUTPUT
 
 AC_MSG_NOTICE([
