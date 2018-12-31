@@ -11,10 +11,10 @@
 /cdda-2.raw
 /cdda-be.bin
 /cdda-be.cue
-/cdda-le.bin
-/cdda-le.cue
 /cdda-good.raw
 /cdda-jitter.raw
+/cdda-le.bin
+/cdda-le.cue
 /cdda-matches.raw
 /cdda-underrun.raw
 /cdda.bin
@@ -25,8 +25,11 @@
 /check_nrg.sh
 /check_paranoia.sh
 /check_sizeof
+/check_start_track.sh
 /endian.sh
 /isofs-m1.bin
+/start_track_not_one.bin
+/start_track_not_one.cue
 /test_lib_driver_util
 /testassert
 /testassert.core
