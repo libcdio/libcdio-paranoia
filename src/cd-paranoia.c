@@ -148,7 +148,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
     if(chars>0){
       offset[chars]='\0';
       i_track=atoi(offset);
-      if ( i_track > d->tracks ) {
+      if (i_track >= cdio_get_first_track_num(d->p_cdio) + d->tracks) {
         /*take track i_first_track-1 as pre-gap of 1st track*/
 	report("Track #%d does not exist.",i_track);
         exit(1);
@@ -251,7 +251,8 @@ display_toc(cdrom_drive_t *d)
          "track        length               begin        copy pre ch\n"
          "===========================================================");
 
-  for( i=1; i<=d->tracks; i++)
+  for( i=cdio_get_first_track_num(d->p_cdio);
+       i<=cdio_get_last_track_num(d->p_cdio); i++)
     if ( cdda_track_audiop(d,i) > 0 ) {
 
       lsn_t sec=cdda_track_firstsector(d,i);
@@ -1189,16 +1190,20 @@ main(int argc,char *argv[])
 
     {
       int track1 = cdda_sector_gettrack(d, i_first_lsn);
+
       int track2 = cdda_sector_gettrack(d, i_last_lsn);
       long off1  = i_first_lsn - cdda_track_firstsector(d, track1);
       long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
       int i;
 
-      for( i=track1; i<=track2; i++ )
+      for( i=track1; i<=track2; i++ ) {
         if(i != 0 && !cdda_track_audiop(d,i)){
 	  report("Selected span contains non audio track at track %02d.  Aborting.\n\n", i);
           exit(1);
+          if (i == 0)
+            i = cdio_get_first_track_num(d->p_cdio) - 1;
         }
+      }
 
       report("Ripping from sector %7ld (track %2d [%d:%02d.%02d])\n"
 	     "\t  to sector %7ld (track %2d [%d:%02d.%02d])\n",

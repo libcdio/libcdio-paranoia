@@ -70,12 +70,13 @@ data_bigendianp(cdrom_drive_t *d)
   
   cdmessage(d,"\nAttempting to determine drive endianness from data...");
   d->enable_cdda(d,1);
-  for(i=0,checked=0;i<d->tracks;i++){
+  for(i=cdio_get_first_track_num(d->p_cdio), checked=0;
+      i<=cdio_get_last_track_num(d->p_cdio); i++){
     float lsb_energy=0;
     float msb_energy=0;
-    if(cdda_track_audiop(d,i+1)==1){
-      long firstsector=cdda_track_firstsector(d,i+1);
-      long lastsector=cdda_track_lastsector(d,i+1);
+    if(cdda_track_audiop(d,i)==1){
+      long firstsector=cdda_track_firstsector(d,i);
+      long lastsector=cdda_track_lastsector(d,i);
       int zeroflag=-1;
       long beginsec=0;
       

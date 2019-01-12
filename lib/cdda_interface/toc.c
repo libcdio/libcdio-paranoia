@@ -65,15 +65,17 @@ lsn_t
 cdda_disc_firstsector(cdrom_drive_t *d)
 {
   int i;
+  int first_track = cdio_get_first_track_num(d->p_cdio);
+
   if(!d->opened){
     cderror(d,"400: Device not open\n");
     return(-400);
   }
 
   /* look for an audio track */
-  for ( i=0; i<d->tracks; i++ )
+  for (i = first_track - 1; i < first_track - 1 + d->tracks; i++)
     if( cdda_track_audiop(d, i+1)==1 ) {
-      if (i == 0) /* disc starts at lba 0 if first track is an audio track */
+      if (i == first_track - 1) /* disc starts at lba 0 if first track is an audio track */
        return 0;
       else
        return cdda_track_firstsector(d, i+1);

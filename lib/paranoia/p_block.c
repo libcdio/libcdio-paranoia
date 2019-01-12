@@ -384,7 +384,8 @@ i_paranoia_firstlast(cdrom_paranoia_t *p)
   i = cdda_sector_gettrack(d, p->cursor);
 
   if ( CDIO_INVALID_TRACK != i ) {
-    if ( 0 == i ) i++;
+    if ( 0 == i )
+      i = cdio_get_first_track_num(d->p_cdio);
     j = i;
     /* In the below loops, We assume the cursor already is on an audio
        sector. Not sure if this is correct if p->cursor is in the pregap

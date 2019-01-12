@@ -55,7 +55,7 @@ cddap_readtoc (cdrom_drive_t *d)
 						    CDIO_CDROM_LEADOUT_TRACK);
 
   d->cd_extra=FixupTOC(d, d->tracks+1); /* fixup includes lead-out */
-  return --i_track;  /* number of tracks returned does not include lead-out */
+  return d->tracks;  /* number of tracks returned does not include lead-out */
 }
 
 
@@ -263,6 +263,7 @@ verify_read_command(cdrom_drive_t *d)
   int16_t *buff=malloc(CDIO_CD_FRAMESIZE_RAW);
   int audioflag=0;
   int i_test_flags = d->i_test_flags;
+  int first_track = cdio_get_first_track_num(d->p_cdio);
 
   d->i_test_flags = 0;
 
@@ -270,7 +271,7 @@ verify_read_command(cdrom_drive_t *d)
 
   d->enable_cdda(d,1);
 
-  for(i=1;i<=d->tracks;i++){
+  for(i=first_track; i<first_track+d->tracks; i++){
     if(cdda_track_audiop(d,i)==1){
       long firstsector=cdda_track_firstsector(d,i);
       long lastsector=cdda_track_lastsector(d,i);
