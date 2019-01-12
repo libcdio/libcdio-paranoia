@@ -9,11 +9,15 @@ if test ! -d "$abs_top_srcdir" ; then
   abs_top_srcdir=@abs_top_srcdir@
 fi
 
+if test ! -d "abs_top_builddir" ; then
+  abs_top_builddir=@abs_top_builddir@
+fi
+
 test_dir=$abs_top_srcdir/test
 
 set -ex
 
-if [ $($builddir/get_libcdio_version) -le 20000 ] ; then
+if [ $($abs_top_builddir/test/get_libcdio_version) -le 20000 ] ; then
     exit 77
 fi
 
