@@ -13,7 +13,7 @@ test_dir=$abs_top_srcdir/test
 
 set -ex
 
-if [ $($test_dir/get_libcdio_version) -le 20000 ] ; then
+if [ $($builddir/get_libcdio_version) -le 20000 ] ; then
     exit 77
 fi
 
