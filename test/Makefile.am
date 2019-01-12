@@ -22,7 +22,7 @@ check_SCRIPTS = check_paranoia.sh endian.sh check_start_track_not_one.sh
 
 check_start_track_not_one.sh: get_libcdio_version
 
-check_PROGRAMS = testparanoia testutils
+check_PROGRAMS = testparanoia testutils get_libcdio_version
 
 check_DATA = cd-paranoia-log.right
 
