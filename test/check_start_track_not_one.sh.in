@@ -15,7 +15,7 @@ fi
 
 test_dir=$abs_top_srcdir/test
 
-set -ex
+set -e
 
 if [ $($abs_top_builddir/test/get_libcdio_version) -le 20000 ] ; then
     exit 77
