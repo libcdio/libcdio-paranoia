@@ -28,6 +28,11 @@ EXTRA_DIST = $(check_SCRIPTS) $(check_DATA)
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
-MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw *.bin *.cue
+MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw *.bin *.cue get_libcdio_version
 
 test: check-am
+
+# extra dependencies of tests
+check-am: get_libcdio_version
+
+get_libcdio_version: CFLAGS += @LIBCDIO_CFLAGS@
