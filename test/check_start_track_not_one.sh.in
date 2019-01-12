@@ -13,6 +13,10 @@ test_dir=$abs_top_srcdir/test
 
 set -e
 
+if [ $($test_dir/get_libcdio_version) -le 20000 ] ; then
+    exit 77
+fi
+
 cd_paranoia=$abs_top_builddir/src/cd-paranoia
 base=start_track_not_one
 orig_cdda=$test_dir/data/cdda.bin

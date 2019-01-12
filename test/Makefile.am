@@ -20,6 +20,8 @@ check_SCRIPTS = check_paranoia.sh endian.sh check_start_track_not_one.sh
 # it could be an automatic test. But for now, not so.
 #               check_paranoia.sh
 
+check_start_track_not_one.sh: get_libcdio_version
+
 check_PROGRAMS = testparanoia testutils
 
 check_DATA = cd-paranoia-log.right
