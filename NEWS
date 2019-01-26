@@ -1,3 +1,12 @@
+version 10.2+0.95
+2019-01-26
+
+- Now works with audio CD's that start on a track greater than 1.
+  This work was done by Edd Barrett and Thomas Schmitt
+- OpenBSD tolerance
+- typos in manual page and README
+- Do not attempt to call a NULL callback (issue #15) from mskamp
+
 version 10.2+0.94+2
 2017-08-22
 
