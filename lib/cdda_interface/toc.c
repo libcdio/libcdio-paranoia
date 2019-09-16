@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005, 2008, 2013 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2005, 2008, 2013, 2019 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998-2008 Monty xiphmont@mit.edu
   derived from code (C) 1994-1996 Heiko Eissfeldt
 
@@ -27,6 +27,7 @@
 
 #include "low_interface.h"
 #include "utils.h"
+#include <cdio/paranoia/toc.h>
 
 /*! Return the lsn for the start of track i_track or CDIO_LEADOUT_TRACK */
 lsn_t
@@ -165,7 +166,7 @@ cdda_tracks(cdrom_drive_t *d)
     CDIO_INVALID_TRACK is returned.
  */
 int
-cdda_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
+cdio_cddap_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
 {
   if (!d->opened) {
     cderror(d,"400: Device not open\n");
@@ -182,23 +183,23 @@ cdda_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
   implemented or -1 for error.
   Not meaningful if track is not an audio track.
 */
-int
-cdda_track_channels(cdrom_drive_t *d, track_t i_track)
+extern int
+cdio_cddap_track_channels(cdrom_drive_t *d, track_t i_track)
 {
   return(cdio_get_track_channels(d->p_cdio, i_track));
 }
 
 /*! Return 1 is track is an audio track, 0 otherwise. */
-int
-cdda_track_audiop(cdrom_drive_t *d, track_t i_track)
+extern int
+cdio_cddap_track_audiop(cdrom_drive_t *d, track_t i_track)
 {
   track_format_t track_format = cdio_get_track_format(d->p_cdio, i_track);
   return TRACK_FORMAT_AUDIO == track_format ? 1 : 0;
 }
 
 /*! Return 1 is track is an audio track, 0 otherwise. */
-int
-cdda_track_copyp(cdrom_drive_t *d, track_t i_track)
+extern int
+cdio_cddap_track_copyp(cdrom_drive_t *d, track_t i_track)
 {
   track_flag_t track_flag = cdio_get_track_copy_permit(d->p_cdio, i_track);
   return CDIO_TRACK_FLAG_TRUE == track_flag ? 1 : 0;
@@ -207,8 +208,8 @@ cdda_track_copyp(cdrom_drive_t *d, track_t i_track)
 /*! Return 1 is audio track has linear preemphasis set, 0 otherwise.
     Only makes sense for audio tracks.
  */
-int
-cdda_track_preemp(cdrom_drive_t *d, track_t i_track)
+extern int
+cdio_cddap_track_preemp(cdrom_drive_t *d, track_t i_track)
 {
   track_flag_t track_flag = cdio_get_track_preemphasis(d->p_cdio, i_track);
   return CDIO_TRACK_FLAG_TRUE == track_flag ? 1 : 0;
