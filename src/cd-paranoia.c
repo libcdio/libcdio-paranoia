@@ -1487,7 +1487,10 @@ main(int argc,char *argv[])
 			"                                           \r%s%s\n",
 			mes?mes:"",err?err:"");
 
-	      if(err)free(err);if(mes)free(mes);
+	      if (err)
+		free(err);
+	      if (mes)
+		free(mes);
 	      if(readbuf==NULL){
 		skipped_flag=1;
 		report("\nparanoia_read: Unrecoverable error reading through "
