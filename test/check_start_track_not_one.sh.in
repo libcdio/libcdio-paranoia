@@ -14,6 +14,7 @@ if test ! -d "abs_top_builddir" ; then
 fi
 
 test_dir=$abs_top_srcdir/test
+test_build_dir=$abs_top_builddir/test
 
 set -e
 
@@ -26,11 +27,11 @@ base=start_track_not_one
 orig_cdda=$test_dir/data/cdda.bin
 
 # First we make a longer CDDA image.
-cdda=$test_dir/$base.bin
+cdda=$test_build_dir/$base.bin
 cat $orig_cdda $orig_cdda $orig_cdda > $cdda
 
 # And a CUE file with a non-one start track.
-cue=$test_dir/$base.cue
+cue=$test_build_dir/$base.cue
 cat << EOF > $cue
 FILE "$cdda" BINARY
   TRACK 07 AUDIO

@@ -9,6 +9,7 @@ AUTOMAKE_OPTIONS = dist-bzip2
 
 EXTRA_DIST = \
 	THANKS \
+        NEWS.md \
         README.md \
 	make-check-filter.rb \
 	example/README \
