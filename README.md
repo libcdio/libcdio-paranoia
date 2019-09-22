@@ -1,6 +1,4 @@
-[![Build Status Circle](https://circleci.com/gh/rocky/libcdio-paranoia.svg?&style=shield)](https://circleci.com/gh/rocky/libcdio-paranoia)
-
-[![Packaging status](https://repology.org/badge/tiny-repos/libcdio-paranoia.svg)](https://repology.org/project/libcdio-paranoia/versions)
+[![Build Status Circle](https://circleci.com/gh/rocky/libcdio-paranoia.svg?&style=shield)](https://circleci.com/gh/rocky/libcdio-paranoia) [![Packaging status](https://repology.org/badge/tiny-repos/libcdio-paranoia.svg)](https://repology.org/project/libcdio-paranoia/versions)
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/libcdio-paranoia.svg)](https://repology.org/project/libcdio-paranoia/versions)
 
