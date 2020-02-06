@@ -122,7 +122,11 @@ LIBS = $(LIBCDIO_LIBS) @LIBS@ @COS_LIB@
 libcdio_cdda_la_MAJOR = $(shell expr $(libcdio_cdda_la_CURRENT) - $(libcdio_cdda_la_AGE))
 if VERSION_SCRIPT
 if BUILD_VERSIONED_LIBS
+if HAVE_LD_VERSION_SCRIPT
 libcdio_cdda_la_LDFLAGS = $(libcdio_cdda_la_ldflags) -Wl,--version-script=libcdio_cdda.la.ver
+else !HAVE_LD_VERSION_SCRIPT
+libcdio_cdda_la_LDFLAGS = $(libcdio_cdda_la_ldflags)
+endif # HAVE_LD_VERSION_SCRIPT
 libcdio_cdda_la_DEPENDENCIES = libcdio_cdda.la.ver
 
 libcdio_cdda.la.ver: $(libcdio_cdda_la_OBJECTS) $(srcdir)/libcdio_cdda.sym

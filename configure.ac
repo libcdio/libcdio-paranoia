@@ -298,6 +298,9 @@ fi
 
 AM_CONDITIONAL(CYGWIN, test "x$CYGWIN" = "xyes")
 
+dnl include check if LD supports linker scripts
+gl_LD_VERSION_SCRIPT
+
 dnl Checks for header files.
 
 LIBCDIO_CDDA_LIBS='$(top_builddir)/lib/cdda_interface/libcdio_cdda.la'

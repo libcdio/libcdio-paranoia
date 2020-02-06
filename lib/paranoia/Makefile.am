@@ -135,7 +135,11 @@ LIBS = $(LIBCDIO_LIBS) $(LIBCDIO_CDDA_LIBS)
 libcdio_paranoia_la_MAJOR = $(shell expr $(libcdio_paranoia_la_CURRENT) - $(libcdio_paranoia_la_AGE))
 if VERSION_SCRIPT
 if BUILD_VERSIONED_LIBS
+if HAVE_LD_VERSION_SCRIPT
 libcdio_paranoia_la_LDFLAGS = $(libcdio_paranoia_la_ldflags) -Wl,--version-script=libcdio_paranoia.la.ver
+else !HAVE_LD_VERSION_SCRIPT
+libcdio_paranoia_la_LDFLAGS = $(libcdio_paranoia_la_ldflags)
+endif # HAVE_LD_VERSION_SCRIPT
 libcdio_paranoia_la_DEPENDENCIES = libcdio_paranoia.la.ver
 
 libcdio_paranoia.la.ver: $(libcdio_paranoia_la_OBJECTS) $(srcdir)/libcdio_paranoia.sym
