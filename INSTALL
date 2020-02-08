@@ -252,6 +252,16 @@ not `/usr/local'.  It is recommended to use the following options:
 
      ./configure --prefix=/boot/common
 
+   On FreeBSD use GNU `make' to build. FreeBSD `make' doesn't support
+100% of GNU `make' syntax and builds may fail. Install GNU `make' on
+FreeBSD 10.0 and newer as follows:
+
+     /usr/sbin/pkg install gmake
+
+after that use `gmake' instead of `make' for all building tasks, eg:
+
+     /usr/local/bin/gmake install
+
 Specifying the System Type
 ==========================
 
