@@ -15,7 +15,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-mansubdir=/jp/man1
+mansubdir=/ja/man1
 manfiles = cd-paranoia.1
 man_MANS = $(manfiles) cd-paranoia.1
 transform = s,cd-paranoia,@CDPARANOIA_NAME@,
