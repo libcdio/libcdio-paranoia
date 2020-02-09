@@ -6,8 +6,10 @@
 /*.directive
 /*.directive.asc
 /ChangeLog
+/INSTALL
 /Makefile
 /Makefile.in
+/README
 /aclocal.m4
 /autom4te.cache
 /cd-paranoia

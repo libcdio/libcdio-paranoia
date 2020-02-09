@@ -1,4 +1,4 @@
-#   Copyright (C) 2011, 2012, 2015
+#   Copyright (C) 2011, 2012, 2015, 2020
 #   Rocky Bernstein <rocky@gnu.org>
 #
 ## Process this file with automake to produce Makefile.in
@@ -10,6 +10,7 @@ AUTOMAKE_OPTIONS = dist-bzip2
 EXTRA_DIST = \
 	THANKS \
         NEWS.md \
+        INSTALL.md \
         README.md \
 	make-check-filter.rb \
 	example/README \
@@ -18,6 +19,16 @@ EXTRA_DIST = \
 SUBDIRS = doc include lib src test example
 
 paranoiapcs = libcdio_paranoia.pc libcdio_cdda.pc
+
+# Note that README and INSTALL are not made by
+# default nor should the need to be
+#: README text from Markdown
+README: README.md
+	pandoc -f markdown -t plain --wrap=none $< -o $@
+
+#: INSTALL text from Markdown
+INSTALL: INSTALL.md
+	pandoc -f markdown -t plain --wrap=none $< -o $@
 
 # pkg-config(1) related rules
 pkgconfigdir = $(libdir)/pkgconfig
