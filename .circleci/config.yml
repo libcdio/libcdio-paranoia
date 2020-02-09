@@ -40,7 +40,7 @@ jobs:
     # Checkout
     #   This would typically go in either a build or a build-and-test job when using workflows
     # This is based on your 1.0 configuration file or project settings
-    - run: sudo apt-get -y install libcdio-dev
+    - run: sudo apt-get -y install libcdio-dev pandoc
     - run: sh ./autogen.sh
     - run: sh ./configure --enable-maintainer-mode
     - run: make
