@@ -1,0 +1,23 @@
+language: c
+
+# just to make the config validator happy
+os: osx
+
+compiler:
+  - gcc
+
+addons:
+  homebrew:
+    packages:
+      - [ autoconf, automake, libcdio, pkg-config ]
+    update: true
+
+jobs:
+  include:
+    - os: osx
+      name: macOS
+      env:
+      osx_image: xcode9.4
+
+# run the tests
+script: autoreconf -i -f && ./configure && make && make check
