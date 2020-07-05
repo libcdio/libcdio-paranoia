@@ -89,6 +89,9 @@ AC_PROG_MKDIR_P
 AC_PROG_AWK
 AC_SUBST(AWK)
 
+AC_ARG_VAR([NM], [utility for listing symbols from object files])
+AC_CHECK_TOOL([NM], [nm])
+
 if test "x$GCC" != "xyes"
 then
   AC_MSG_WARN([
