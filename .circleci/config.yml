@@ -40,7 +40,8 @@ jobs:
     # Checkout
     #   This would typically go in either a build or a build-and-test job when using workflows
     # This is based on your 1.0 configuration file or project settings
-    - run: sudo apt-get -y install libcdio-dev pandoc
+    # - run: sudo apt-get -y install libcdio-dev pandoc # No in CircleCI apt anymore
+    - run: sudo apt-get -y install libcdio-dev
     - run: sh ./autogen.sh
     - run: sh ./configure --enable-maintainer-mode
     - run: make
@@ -73,7 +74,10 @@ jobs:
     #   This would typically be a build job when using workflows, possibly combined with build
     # This is based on your 1.0 configuration file or project settings
     - run: make check
-    - run: make GIT2CL=cat distcheck
+    # CircleCI doesn't have a pandoc in apt anymore.
+    # https://stackoverflow.com/questions/59656257/trying-to-download-the-latest-version-of-pandoc-in-circleci-build-script
+    # describes how to install pandoc, but this is too more of a hassle than it is worth.
+    # - run: make GIT2CL=cat distcheck
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # Save test results
