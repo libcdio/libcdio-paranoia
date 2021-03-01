@@ -1200,8 +1200,6 @@ main(int argc,char *argv[])
         if(i != 0 && !cdda_track_audiop(d,i)){
 	  report("Selected span contains non audio track at track %02d.  Aborting.\n\n", i);
           exit(1);
-          if (i == 0)
-            i = cdio_get_first_track_num(d->p_cdio) - 1;
         }
       }
 
