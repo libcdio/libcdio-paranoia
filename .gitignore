@@ -24,6 +24,7 @@
 /configure
 /cov-int
 /depcomp
+/dist
 /install-sh
 /libcdio-*.sig
 /libcdio-*.tar.bz2
