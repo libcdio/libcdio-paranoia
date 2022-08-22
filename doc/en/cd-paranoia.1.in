@@ -1,6 +1,7 @@
 .TH @CDPARANOIA_NAME@ 1 "version III release alpha 9.8 libcdio"
 .SH NAME
-@CDPARANOIA_NAME@ 9.8 (Paranoia release III via libcdio) \- an audio CD reading utility which includes extra data verification features
+@CDPARANOIA_NAME@ \- an audio CD reading utility which includes extra data verification features
+
 .SH SYNOPSIS
 .B @CDPARANOIA_NAME@
 .RB [ options ]
