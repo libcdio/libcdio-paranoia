@@ -222,7 +222,7 @@ cdrom_drive_t *cdio_cddap_identify_cdio(CdIo_t *p_cdio,
 
 /** informational functions */
 
-extern const char *cdio_cddap_version();
+extern const char *cdio_cddap_version(void);
 
 /** Returns the current message buffer. Free the returned
     string using cdio_cddap_free_messages() if not NULL.
