@@ -225,7 +225,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
 
   /* We don't want to outside of the track; if it's relative, that's OK... */
   if( i_track != CDIO_INVALID_TRACK ){
-    if (cdda_sector_gettrack(d,ret) != i_track) {
+    if (cdda_sector_gettrack(d,ret - d->toc_offset) != i_track) {
       report("Time/sector offset goes beyond end of specified track.");
       exit(1);
     }
@@ -1123,6 +1123,8 @@ main(int argc,char *argv[])
     toc_offset = -cdda_track_firstsector(d,1);
   }
 
+  d->toc_offset = toc_offset;
+
   {
     int i;
     for( i=0; i < d->tracks+1; i++ )
@@ -1189,9 +1191,9 @@ main(int argc,char *argv[])
     }
 
     {
-      int track1 = cdda_sector_gettrack(d, i_first_lsn);
+      int track1 = cdda_sector_gettrack(d, i_first_lsn - d->toc_offset);
 
-      int track2 = cdda_sector_gettrack(d, i_last_lsn);
+      int track2 = cdda_sector_gettrack(d, i_last_lsn - d->toc_offset);
       long off1  = i_first_lsn - cdda_track_firstsector(d, track1);
       long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
       int i;
@@ -1468,7 +1470,7 @@ main(int argc,char *argv[])
 
           /* One last bit of silliness to deal with sample offsets */
           if(sample_offset && cursor>batch_last){
-	    if (cdda_sector_gettrack(d, batch_last) < d->tracks || force_overread) {
+	    if (cdda_sector_gettrack(d, batch_last - toc_offset) < d->tracks || force_overread) {
 	      int i;
 
 	      /* Need to flush the buffer when overreading into the leadout */
@@ -1521,7 +1523,7 @@ main(int argc,char *argv[])
 
 	/* Write sectors of silent audio to compensate for
 	   missing samples that would be in the leadout */
-	if (cdda_sector_gettrack(d, batch_last) == d->tracks &&
+	if (cdda_sector_gettrack(d, batch_last - toc_offset) == d->tracks &&
 		toc_offset > 0 && !force_overread)
 	{
 		char *silence;

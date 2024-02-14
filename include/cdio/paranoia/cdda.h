@@ -137,6 +137,7 @@ struct cdrom_drive_s {
 		       the flag masks to simulate a particular kind of
 		       failure.    */
 
+  long toc_offset;
 };
 
 

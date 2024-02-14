@@ -172,7 +172,7 @@ cdio_cddap_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
     cderror(d,"400: Device not open\n");
     return CDIO_INVALID_TRACK;
   } else {
-    if (lsn < d->disc_toc[0].dwStartSector)
+    if (lsn < d->disc_toc[0].dwStartSector - d->toc_offset)
       return 0; /* We're in the pre-gap of first track */
 
     return cdio_get_track(d->p_cdio, lsn);
