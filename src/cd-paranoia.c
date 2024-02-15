@@ -225,7 +225,7 @@ parse_offset(cdrom_drive_t *d, char *offset, int begin)
 
   /* We don't want to outside of the track; if it's relative, that's OK... */
   if( i_track != CDIO_INVALID_TRACK ){
-    if (cdda_sector_gettrack(d,ret - d->toc_offset) != i_track) {
+    if (cdda_sector_gettrack(d,ret) != i_track) {
       report("Time/sector offset goes beyond end of specified track.");
       exit(1);
     }
@@ -1191,9 +1191,9 @@ main(int argc,char *argv[])
     }
 
     {
-      int track1 = cdda_sector_gettrack(d, i_first_lsn - d->toc_offset);
+      int track1 = cdda_sector_gettrack(d, i_first_lsn);
 
-      int track2 = cdda_sector_gettrack(d, i_last_lsn - d->toc_offset);
+      int track2 = cdda_sector_gettrack(d, i_last_lsn);
       long off1  = i_first_lsn - cdda_track_firstsector(d, track1);
       long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
       int i;
@@ -1220,11 +1220,15 @@ main(int argc,char *argv[])
 
     }
 
+    i_first_lsn += toc_offset;
+    i_last_lsn += toc_offset;
+
     if (toc_offset && !force_overread) {
 	d->disc_toc[d->tracks].dwStartSector -= toc_offset;
 	if (i_last_lsn > cdda_track_lastsector(d, d->tracks))
 		i_last_lsn -= toc_offset;
     }
+
     {
       long cursor;
       int16_t offset_buffer[1176];
@@ -1267,7 +1271,7 @@ main(int argc,char *argv[])
         char outfile_name[PATH_MAX];
         if ( batch ){
           batch_first = cursor;
-          batch_track = cdda_sector_gettrack(d,cursor);
+          batch_track = cdda_sector_gettrack(d,cursor - toc_offset);
           batch_last  = cdda_track_lastsector(d, batch_track);
           if (batch_last>i_last_lsn) batch_last=i_last_lsn;
         } else {
@@ -1385,7 +1389,7 @@ main(int argc,char *argv[])
         }
 
 	sectorlen = batch_last - batch_first + 1;
-	if (cdda_sector_gettrack(d, cursor) == d->tracks &&
+	if (cdda_sector_gettrack(d, cursor - toc_offset) == d->tracks &&
 		toc_offset > 0 && !force_overread){
 		sectorlen += toc_offset;
 	}
