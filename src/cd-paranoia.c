@@ -1264,7 +1264,7 @@ main(int argc,char *argv[])
         if ( batch ){
           batch_first = cursor;
           batch_track = cdda_sector_gettrack(d,cursor - toc_offset);
-          batch_last  = cdda_track_lastsector(d, batch_track);
+          batch_last  = cdda_track_lastsector(d, batch_track) + toc_offset;
           if (batch_last>i_last_lsn) batch_last=i_last_lsn;
         } else {
           batch_first = i_first_lsn;
