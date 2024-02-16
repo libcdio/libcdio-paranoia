@@ -1212,14 +1212,15 @@ main(int argc,char *argv[])
 
     }
 
-    // Apply the sector read offset now that we are starting to read data
+    /* Apply read sector offset to the first and last sector indicies.
+       If the option has not been given to force overreading, do not offset
+       the last index beyond the last sector of the final track. */
     i_first_lsn += toc_offset;
-    i_last_lsn += toc_offset;
-
-    if (toc_offset && !force_overread) {
-        if (i_last_lsn > cdda_track_lastsector(d, d->tracks))
-            i_last_lsn -= toc_offset;
-    }
+    lsn_t lasttrack_lastsector = cdda_track_lastsector(d, d->tracks);
+    if (!force_overread && i_last_lsn + toc_offset >= lasttrack_lastsector)
+        i_last_lsn = lasttrack_lastsector;
+    else
+        i_last_lsn += toc_offset;
 
     {
       long cursor;
