@@ -136,6 +136,7 @@ struct cdrom_drive_s {
 		       paranoia operation this can be set to one of
 		       the flag masks to simulate a particular kind of
 		       failure.    */
+
 };
 
 

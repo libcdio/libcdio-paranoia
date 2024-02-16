@@ -105,7 +105,7 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 	return(-402);
       }
       else {
-	return (d->disc_toc[0].dwStartSector - 1);
+	return (d->disc_toc[0].dwStartSector-1);
       }
     } else if (i_track < i_first_track || i_track > i_last_track) {
       char buf[100];
@@ -124,7 +124,7 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 
     /* Index safe because we always have the leadout at
      * disc_toc[tracks] */
-    return(d->disc_toc[i_track-i_first_track+1].dwStartSector - 1);
+    return(d->disc_toc[i_track-i_first_track+1].dwStartSector-1);
   }
 }
 
@@ -172,7 +172,7 @@ cdio_cddap_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
     cderror(d,"400: Device not open\n");
     return CDIO_INVALID_TRACK;
   } else {
-    if (lsn < (d->disc_toc[0].dwStartSector))
+    if (lsn < d->disc_toc[0].dwStartSector)
       return 0; /* We're in the pre-gap of first track */
 
     return cdio_get_track(d->p_cdio, lsn);
