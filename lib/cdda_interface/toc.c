@@ -105,7 +105,7 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 	return(-402);
       }
       else {
-	return (d->disc_toc[0].dwStartSector-1);
+	return d->disc_toc[0].dwStartSector-1;
       }
     } else if (i_track < i_first_track || i_track > i_last_track) {
       char buf[100];
