@@ -43,7 +43,7 @@ cdda_track_firstsector(cdrom_drive_t *d, track_t i_track)
 
     if (i_track == CDIO_CDROM_LEADOUT_TRACK) i_track = i_last_track;
     if (i_track == 0) {
-      if (d->disc_toc[0].dwStartSector - d->toc_offset == 0) {
+      if (d->disc_toc[0].dwStartSector == 0) {
 	/* first track starts at lba 0 -> no pre-gap */
 	cderror(d,"402: No initial pregap\n");
 	return(-402);
@@ -57,7 +57,7 @@ cdda_track_firstsector(cdrom_drive_t *d, track_t i_track)
       cderror(d, buf);
       return(-401);
     }
-    return(d->disc_toc[i_track-i_first_track].dwStartSector - d->toc_offset);
+    return(d->disc_toc[i_track-i_first_track].dwStartSector);
   }
 }
 
@@ -99,13 +99,13 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
     const track_t i_last_track  = cdio_get_last_track_num(d->p_cdio);
 
     if (i_track == 0) {
-      if (d->disc_toc[0].dwStartSector - d->toc_offset == 0) {
+      if (d->disc_toc[0].dwStartSector == 0) {
 	/* first track starts at lba 0 -> no pre-gap */
 	cderror(d,"402: No initial pregap\n");
 	return(-402);
       }
       else {
-	return ((d->disc_toc[0].dwStartSector - d->toc_offset) - 1);
+	return (d->disc_toc[0].dwStartSector - 1);
       }
     } else if (i_track < i_first_track || i_track > i_last_track) {
       char buf[100];
@@ -116,15 +116,15 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 
     /* CD Extra have their first session ending at the last audio track */
     if (d->cd_extra > 0 && i_track-i_first_track+2 <= d->tracks) {
-      if (d->audio_last_sector >= (d->disc_toc[i_track-i_first_track].dwStartSector - d->toc_offset) &&
-          d->audio_last_sector < (d->disc_toc[i_track-i_first_track+1].dwStartSector - d->toc_offset)) {
+      if (d->audio_last_sector >= d->disc_toc[i_track-i_first_track].dwStartSector &&
+          d->audio_last_sector < d->disc_toc[i_track-i_first_track+1].dwStartSector) {
         return d->audio_last_sector;
       }
     }
 
     /* Index safe because we always have the leadout at
      * disc_toc[tracks] */
-    return((d->disc_toc[i_track-i_first_track+1].dwStartSector - d->toc_offset) - 1);
+    return(d->disc_toc[i_track-i_first_track+1].dwStartSector - 1);
   }
 }
 
@@ -172,7 +172,7 @@ cdio_cddap_sector_gettrack(cdrom_drive_t *d, lsn_t lsn)
     cderror(d,"400: Device not open\n");
     return CDIO_INVALID_TRACK;
   } else {
-    if (lsn < (d->disc_toc[0].dwStartSector - d->toc_offset))
+    if (lsn < (d->disc_toc[0].dwStartSector))
       return 0; /* We're in the pre-gap of first track */
 
     return cdio_get_track(d->p_cdio, lsn);

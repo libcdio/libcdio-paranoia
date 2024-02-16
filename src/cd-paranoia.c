@@ -1123,14 +1123,6 @@ main(int argc,char *argv[])
     toc_offset = -cdda_track_firstsector(d,1);
   }
 
-  d->toc_offset = toc_offset;
-
-  {
-    int i;
-    for( i=0; i < d->tracks+1; i++ )
-      d->disc_toc[i].dwStartSector+=toc_offset;
-  }
-
   if (d->nsectors==1) {
     report("WARNING: The autosensed/selected sectors per read value is\n"
            "         one sector, making it very unlikely Paranoia can \n"
@@ -1220,13 +1212,13 @@ main(int argc,char *argv[])
 
     }
 
+    // Apply the sector read offset now that we are starting to read data
     i_first_lsn += toc_offset;
     i_last_lsn += toc_offset;
 
     if (toc_offset && !force_overread) {
-	d->disc_toc[d->tracks].dwStartSector -= toc_offset;
-	if (i_last_lsn > cdda_track_lastsector(d, d->tracks))
-		i_last_lsn -= toc_offset;
+        if (i_last_lsn > cdda_track_lastsector(d, d->tracks))
+            i_last_lsn -= toc_offset;
     }
 
     {
@@ -1265,7 +1257,7 @@ main(int argc,char *argv[])
          willing to read past, assuming that works on the hardware, of
          course */
       if(sample_offset && force_overread)
-        d->disc_toc[d->tracks].dwStartSector++;
+        i_last_lsn++;
 
       while(cursor<=i_last_lsn){
         char outfile_name[PATH_MAX];
