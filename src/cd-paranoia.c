@@ -1093,19 +1093,62 @@ main(int argc,char *argv[])
 
   if (query_only) exit(0);
 
-  /* bias the disc.  A hack.  Of course. this is never the default. */
   /*
-     Some CD-ROM/CD-R drives will add an offset to the position on
-     reading audio data. This is usually around 500-700 audio samples
-     (ca. 1/75 second) on reading. So when this program queries a
-     specific sector, it might not receive exactly that sector, but
-     shifted by some amount.
+     Nearly all CD-ROM/CD-R drives will add a sample offset (either
+     positive or negative) to the position when reading audio data.
+     This is usually around 500-700 audio samples (ca. 1/75 second)
+     but can consist of multiple sectors for some drives.
 
-     Note that if ripping includes the end of the CD, this will this
-     cause this program to attempt to read partial sectors before or
-     past the known user data area of the disc, probably causing read
-     errors on most drives and possibly even hard lockups on some
-     buggy hardware.
+     To account for this, the --sample-offset option can be specified
+     to adjust for a drive's read offset by a given number of
+     samples. In doing so, the exact data desired can be retrieved,
+     assuming the proper offset is specified for a given drive.
+
+     An audio CD sector is 2352 bytes in size, consisting of 1176
+     16-bit (2-byte) samples or 588 paris of samples (left and right
+     channels). Therefore, every 588 samples of offset required for a
+     given drive will necesitate shifting reads by N sectors and by M
+     samples (assuming the sample offset is not an exact multiple of
+     588).
+
+     For example:
+       --sample-offset 0 (default)
+         results in a sector offset of 0 and a sample offset of 0
+
+       --sample-offset +48
+         results in a sector offset of 0 and a sample offset of 48
+
+       --sample-offset +667
+         results in a sector offset of 1 and a sample offset of 79
+
+       --sample-offset +1776
+         results in a sector offset of 3 and a sample offset of 12
+
+       --sample-offset -54
+         results in a sector offset of -1 and a sample offset of 534
+
+       --sample-offset -589
+         results in a sector offset of -2 and a sample offset of 587
+
+       --sample-offset -1164
+         results in a sector offset of -2 and a sample offset of 12
+
+     toc_offset - accounts for the number of sectors to offset reads
+     sample_offset - accounts for the number of samples to shift the
+                     results
+
+     Note that if ripping includes the end of the CD and the
+     --force-overread option is specified, this program will attempt
+     to read partial sectors before or past the known user data area
+     of the disc. The drive must suppport this or it will probably
+     cause read errors on most drives and possibly even hard lockups
+     on some buggy hardware. If the --force-overread is not provided,
+     tracks will be padded with empty data rather than attempting to
+     read beyond the disk lead-in/lead-out.
+
+     For more info, see:
+       - https://www.exactaudiocopy.de/en/index.php/support/faq/offset-questions/
+       - https://wiki.hydrogenaud.io/index.php?title=AccurateRip#Drive_read_offsets
 
      [Note to libcdio driver hackers: make sure all CD-drivers don't
      try to read outside of the stated disc boundaries.]
@@ -1214,7 +1257,8 @@ main(int argc,char *argv[])
 
     /* Apply read sector offset to the first and last sector indicies.
        If the option has not been given to force overreading, do not offset
-       the last index beyond the last sector of the final track. */
+       the last sector index beyond the last sector of the final track.
+    */
     i_first_lsn += toc_offset;
     lsn_t lasttrack_lastsector = cdda_track_lastsector(d, d->tracks);
     if (!force_overread && i_last_lsn + toc_offset >= lasttrack_lastsector)
@@ -1251,14 +1295,6 @@ main(int argc,char *argv[])
 #if defined(HAVE_GETGID) && defined(HAVE_SETEGID)
       dummy = setegid(getgid());
 #endif
-
-      /* we'll need to be able to read one sector past user data if we
-         have a sample offset in order to pick up the last bytes.  We
-         need to set the disc length forward here so that the libs are
-         willing to read past, assuming that works on the hardware, of
-         course */
-      if(sample_offset && force_overread)
-        i_last_lsn++;
 
       while(cursor<=i_last_lsn){
         char outfile_name[PATH_MAX];
