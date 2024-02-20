@@ -1226,15 +1226,15 @@ main(int argc,char *argv[])
     }
 
     {
-			/* Check for errors on lsn before getting track */
-			if(i_first_lsn < 0){
-	  		report("Error on begin of span: %li.  Aborting.\n\n", i_first_lsn);
-				exit(1);
-			}
-			if(i_last_lsn < 0 ){
-	  		report("Error on end of span: %li.  Aborting.\n\n", i_last_lsn);
-				exit(1);
-			}
+      /* Check for errors on lsn before getting track */
+      if(i_first_lsn < 0){
+        report("Error on begin of span: %li.  Aborting.\n\n", i_first_lsn);
+        exit(1);
+      }
+      if(i_last_lsn < 0 ){
+        report("Error on end of span: %li.  Aborting.\n\n", i_last_lsn);
+        exit(1);
+      }
 
       int track1 = cdda_sector_gettrack(d, i_first_lsn);
       int track2 = cdda_sector_gettrack(d, i_last_lsn);
