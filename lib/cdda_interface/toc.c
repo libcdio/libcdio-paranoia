@@ -61,7 +61,7 @@ cdda_track_firstsector(cdrom_drive_t *d, track_t i_track)
   }
 }
 
-/*! Get first lsn of the first audio track. -1 is returned on error. */
+/*! Get first lsn of the first audio track. -ERROR_CODE is returned on error. */
 lsn_t
 cdda_disc_firstsector(cdrom_drive_t *d)
 {
@@ -87,7 +87,7 @@ cdda_disc_firstsector(cdrom_drive_t *d)
 }
 
 /*! Get last lsn of the track. The lsn is generally one less than the
-  start of the next track. -1 is returned on error. */
+  start of the next track. -ERROR_CODE is returned on error. */
 lsn_t
 cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 {
@@ -129,7 +129,7 @@ cdda_track_lastsector(cdrom_drive_t *d, track_t i_track)
 }
 
 /*! Get last lsn of the last audio track. The last lssn generally one
-  less than the start of the next track after the audio track. -1 is
+  less than the start of the next track after the audio track. -ERROR_CODE is
   returned on error. */
 lsn_t
 cdda_disc_lastsector(cdrom_drive_t *d)
@@ -149,7 +149,7 @@ cdda_disc_lastsector(cdrom_drive_t *d)
   return -403;
 }
 
-/*! Return the number of tracks on the or 300 if error. */
+/*! Return the number of tracks on the CD or CDIO_INVALID_TRACK (255) if error. */
 track_t
 cdda_tracks(cdrom_drive_t *d)
 {
