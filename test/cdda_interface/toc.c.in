@@ -323,9 +323,9 @@ perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
   CdIo_t *p_cdio;
   int rc;
 
-	char *drv = (char*) malloc(strlen(dir) + strlen(file) + 4);
-	strcpy(drv, dir);
-	strcat(drv, file);
+  char *drv = (char*) malloc(strlen(dir) + strlen(file) + 4);
+  strcpy(drv, dir);
+  strcat(drv, file);
 
   if (cdio_have_driver(DRIVER_BINCUE)) {
       p_cdio = cdio_open(strcat(drv, ".cue"), DRIVER_UNKNOWN);
@@ -333,7 +333,7 @@ perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
       p_cdio = cdio_open(strcat(drv, ".toc"), DRIVER_UNKNOWN);
   } else {
     printf("-- You don't have enough drivers for the test (%s).\n", file);
-		free(drv);
+    free(drv);
     return 77;
   }
 
@@ -341,13 +341,13 @@ perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
 
   if ( !d ) {
     printf("Should have identified as an audio CD disc (%s).\n", file);
-		free(drv);
+    free(drv);
     return 1;
   }
 
   if ( 0 != cdio_cddap_open(d) ) {
     printf("Unable to open disc (%s).\n", file);
-		free(drv);
+    free(drv);
     return 2;
   }
 
@@ -362,19 +362,19 @@ perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
 int
 main(int argc, const char *argv[])
 {
-	int i=0;
-	int rc;
-	const char *files[] = { "cdda", "cd-extra", "hidden-track", "mixed-mode-cd", NULL };
-	int (*funcs[])(cdrom_drive_t *) = { cdda, cd_extra, hidden_track, mixed_mode_cd };
+  int i=0;
+  int rc;
+  const char *files[] = { "cdda", "cd-extra", "hidden-track", "mixed-mode-cd", NULL };
+  int (*funcs[])(cdrom_drive_t *) = { cdda, cd_extra, hidden_track, mixed_mode_cd };
 
   cdio_log_set_handler (log_handler);
 
-	while(files[i] != NULL){
-		rc = perform_test("@native_abs_top_srcdir@/test/data/", files[i], funcs[i]);
-		if(rc)
-			return rc;
-		i++;
-	}
+  while(files[i] != NULL){
+    rc = perform_test("@native_abs_top_srcdir@/test/data/", files[i], funcs[i]);
+    if(rc)
+      return rc;
+    i++;
+  }
 
-	return 0;
+  return 0;
 }
