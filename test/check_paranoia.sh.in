@@ -93,74 +93,74 @@ if test "@CMP@" != no ; then
   fi
   ### FIXME: medium jitter is known to fail. Investigate.
   ### FIXME: large jitter is known to fail. Investigate.
-	
-	# CD extra
-	
-	# Audio track shoud pass
+
+  # CD extra
+
+  # Audio track shoud pass
   $cd_paranoia -d $cue_cd_extra -v -r -- "1"
   if test $? -ne 0 ; then
     exit 7
   fi
 
-	# Track 0 should fail since no pregap
+  # Track 0 should fail since no pregap
   $cd_paranoia -d $cue_cd_extra -v -r -- "0"
   if test $? -eq 0 ; then
     exit 8
   fi
 
-	# Data track should fail
+  # Data track should fail
   $cd_paranoia -d $cue_cd_extra -v -r -- "2"
   if test $? -eq 0 ; then
     exit 9
   fi
 
-	# Track out of range should fail
+  # Track out of range should fail
   $cd_paranoia -d $cue_cd_extra -v -r -- "3"
   if test $? -eq 0 ; then
     exit 10
   fi
 
-	# Span shoud fail due to data track
+  # Span shoud fail due to data track
   $cd_paranoia -d $cue_cd_extra -v -r -- "1-2"
   if test $? -eq 0 ; then
     exit 11
   fi
 
-	# Span shoud fail due to range
+  # Span shoud fail due to range
   $cd_paranoia -d $cue_cd_extra -v -r -- "1-3"
   if test $? -eq 0 ; then
     exit 11
   fi
 
-	# CD with hidden track
-	
-	# Audio track shoud pass
+  # CD with hidden track
+
+  # Audio track shoud pass
   $cd_paranoia -d $cue_hidden_track -v -r -- "1"
   if test $? -ne 0 ; then
     exit 7
   fi
 
-	# Track 0 should pass
+  # Track 0 should pass
   $cd_paranoia -d $cue_hidden_track -v -r -- "0"
   if test $? -ne 0 ; then
     exit 8
   fi
 
-	# Span shoud pass
+  # Span shoud pass
   $cd_paranoia -d $cue_hidden_track -v -r -- "0-1"
   if test $? -ne 0 ; then
     exit 11
   fi
 
-	# Mixed mode CD
-	
-	# Audio track shoud pass
+  # Mixed mode CD
+
+  # Audio track shoud pass
   $cd_paranoia -d $cue_mixed_mode_cd -v -r -- "2"
   if test $? -ne 0 ; then
     exit 7
   fi
 
-	# Data track should fail
+  # Data track should fail
   $cd_paranoia -d $cue_mixed_mode_cd -v -r -- "1"
   if test $? -eq 0 ; then
     exit 9
