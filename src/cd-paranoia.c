@@ -1352,16 +1352,22 @@ main(int argc,char *argv[])
 	      exit(1);
 	    }
 
+            int res;
             if(batch) {
-	      if (strlen(argv[optind+1]) - 10 > PATH_MAX) {
-		report("Output filename too long");
-		exit(1);
-	      }
-              snprintf(outfile_name, PATH_MAX,
+              res=snprintf(outfile_name, PATH_MAX,
 		       " %strack%02d.%s", dirname,
                        batch_track, basename);
             } else
-              snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
+              res=snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
+
+            if(res < 0){
+              report("Error on setting filename");
+              exit(1);
+            }
+            if(res >= PATH_MAX){
+              report("Output filename too long");
+              exit(1);
+            }
 
             if(basename[0]=='\0'){
               switch (output_type) {
