@@ -37,6 +37,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 
 #include <cdio/paranoia/cdda.h>
 #include <cdio/cd_types.h>
@@ -58,7 +61,8 @@ log_handler (cdio_log_level_t level, const char message[])
   }
 }
 
-static int testit(cdrom_drive_t *d) {
+static int
+cdda(cdrom_drive_t *d) {
     track_t t = 0;
     lsn_t lsn = 0;
 
@@ -92,24 +96,58 @@ static int testit(cdrom_drive_t *d) {
 	return 3;
     }
 
-    lsn = cdda_track_lastsector(d, 0);
-    if ( lsn != -402 ) {
-	printf("Should have gotten error code -402, got %d.\n", lsn);
-	return 3;
-    }
-
     /* Check track sector reporting.
      */
     lsn  = cdda_track_firstsector(d, 1);
     if ( lsn != 0 ) {
 	printf("Should have gotten 0 as the first sector, got %d.\n", lsn);
-	return 2;
+	return 4;
     }
 
     lsn  = cdda_track_lastsector(d, 1);
     if ( lsn != 301 ) {
 	printf("Should have gotten 301 as the last sector, got %d.\n", lsn);
-	return 2;
+	return 4;
+    }
+
+    /* Check CDIO_CDROM_LEADOUT_TRACK/tracks+1.
+     */
+    lsn  = cdda_track_firstsector(d, CDIO_CDROM_LEADOUT_TRACK);
+    if ( lsn != 302 ) {
+	printf("First: Should have gotten 302 as first sector on leadout, got %d.\n", lsn);
+	return 5;
+    }
+
+    lsn  = cdda_track_firstsector(d, 2);
+    if ( lsn != 302 ) {
+	printf("First: Should have gotten 302 as first sector on leadout, got %d.\n", lsn);
+	return 5;
+    }
+
+    lsn  = cdda_track_lastsector(d, CDIO_CDROM_LEADOUT_TRACK);
+    if ( lsn != -401 ) {
+	printf("Last: Should have gotten error code -401, got %d.\n", lsn);
+	return 5;
+    }
+
+    lsn  = cdda_track_lastsector(d, 2);
+    if ( lsn != -401 ) {
+	printf("Last: Should have gotten error code -401, got %d.\n", lsn);
+	return 5;
+    }
+
+    /* Check track ranges.
+     */
+    lsn  = cdda_track_firstsector(d, 3);
+    if ( lsn != -401 ) {
+	printf("Should have gotten error code -401, got %d.\n", lsn);
+	return 6;
+    }
+
+    lsn  = cdda_track_lastsector(d, -1);
+    if ( lsn != -401 ) {
+	printf("Should have gotten error code -401, got %d.\n", lsn);
+	return 6;
     }
 
     /* Check sector track reporting.
@@ -117,51 +155,226 @@ static int testit(cdrom_drive_t *d) {
     t = cdda_sector_gettrack(d, 100);
     if ( 1 != t )  {
 	printf("Should have gotten 1 as the track, got %d.\n", t);
-	return 2;
+	return 7;
     }
 
     t = cdda_sector_gettrack(d, 1000);
     if ( CDIO_INVALID_TRACK != t )  {
 	printf("Should have gotten CDIO_INVALID_TRACK as the track, got %d.\n", t);
+	return 7;
+    }
+
+    return 0;
+}
+
+static int
+cd_extra(cdrom_drive_t *d) {
+    track_t t = 0;
+    lsn_t lsn = 0;
+
+    /* Check number of tracks (data track also counted).
+     */
+    t = cdda_tracks(d);
+    if (t != 2) {
+	printf("Should have found two tracks, got %d\n", t);
+	return 1;
+    }
+
+    /* Check disc sector reporting.
+     */
+    lsn = cdda_disc_lastsector(d);
+    if ( lsn != 149 ) {
+	printf("Should have gotten 149 as the last sector, got %d.\n", lsn);
+	return 2;
+    }
+
+    /* Check track sector reporting.
+     */
+    lsn  = cdda_track_lastsector(d, 1);
+    if ( lsn != 149 ) {
+	printf("Should have gotten 149 as the last sector, got %d.\n", lsn);
+	return 4;
+    }
+
+    /* Check CDIO_CDROM_LEADOUT_TRACK/tracks+1.
+     */
+    lsn  = cdda_track_firstsector(d, 3);
+    if ( lsn != 302 ) {
+	printf("First: Should have gotten 302 as first sector on leadout, got %d.\n", lsn);
+	return 5;
+    }
+
+    lsn  = cdda_track_lastsector(d, 3);
+    if ( lsn != -401 ) {
+	printf("Last: Should have gotten error code -401, got %d.\n", lsn);
+	return 5;
+    }
+
+    /* Check track ranges.
+     */
+    lsn  = cdda_track_firstsector(d, 4);
+    if ( lsn != -401 ) {
+	printf("Should have gotten error code -401, got %d.\n", lsn);
+	return 6;
+    }
+
+    /* Check non audio tracks.
+     */
+    lsn  = cdda_track_firstsector(d, 2);
+    if ( lsn != 150 ) {
+	printf("Should have gotten 150 as first sector, got %d.\n", lsn);
+	return 8;
+    }
+
+    lsn  = cdda_track_lastsector(d, 2);
+    if ( lsn != 301 ) {
+	printf("Should have gotten 301 as last sector, got %d.\n", lsn);
+	return 8;
+    }
+
+    return 0;
+}
+
+static int
+hidden_track(cdrom_drive_t *d) {
+    track_t t = 0;
+    lsn_t lsn = 0;
+
+    /* Check number of tracks (hidden track ignored).
+     */
+    t = cdda_tracks(d);
+    if (t != 1) {
+	printf("Should have found one track, got %d\n", t);
+	return 1;
+    }
+
+    /* Check pregap sector reporting.
+     */
+    lsn = cdda_track_firstsector(d, 0);
+    if ( lsn != 0 ) {
+	printf("Should have gotten 0 as the first sector on hidden track, got %d.\n", lsn);
+	return 2;
+    }
+
+    /* Check track sector reporting.
+     */
+    lsn  = cdda_track_firstsector(d, 1);
+    if ( lsn != 150 ) {
+	printf("Should have gotten 150 as the first sector, got %d.\n", lsn);
+	return 3;
+    }
+
+    lsn  = cdda_track_lastsector(d, 1);
+    if ( lsn != 301 ) {
+	printf("Should have gotten 301 as the last sector, got %d.\n", lsn);
 	return 3;
     }
 
     return 0;
 }
 
-int
-main(int argc, const char *argv[])
-{
+static int
+mixed_mode_cd(cdrom_drive_t *d) {
+    track_t t = 0;
+    lsn_t lsn = 0;
+
+    /* Check number of tracks (data track also counted).
+     */
+    t = cdda_tracks(d);
+    if (t != 2) {
+	printf("Should have found two tracks, got %d\n", t);
+	return 1;
+    }
+
+    /* Check disc sector reporting.
+     */
+    lsn = cdda_disc_firstsector(d);
+    if ( lsn != 150 ) {
+	printf("Should have gotten 150 as the first sector, got %d.\n", lsn);
+	return 1;
+    }
+
+    lsn = cdda_disc_lastsector(d);
+    if ( lsn != 301 ) {
+	printf("Should have gotten 301 as the last sector, got %d.\n", lsn);
+	return 1;
+    }
+
+    /* Check non audio tracks.
+     */
+    lsn  = cdda_track_firstsector(d, 1);
+    if ( lsn != 0 ) {
+	printf("Should have gotten 0 as the first sector, got %d.\n", lsn);
+	return 8;
+    }
+
+    lsn  = cdda_track_lastsector(d, 1);
+    if ( lsn != 149 ) {
+	printf("Should have gotten 149 as the last sector, got %d.\n", lsn);
+	return 8;
+    }
+
+    return 0;
+}
+
+static int
+perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
   cdrom_drive_t *d = NULL; /* Place to store handle given by cd-paranoia. */
   CdIo_t *p_cdio;
   int rc;
 
-  cdio_log_set_handler (log_handler);
+  char *drv = (char*) malloc(strlen(dir) + strlen(file) + 4);
+  strcpy(drv, dir);
+  strcat(drv, file);
 
   if (cdio_have_driver(DRIVER_BINCUE)) {
-      p_cdio = cdio_open("@native_abs_top_srcdir@/test/data/cdda.cue", DRIVER_UNKNOWN);
+      p_cdio = cdio_open(strcat(drv, ".cue"), DRIVER_UNKNOWN);
   } else if (cdio_have_driver(DRIVER_CDRDAO)) {
-      p_cdio = cdio_open("@native_abs_top_srcdir@/test/data/cdda.toc", DRIVER_UNKNOWN);
+      p_cdio = cdio_open(strcat(drv, ".toc"), DRIVER_UNKNOWN);
   } else {
-    printf("-- You don't have enough drivers for this test\n");
+    printf("-- You don't have enough drivers for the test (%s).\n", file);
+    free(drv);
     return 77;
   }
 
   d=cdio_cddap_identify_cdio(p_cdio, CDDA_MESSAGE_PRINTIT, NULL);
 
   if ( !d ) {
-    printf("Should have identified as an audio CD disc.\n");
+    printf("Should have identified as an audio CD disc (%s).\n", file);
+    free(drv);
     return 1;
   }
 
   if ( 0 != cdio_cddap_open(d) ) {
-    printf("Unable to open disc.\n");
+    printf("Unable to open disc (%s).\n", file);
+    free(drv);
     return 2;
   }
 
-  rc = testit(d);
+  rc = func(d);
   cdio_cddap_close_no_free_cdio(d);
   cdio_destroy(p_cdio);
+	free(drv);
 
   return rc;
+}
+
+int
+main(int argc, const char *argv[])
+{
+  int i=0;
+  int rc;
+  const char *files[] = { "cdda", "cd-extra", "hidden-track", "mixed-mode-cd", NULL };
+  int (*funcs[])(cdrom_drive_t *) = { cdda, cd_extra, hidden_track, mixed_mode_cd };
+
+  cdio_log_set_handler (log_handler);
+
+  while(files[i] != NULL){
+    rc = perform_test("@native_abs_top_srcdir@/test/data/", files[i], funcs[i]);
+    if(rc)
+      return rc;
+    i++;
+  }
+
+  return 0;
 }

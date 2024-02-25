@@ -1226,11 +1226,19 @@ main(int argc,char *argv[])
     }
 
     {
-      int track1 = cdda_sector_gettrack(d, i_first_lsn);
+      /* Check for errors on lsn before getting track */
+      if(i_first_lsn < 0){
+        report("Error on begin of span: %li.  Aborting.\n\n", i_first_lsn);
+        exit(1);
+      }
+      if(i_last_lsn < 0 ){
+        report("Error on end of span: %li.  Aborting.\n\n", i_last_lsn);
+        exit(1);
+      }
 
+      int track1 = cdda_sector_gettrack(d, i_first_lsn);
       int track2 = cdda_sector_gettrack(d, i_last_lsn);
-      long off1  = i_first_lsn - cdda_track_firstsector(d, track1);
-      long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
+
       int i;
 
       for( i=track1; i<=track2; i++ ) {
@@ -1239,6 +1247,9 @@ main(int argc,char *argv[])
           exit(1);
         }
       }
+
+      long off1  = i_first_lsn - cdda_track_firstsector(d, track1);
+      long off2  = i_last_lsn  - cdda_track_firstsector(d, track2);
 
       report("Ripping from sector %7ld (track %2d [%d:%02d.%02d])\n"
 	     "\t  to sector %7ld (track %2d [%d:%02d.%02d])\n",
@@ -1341,30 +1352,36 @@ main(int argc,char *argv[])
 	      exit(1);
 	    }
 
+            int res;
             if(batch) {
-	      if (strlen(argv[optind+1]) - 10 > PATH_MAX) {
-		report("Output filename too long");
-		exit(1);
-	      }
-              snprintf(outfile_name, PATH_MAX,
+              res=snprintf(outfile_name, PATH_MAX,
 		       " %strack%02d.%s", dirname,
                        batch_track, basename);
             } else
-              snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
+              res=snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
+
+            if(res < 0){
+              report("Error on setting filename");
+              exit(1);
+            }
+            if(res >= PATH_MAX){
+              report("Output filename too long");
+              exit(1);
+            }
 
             if(basename[0]=='\0'){
               switch (output_type) {
               case 0: /* raw */
-                strncat(outfile_name, "cdda.raw", sizeof("cdda.raw"));
+                strncat(outfile_name, "cdda.raw", PATH_MAX - strlen(outfile_name) - 1);
                 break;
               case 1:
-                strncat(outfile_name, "cdda.wav", sizeof("cdda.wav"));
+                strncat(outfile_name, "cdda.wav", PATH_MAX - strlen(outfile_name) - 1);
                 break;
               case 2:
-                strncat(outfile_name, "cdda.aifc", sizeof("cdda.aifc"));
+                strncat(outfile_name, "cdda.aifc", PATH_MAX - strlen(outfile_name) - 1);
                 break;
               case 3:
-                strncat(outfile_name, "cdda.aiff", sizeof("cdda.aiff"));
+                strncat(outfile_name, "cdda.aiff", PATH_MAX - strlen(outfile_name) - 1);
                 break;
               }
             }
@@ -1390,16 +1407,16 @@ main(int argc,char *argv[])
 
           switch(output_type){
           case 0: /* raw */
-            strncat(outfile_name, "cdda.raw", sizeof("cdda.raw"));
+            strncat(outfile_name, "cdda.raw", PATH_MAX - strlen(outfile_name) - 1);
             break;
           case 1:
-            strncat(outfile_name, "cdda.wav", sizeof("cdda.wav"));
+            strncat(outfile_name, "cdda.wav", PATH_MAX - strlen(outfile_name) - 1);
             break;
           case 2:
-            strncat(outfile_name, "cdda.aifc", sizeof("cdda.aifc"));
+            strncat(outfile_name, "cdda.aifc", PATH_MAX - strlen(outfile_name) - 1);
             break;
           case 3:
-            strncat(outfile_name, "cdda.aiff", sizeof("cdda.aiff"));
+            strncat(outfile_name, "cdda.aiff", PATH_MAX - strlen(outfile_name) - 1);
             break;
           }
 
