@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build:
     working_directory: ~/rocky/libcdio-paranoia
@@ -8,11 +8,15 @@ jobs:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
     docker:
-      - image: cimg/base
+      - image: cimg/base:2022.09
+        auth:
+          username: rockyb
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      # Stuff we want to do
+      - run: sudo apt-get update && sudo apt-get install -y libcdio-dev automake libtool
       - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
-      - run: sudo apt-get -y install libcdio-dev
       - run: sh ./autogen.sh
       - run: sh ./configure --enable-maintainer-mode
       - run: make
