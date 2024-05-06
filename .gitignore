@@ -5,6 +5,7 @@
 *~
 /*.directive
 /*.directive.asc
+/.python-version
 /.vscode
 /ChangeLog
 /INSTALL
