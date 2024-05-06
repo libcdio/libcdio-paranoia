@@ -8,9 +8,10 @@ export AUTOMAKE_VERSION=1.15
 
 echo "Rebuilding ./configure with autoreconf..."
 autoreconf -f -i
-if [ $? -ne 0 ]; then
+rc=$?
+if [ $rc -ne 0 ]; then
   echo "autoreconf failed"
-  exit $?
+  exit $rc
 fi
 
 ./configure --enable-maintainer-mode "$@"

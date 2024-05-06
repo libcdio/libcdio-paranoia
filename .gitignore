@@ -5,6 +5,7 @@
 *~
 /*.directive
 /*.directive.asc
+/.vscode
 /ChangeLog
 /INSTALL
 /Makefile
