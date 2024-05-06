@@ -324,7 +324,7 @@ perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
   int rc;
 
   /* Below, +1 for null byte at the end */
-  char *drv = (char*) malloc(strlen(dir) + strlen(file) + strlen(".toc" + 1);
+  char *drv = (char*) malloc(strlen(dir) + strlen(file) + strlen(".toc") + 1);
   strcpy(drv, dir);
   strcat(drv, file);
 
