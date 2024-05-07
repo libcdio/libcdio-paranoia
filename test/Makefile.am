@@ -37,4 +37,4 @@ test: check-am
 # extra dependencies of tests
 check-am: get_libcdio_version
 
-get_libcdio_version: CFLAGS += @LIBCDIO_CFLAGS@
+CFLAGS += @LIBCDIO_CFLAGS@
