@@ -324,14 +324,15 @@ perform_test(const char *dir, const char *file, int (*func)(cdrom_drive_t *)){
   int rc;
 
   /* Below, +1 for null byte at the end */
-  char *drv = (char*) malloc(strlen(dir) + strlen(file) + strlen(".toc") + 1);
-  strcpy(drv, dir);
-  strcat(drv, file);
+  size_t drv_len = strlen(dir) + strlen(file) + strlen(".toc") + 1;
+  char *drv = (char*) malloc(drv_len);
+  strncpy(drv, dir, drv_len);
+  strncat(drv, file, drv_len);
 
   if (cdio_have_driver(DRIVER_BINCUE)) {
-      p_cdio = cdio_open(strcat(drv, ".cue"), DRIVER_UNKNOWN);
+    p_cdio = cdio_open(strncat(drv, ".cue", drv_len), DRIVER_UNKNOWN);
   } else if (cdio_have_driver(DRIVER_CDRDAO)) {
-      p_cdio = cdio_open(strcat(drv, ".toc"), DRIVER_UNKNOWN);
+    p_cdio = cdio_open(strncat(drv, ".toc", drv_len), DRIVER_UNKNOWN);
   } else {
     printf("-- You don't have enough drivers for the test (%s).\n", file);
     free(drv);
