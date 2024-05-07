@@ -1,4 +1,4 @@
-dnl Copyright (C)  2011-2017, 2019
+dnl Copyright (C)  2011-2017, 2019, 2024
 dnl Rocky Bernstein <rocky@gnu.org>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
@@ -14,20 +14,20 @@ dnl
 dnl You should have received a copy of the GNU General Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-define(RELEASE_NUM, 2.0.1)
+define(RELEASE_NUM, 2.0.2)
 define(PARANOIA_VERSION, 10.2)
 define(LIBCDIO_PARANOIA_VERSION_STR, $1+$2)
 
 AC_DEFINE([PACKAGE], [libcdio-paranoia], [cdparanoia using libcdio])
 
-AC_PREREQ(2.67)
+AC_PREREQ([2.71])
 
-AC_INIT([libcdio-paranoia], [LIBCDIO_PARANOIA_VERSION_STR(PARANOIA_VERSION,RELEASE_NUM)], [libcdio-help@gnu.org])
+AC_INIT([libcdio-paranoia],[LIBCDIO_PARANOIA_VERSION_STR(PARANOIA_VERSION,RELEASE_NUM)],[libcdio-help@gnu.org])
 AC_CONFIG_SRCDIR(src/cd-paranoia.c)
 AM_INIT_AUTOMAKE([foreign])
 
 AC_CANONICAL_HOST
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_MISSING_PROG(HELP2MAN, help2man, $missing_dir)
@@ -37,24 +37,24 @@ AM_MAINTAINER_MODE
 AM_SANITY_CHECK
 
 AC_ARG_WITH(cd-paranoia-name,
-	AC_HELP_STRING([--with-cd-paranoia-name], [name to use as the cd-paranoia program name (default cd-paranoia)]),
+	AS_HELP_STRING([--with-cd-paranoia-name],[name to use as the cd-paranoia program name (default cd-paranoia)]),
 cd_paranoia_name="${withval}", cd_paranoia_name="cd-paranoia")
 CDPARANOIA_NAME="$cd_paranoia_name"
 AC_SUBST(CDPARANOIA_NAME)
 
 AC_ARG_WITH(versioned-libs,
-	AC_HELP_STRING([--without-versioned-libs], [build versioned library symbols (default enabled if you have GNU ld)]),
+	AS_HELP_STRING([--without-versioned-libs],[build versioned library symbols (default enabled if you have GNU ld)]),
 enable_versioned_libs="${withval}", enable_versioned_libs=yes)
 
 AC_ARG_ENABLE(example-progs,
-	AC_HELP_STRING([--disable-example-progs], [Don't build libcdio-paranoia sample programs]))
+	AS_HELP_STRING([--disable-example-progs],[Don't build libcdio-paranoia sample programs]))
 
 AC_ARG_ENABLE([cxx],
-	AC_HELP_STRING([--disable-cxx], [Disable C++ bindings (default enabled)]))
+	AS_HELP_STRING([--disable-cxx],[Disable C++ bindings (default enabled)]))
 AM_CONDITIONAL([ENABLE_CXX_BINDINGS], [test "x$enable_cxx" != "xno"])
 
 AC_ARG_ENABLE(cpp-progs,
-	AC_HELP_STRING([--enable-cpp-progs], [make C++ example programs (default enabled)]))
+	AS_HELP_STRING([--enable-cpp-progs],[make C++ example programs (default enabled)]))
 AM_CONDITIONAL(ENABLE_CPP, test x"$enable_cpp_progs" = "xyes")
 
 dnl cheeck whether ld supports --version-script
@@ -70,7 +70,7 @@ AM_CONDITIONAL(VERSION_SCRIPT, test "x$enable_version_script" = "xyes")
 
 # Do we have GNU ld? If we don't, we can't build versioned symbols.
 AC_ARG_ENABLE(example-progs,
-	AC_HELP_STRING([--disable-example-progs], [Don't build libcdio sample programs]))
+	AS_HELP_STRING([--disable-example-progs],[Don't build libcdio sample programs]))
 
 AM_CONDITIONAL(BUILD_EXAMPLES, test "x$enable_example_progs" != "xno")
 AM_CONDITIONAL(BUILD_VERSIONED_LIBS, test "x$enable_versioned_libs" = "xyes")
@@ -82,7 +82,7 @@ dnl We also use C++ in example programs and for CXX bindings
 AC_PROG_CXX
 
 dnl Checks for programs.
-AC_AIX
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_MKDIR_P
 
@@ -105,7 +105,7 @@ else
     SAVE_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS $WOPT"
     AC_MSG_CHECKING([whether $CC understands $WOPT])
-    AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[has_option=yes],[has_option=no])
     CFLAGS="$SAVE_CFLAGS"
     AC_MSG_RESULT($has_option)
     if test $has_option = yes; then
@@ -159,7 +159,6 @@ AC_SUBST([WC])
 
 dnl headers
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h glob.h limits.h pwd.h)
 AC_CHECK_HEADERS(stdarg.h stdbool.h stdio.h sys/cdio.h sys/param.h \
 		 sys/time.h sys/timeb.h sys/utsname.h)
@@ -178,10 +177,10 @@ AC_C_INLINE
 
 dnl ISOC99_PRAGMA
 AC_MSG_CHECKING([whether $CC supports ISOC99 _Pragma()])
-AC_TRY_COMPILE([],[_Pragma("pack(1)")], [
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[_Pragma("pack(1)")]])],[
   ISOC99_PRAGMA=yes
   AC_DEFINE(HAVE_ISOC99_PRAGMA, [], [Supports ISO _Pragma() macro])
-],ISOC99_PRAGMA=no)
+],[ISOC99_PRAGMA=no])
 AC_MSG_RESULT($ISOC99_PRAGMA)
 
 ##
@@ -218,10 +217,10 @@ dnl empty_array_size
 AC_MSG_CHECKING([how to create empty arrays])
 
 empty_array_size="xxxx"
-AC_TRY_COMPILE([],[struct { int foo; int bar[]; } doo;], empty_array_size="")
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[struct { int foo; int bar[]; } doo;]])],[empty_array_size=""],[])
 
 if test "x$empty_array_size" = "xxxx";then
- AC_TRY_COMPILE([],[struct { int foo; int bar[0]; } doo;], empty_array_size="0")
+ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[struct { int foo; int bar[0]; } doo;]])],[empty_array_size="0"],[])
 fi
 
 if test "x$empty_array_size" = "xxxx"
@@ -236,13 +235,16 @@ else
   AC_MSG_RESULT($msg)
 fi
 
-dnl Enable the creation of shared libraries under Win32.
-AC_LIBTOOL_WIN32_DLL
+dnl dnl Enable the creation of shared libraries under Win32.
+dnl AC_REQUIRE(AC_CANONICAL_HOST)_LT_SET_OPTION([LT_INIT],[win32-dll])
+dnl m4_warn([obsolete],[AC_LIBTOOL_WIN32_DLL: Remove this warning and the call to _LT_SET_OPTION when you
+dnl put the 'win32-dll' option into LT_INIT's first parameter.])
 
-dnl AM_PROG_LIBTOOL tests whether we have GNU ld
+
+dnl LT_INIT tests whether we have GNU ld
 dnl this must come before checking --with-versioned-libs
 dnl which requires GNU ld.
-AM_PROG_LIBTOOL
+LT_INIT
 
 dnl regression tests need native-style absolute paths.
 dnl native_abs_top_srcdir is used here.
@@ -353,12 +355,11 @@ case $host_os in
         AC_CHECK_HEADERS(linux/version.h linux/major.h)
         AC_CHECK_HEADERS(linux/cdrom.h, [have_linux_cdrom_h="yes"])
 	if test "x$have_linux_cdrom_h" = "xyes" ; then
-	   AC_TRY_COMPILE(,[
+	   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
 #include <linux/cdrom.h>
 struct cdrom_generic_command test;
-int has_timeout=sizeof(test.timeout);],
-            [AC_DEFINE([HAVE_LINUX_CDROM_TIMEOUT], [1],
-                   [Define 1 if timeout is in cdrom_generic_command struct])])
+int has_timeout=sizeof(test.timeout);]])],[AC_DEFINE([HAVE_LINUX_CDROM_TIMEOUT], [1],
+                   [Define 1 if timeout is in cdrom_generic_command struct])],[])
 	   AC_DEFINE([HAVE_LINUX_CDROM], [1],
                      [Define 1 if you have Linux-type CD-ROM support])
 	   cd_drivers="${cd_drivers}, GNU/Linux"

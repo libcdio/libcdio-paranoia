@@ -46,7 +46,7 @@
 #include <cdio/logging.h>
 
 #ifndef DATA_DIR
-#define DATA_DIR "@srcdir@/../data"
+#define DATA_DIR "@abs_top_srcdir@/../data"
 #endif
 
 static void

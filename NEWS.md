@@ -1,3 +1,23 @@
+10.2+2.0.2
+---------
+2019-05-0-7
+
+- A 6-year-old bug, seen primarily by Whipper users, concerning
+  adjusting of CD-drives that have large sample offsets, or negative
+  offsets has been fixed.  Fix is from and thanks are due to
+  buddyabaddon.
+  https://github.com/rocky/libcdio-paranoia/issues/14 and
+  https://github.com/rocky/libcdio-paranoia/pull/38
+- Code has moved from savannah.gnu.org to github. CircleCI
+  testing is now incorporated into builds.
+- Add test on LSN on span check errors, and give a better
+  message when there is a problem. https://github.com/rocky/libcdio-paranoia/pull/39
+- Require libcdio at least 2.0.0
+- Remove dead code after exit. https://github.com/rocky/libcdio-paranoia/pull/32
+- Fix manpage for Japanese. https://github.com/rocky/libcdio-paranoia/pull/27
+- Add notes for using gmake for building on FreeBSD. https://github.com/rocky/libcdio-paranoia/pull/26
+
+
 10.2+2.0.1
 ---------
 2019-09-16

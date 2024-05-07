@@ -1,4 +1,5 @@
 /*
+  Copyright (C) 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 2008 Monty <monty@xiph.org>
 
@@ -143,7 +144,8 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
      we're consistently hitting latency on the same sector during
      initial collection, may need to move past it. */
 
-  int i,j,ret=0,x;
+  int ret=0;
+  int i,j,x;
   int firstsector=-1;
   int lastsector=-1;
   int firsttest=-1;
@@ -555,11 +557,11 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
 
    reportC("\tTesting cache tail cursor...");
 
-  while(1){
+  while(1) {
     rollbehind=cachesize;
 
     for(i=0;i<10 && rollbehind;){
-      int sofar=0,ret=0,retry=0;
+      int sofar=0,retry=0;
       logC("\n\t\t>>> ");
       printC(".");
       while(sofar<cachesize){

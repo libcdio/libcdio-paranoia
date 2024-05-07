@@ -1,4 +1,4 @@
-#   Copyright (C) 2011, 2012, 2015, 2020
+#   Copyright (C) 2011, 2012, 2015, 2020, 2024
 #   Rocky Bernstein <rocky@gnu.org>
 #
 ## Process this file with automake to produce Makefile.in
@@ -14,7 +14,11 @@ EXTRA_DIST = \
         README.md \
 	make-check-filter.rb \
 	example/README \
-	COPYING
+	COPYING \
+	$(wildcard test/data/*.bin) \
+	$(wildcard test/data/*.cue) \
+	$(wildcard test/data/*.iso) \
+	$(wildcard test/*.right)
 
 SUBDIRS = doc include lib src test example
 
