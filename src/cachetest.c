@@ -126,7 +126,7 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
      average transfer times; on slow setups, the speed of a drive
      reading sectors via PIO will not be reliably distinguishable from
      the same drive returning data from the cache via pio.  We need
-     something even more noticable and reliable: the seek time. It is
+     something even more noticeable and reliable: the seek time. It is
      unlikely we'd ever see a seek latency of under ~10ms given the
      synchronization requirements of a CD and the maximum possible
      rotational velocity. A cache hit would always be faster, even
@@ -511,7 +511,7 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
 
 	  /* Some drives can lose sync and perform an internal resync,
 	     which can also cause readahead to restart.  If we see
-	     seek-like delays during the initial cahe load, retry the
+	     seek-like delays during the initial cache load, retry the
 	     preload. */
 
 	  sofar += ret;

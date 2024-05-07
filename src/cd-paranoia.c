@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004-2012, 2014-2015, 2017 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004-2012, 2014-2015, 2017, 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) 1998 Monty <xiphmont@mit.edu>
 
@@ -1140,7 +1140,7 @@ main(int argc,char *argv[])
      Note that if ripping includes the end of the CD and the
      --force-overread option is specified, this program will attempt
      to read partial sectors before or past the known user data area
-     of the disc. The drive must suppport this or it will probably
+     of the disc. The drive must support this or it will probably
      cause read errors on most drives and possibly even hard lockups
      on some buggy hardware. If the --force-overread is not provided,
      tracks will be padded with empty data rather than attempting to
@@ -1266,7 +1266,7 @@ main(int argc,char *argv[])
 
     }
 
-    /* Apply read sector offset to the first and last sector indicies.
+    /* Apply read sector offset to the first and last sector indices.
        If the option has not been given to force overreading, do not offset
        the last sector index beyond the last sector of the final track.
     */
@@ -1329,7 +1329,7 @@ main(int argc,char *argv[])
           if (!strcmp(argv[optind+1],"-") ){
             out = dup(fileno(stdout));
             if(out==-1){
-              report("Cannot dupplicate stdout: %s",
+              report("Cannot duplicate stdout: %s",
                      strerror(errno));
               exit(1);
             }

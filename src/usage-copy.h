@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1999, 2005, 2008, 2009 Rocky Bernstein
+  Copyright (C) 1999, 2005, 2008, 2009, 2024 Rocky Bernstein
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
 */
 
@@ -25,7 +25,7 @@ const char usage_help[] =
 "  -V --version                    : print version info and quit\n"
 "  -Q --query                      : autosense drive, query disc and quit\n"
 "  -B --batch                      : 'batch' mode (saves each track to a\n"
-"                                    seperate file.\n"
+"                                    separate file.\n"
 "  -s --search-for-drive           : do an exhaustive search for drive\n"
 "  -h --help                       : print help\n"
 "\n"
@@ -107,7 +107,7 @@ const char usage_help[] =
 "\n"
 "When only a single offset is supplied, it is interpreted as a starting\n"
 "offset and ripping will continue to the end of he track.  If a single\n"
-"offset is preceeded or followed by a hyphen, the implicit missing\n"
+"offset is preceded or followed by a hyphen, the implicit missing\n"
 "offset is taken to be the start or end of the disc, respectively. Thus:\n"
 "\n"
 "    1:[20.35]    Specifies ripping from track 1, second 20, sector 35 to \n"
@@ -124,7 +124,7 @@ const char usage_help[] =
 "    2-4          Specifies ripping from the beginning of track two to the\n"
 "                 end of track 4.\n"
 "\n"
-"Don't forget to protect square brackets and preceeding hyphens from\n"
+"Don't forget to protect square brackets and preceding hyphens from\n"
 "the shell...\n"
 "\n"
 "A few examples, protected from the shell:\n"
@@ -132,7 +132,7 @@ const char usage_help[] =
 "     of autosense:\n"
 "       cd-paranoia -vsQ\n"
 "\n"
-"  B) extract up to and including track 3, putting each track in a seperate\n"
+"  B) extract up to and including track 3, putting each track in a separate\n"
 "     file:\n"
 "       cd-paranoia -B -- \"-3\"\n"
 "\n"
