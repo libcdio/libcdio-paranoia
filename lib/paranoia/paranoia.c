@@ -1996,7 +1996,7 @@ i_stage2_each(root_block *root, v_fragment_t *v,
        * not be so dire if we're near sample 0.  To be investigated."
        * In the begin case, any start position is arbitrary due to
        * inexact seeking.  Later, we can't back-extend the root as the
-       * samples preceeding the beginning have already been returned
+       * samples preceding the beginning have already been returned
        * to the application! --Monty
        */
       {

@@ -319,7 +319,7 @@ sectors (75 sectors per second).
 .P
 When only a single offset is supplied, it is interpreted as a starting
 offset and ripping will continue to the end of the track.  If a single
-offset is preceeded or followed by a hyphen, the implicit missing
+offset is preceded or followed by a hyphen, the implicit missing
 offset is taken to be the start or end of the disc, respectively. Thus:
 
 .TP
@@ -339,7 +339,7 @@ Specifies ripping from the beginning of the disc up to 2:[30.35]
 .B 2-4
 Specifies ripping from the beginning of track 2 to the end of track 4.
 .P
-Again, don't forget to protect square brackets and preceeding hyphens from
+Again, don't forget to protect square brackets and preceding hyphens from
 the shell.
 
 .SH EXAMPLES

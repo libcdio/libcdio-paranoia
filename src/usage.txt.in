@@ -18,7 +18,7 @@ OPTIONS:
   -V --version                    : print version info and quit
   -Q --query                      : autosense drive, query disc and quit
   -B --batch                      : 'batch' mode (saves each track to a
-                                    seperate file.
+                                    separate file.
   -s --search-for-drive           : do an exhaustive search for drive
   -h --help                       : print help
 
@@ -100,7 +100,7 @@ sectors (75 sectors per second).
 
 When only a single offset is supplied, it is interpreted as a starting
 offset and ripping will continue to the end of he track.  If a single
-offset is preceeded or followed by a hyphen, the implicit missing
+offset is preceded or followed by a hyphen, the implicit missing
 offset is taken to be the start or end of the disc, respectively. Thus:
 
     1:[20.35]    Specifies ripping from track 1, second 20, sector 35 to 
@@ -117,7 +117,7 @@ offset is taken to be the start or end of the disc, respectively. Thus:
     2-4          Specifies ripping from the beginning of track two to the
                  end of track 4.
 
-Don't forget to protect square brackets and preceeding hyphens from
+Don't forget to protect square brackets and preceding hyphens from
 the shell...
 
 A few examples, protected from the shell:
