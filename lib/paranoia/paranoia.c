@@ -679,8 +679,10 @@ i_iterate_stage1(cdrom_paranoia_t *p, c_block_t *old, c_block_t *new,
   long ret = 0;
   long int j;
 
+#ifdef NOISY
   long tried = 0;
   long matched = 0;
+#endif
 
   if (searchsize <= 0)
     return (0);
@@ -695,7 +697,9 @@ i_iterate_stage1(cdrom_paranoia_t *p, c_block_t *old, c_block_t *new,
      * unread/unmatchable samples.
      */
     if ((new->flags[j - cb(new)] & (FLAGS_VERIFIED | FLAGS_UNREAD)) == 0) {
+#ifdef NOISY
       tried++;
+#endif
 
       /* Starting from the sample in the old c_block with the absolute
        * position j, look for a matching run in the new c_block.  This
@@ -709,7 +713,9 @@ i_iterate_stage1(cdrom_paranoia_t *p, c_block_t *old, c_block_t *new,
       if (try_sort_sync(p, i, new->flags, old, j, &matchbegin, &matchend,
                         &matchoffset, callback) == 1) {
 
+#ifdef NOISY
         matched += matchend - matchbegin;
+#endif
 
         /* purely cosmetic: if we're matching zeros, don't use the
            callback because they will appear to be all skewed */
