@@ -17,20 +17,18 @@
    <http://www.gnu.org/licenses/>.  */
 
 #ifndef _GETOPT_INT_H
-#define _GETOPT_INT_H	1
+#define _GETOPT_INT_H 1
 
-extern int _getopt_internal (int ___argc, char *const *___argv,
-			     const char *__shortopts,
-		             const struct option *__longopts, int *__longind,
-			     int __long_only, int posixly_correct);
+extern int _getopt_internal(int ___argc, char *const *___argv,
+                            const char *__shortopts,
+                            const struct option *__longopts, int *__longind,
+                            int __long_only, int posixly_correct);
 
-
 /* Reentrant versions which can handle parsing multiple argument
    vectors at the same time.  */
 
 /* Data type for reentrant functions.  */
-struct _getopt_data
-{
+struct _getopt_data {
   /* These have exactly the same meaning as the corresponding global
      variables, except that they are used for the reentrant
      versions of getopt.  */
@@ -81,14 +79,10 @@ struct _getopt_data
      of the value of `ordering'.  In the case of RETURN_IN_ORDER, only
      `--' can cause `getopt' to return -1 with `optind' != ARGC.  */
 
-  enum
-    {
-      REQUIRE_ORDER, PERMUTE, RETURN_IN_ORDER
-    } __ordering;
+  enum { REQUIRE_ORDER, PERMUTE, RETURN_IN_ORDER } __ordering;
 
   /* If the POSIXLY_CORRECT environment variable is set.  */
   int __posixly_correct;
-
 
   /* Handle permutation of arguments.  */
 
@@ -102,28 +96,28 @@ struct _getopt_data
 #if defined _LIBC && defined USE_NONOPTION_FLAGS
   int __nonoption_flags_max_len;
   int __nonoption_flags_len;
-# endif
+#endif
 };
 
 /* The initializer is necessary to set OPTIND and OPTERR to their
    default values and to clear the initialization flag.  */
-#define _GETOPT_DATA_INITIALIZER	{ 1, 1 }
+#define _GETOPT_DATA_INITIALIZER                                               \
+  { 1, 1 }
 
-extern int _getopt_internal_r (int ___argc, char *const *___argv,
-			       const char *__shortopts,
-			       const struct option *__longopts, int *__longind,
-			       int __long_only, struct _getopt_data *__data,
-			       int posixly_correct);
+extern int _getopt_internal_r(int ___argc, char *const *___argv,
+                              const char *__shortopts,
+                              const struct option *__longopts, int *__longind,
+                              int __long_only, struct _getopt_data *__data,
+                              int posixly_correct);
 
-extern int _getopt_long_r (int ___argc, char *const *___argv,
-			   const char *__shortopts,
-			   const struct option *__longopts, int *__longind,
-			   struct _getopt_data *__data);
+extern int _getopt_long_r(int ___argc, char *const *___argv,
+                          const char *__shortopts,
+                          const struct option *__longopts, int *__longind,
+                          struct _getopt_data *__data);
 
-extern int _getopt_long_only_r (int ___argc, char *const *___argv,
-				const char *__shortopts,
-				const struct option *__longopts,
-				int *__longind,
-				struct _getopt_data *__data);
+extern int _getopt_long_only_r(int ___argc, char *const *___argv,
+                               const char *__shortopts,
+                               const struct option *__longopts, int *__longind,
+                               struct _getopt_data *__data);
 
 #endif /* getopt_int.h */

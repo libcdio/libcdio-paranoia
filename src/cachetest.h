@@ -5,4 +5,5 @@
 
 /** analyze_cache() - analyze drive cache management.
  */
-extern int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed);
+extern int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log,
+                         int speed);

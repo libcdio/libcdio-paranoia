@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2008, 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
   This program is free software: you can redistribute it and/or modify
@@ -17,14 +17,14 @@
 */
 
 #ifndef _OVERLAP_H_
-#define _OVERLAP_H_
+# define _OVERLAP_H_
 
-extern void offset_add_value(cdrom_paranoia_t *p,offsets *o,long value,
-			     void(*callback)(long int, paranoia_cb_mode_t));
+extern void offset_add_value(cdrom_paranoia_t *p, offsets *o, long value,
+                             void (*callback)(long int, paranoia_cb_mode_t));
 extern void offset_clear_settings(offsets *o);
-extern void offset_adjust_settings(cdrom_paranoia_t *p, 
-				   void(*callback)(long, paranoia_cb_mode_t));
-extern void i_paranoia_trim(cdrom_paranoia_t *p,long beginword,long endword);
+extern void offset_adjust_settings(cdrom_paranoia_t *p,
+                                   void (*callback)(long, paranoia_cb_mode_t));
+extern void i_paranoia_trim(cdrom_paranoia_t *p, long beginword, long endword);
 extern void paranoia_resetall(cdrom_paranoia_t *p);
 extern void paranoia_resetcache(cdrom_paranoia_t *p);
 

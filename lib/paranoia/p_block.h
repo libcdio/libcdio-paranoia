@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2005, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2005, 2008, 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 2014 Robert Kausch <robert.kausch@freac.org>
   Copyright (C) by Monty (xiphmont@mit.edu)
 
@@ -20,21 +20,21 @@
 #ifndef _P_BLOCK_H_
 #define _P_BLOCK_H_
 
-#include <cdio/paranoia/paranoia.h>
 #include <cdio/paranoia/cdda.h>
+#include <cdio/paranoia/paranoia.h>
 
-#define MIN_WORDS_OVERLAP    64     /* 16 bit words */
-#define MIN_WORDS_SEARCH     64     /* 16 bit words */
-#define MIN_WORDS_RIFT       16     /* 16 bit words */
-#define MAX_SECTOR_OVERLAP   32     /* sectors */
-#define MIN_SECTOR_EPSILON  128     /* words */
-#define MIN_SECTOR_BACKUP    16     /* sectors */
-#define JIGGLE_MODULO        15     /* sectors */
-#define MIN_SILENCE_BOUNDARY 1024   /* 16 bit words */
-#define CACHEMODEL_SECTORS   1200
+#define MIN_WORDS_OVERLAP 64      /* 16 bit words */
+#define MIN_WORDS_SEARCH 64       /* 16 bit words */
+#define MIN_WORDS_RIFT 16         /* 16 bit words */
+#define MAX_SECTOR_OVERLAP 32     /* sectors */
+#define MIN_SECTOR_EPSILON 128    /* words */
+#define MIN_SECTOR_BACKUP 16      /* sectors */
+#define JIGGLE_MODULO 15          /* sectors */
+#define MIN_SILENCE_BOUNDARY 1024 /* 16 bit words */
+#define CACHEMODEL_SECTORS 1200
 
-#define min(x,y) ((x)>(y)?(y):(x))
-#define max(x,y) ((x)<(y)?(y):(x))
+#define min(x, y) ((x) > (y) ? (y) : (x))
+#define max(x, y) ((x) < (y) ? (y) : (x))
 
 #include "isort.h"
 
@@ -50,24 +50,24 @@ typedef struct {
 
 } linked_list_t;
 
-typedef struct linked_element{
+typedef struct linked_element {
   void *ptr;
   struct linked_element *prev;
   struct linked_element *next;
-  
+
   linked_list_t *list;
   int stamp;
 } linked_element;
 
-extern linked_list_t *new_list(void *(*new_fn)(void),void (*free)(void *));
+extern linked_list_t *new_list(void *(*new_fn)(void), void (*free)(void *));
 extern linked_element *new_elem(linked_list_t *list);
-extern linked_element *add_elem(linked_list_t *list,void *elem);
-extern void free_list(linked_list_t *list,int free_ptr); /* unlink or free */
-extern void free_elem(linked_element *e,int free_ptr); /* unlink or free */
+extern linked_element *add_elem(linked_list_t *list, void *elem);
+extern void free_list(linked_list_t *list, int free_ptr); /* unlink or free */
+extern void free_elem(linked_element *e, int free_ptr);   /* unlink or free */
 extern void *get_elem(linked_element *e);
 
 /* This is a shallow copy; it doesn't copy contained structures */
-extern linked_list_t *copy_list(linked_list_t *p_list); 
+extern linked_list_t *copy_list(linked_list_t *p_list);
 
 typedef struct c_block {
   /* The buffer */
@@ -77,14 +77,14 @@ typedef struct c_block {
 
   /* auxiliary support structures */
   unsigned char *flags; /* 1    known boundaries in read data
-			   2    known blanked data
-			   4    matched sample
-			   8    reserved
-			   16   reserved
-			   32   reserved
-			   64   reserved
-			   128  reserved
-			 */
+                           2    known blanked data
+                           4    matched sample
+                           8    reserved
+                           16   reserved
+                           32   reserved
+                           64   reserved
+                           128  reserved
+                         */
 
   /* end of session cases */
   long lastsector;
@@ -115,8 +115,8 @@ typedef struct v_fragment_s {
 
 extern void free_v_fragment(v_fragment_t *c);
 extern v_fragment_t *new_v_fragment(cdrom_paranoia_t *p, c_block_t *one,
-				  long int begin, long int end, 
-				  int lastsector);
+                                    long int begin, long int end,
+                                    int lastsector);
 extern int16_t *v_buffer(v_fragment_t *v);
 
 extern c_block_t *c_first(cdrom_paranoia_t *p);
@@ -129,8 +129,8 @@ extern v_fragment_t *v_last(cdrom_paranoia_t *p);
 extern v_fragment_t *v_next(v_fragment_t *v);
 extern v_fragment_t *v_prev(v_fragment_t *v);
 
-typedef struct root_block{
-  long returnedlimit;   
+typedef struct root_block {
+  long returnedlimit;
   long lastsector;
   cdrom_paranoia_t *p;
 
@@ -139,8 +139,8 @@ typedef struct root_block{
   long silencebegin;
 } root_block;
 
-typedef struct offsets{
-  
+typedef struct offsets {
+
   long offpoints;
   long newpoints;
   long offaccum;
@@ -153,17 +153,17 @@ typedef struct offsets{
 struct cdrom_paranoia_s {
   cdrom_drive_t *d;
 
-  root_block root;           /* verified/reconstructed cached data */
-  linked_list_t *cache;      /* our data as read from the cdrom */
+  root_block root;      /* verified/reconstructed cached data */
+  linked_list_t *cache; /* our data as read from the cdrom */
   long int cache_limit;
-  linked_list_t *fragments;  /* fragments of blocks that have been 'verified' */
+  linked_list_t *fragments; /* fragments of blocks that have been 'verified' */
   sort_info_t *sortcache;
 
   /* cache tracking */
   int cdcache_size;
   int cdcache_begin;
   int cdcache_end;
-  int jitter;           
+  int jitter;
 
   paranoia_cb_mode_t enable;
   long int cursor;
@@ -178,18 +178,17 @@ struct cdrom_paranoia_s {
   long dyndrift;
 
   /* statistics for verification */
-
 };
 
-extern c_block_t *c_alloc(int16_t *vector,long begin,long size);
-extern void c_set(c_block_t *v,long begin);
-extern void c_insert(c_block_t *v,long pos,int16_t *b,long size);
-extern void c_remove(c_block_t *v,long cutpos,long cutsize);
-extern void c_overwrite(c_block_t *v,long pos,int16_t *b,long size);
+extern c_block_t *c_alloc(int16_t *vector, long begin, long size);
+extern void c_set(c_block_t *v, long begin);
+extern void c_insert(c_block_t *v, long pos, int16_t *b, long size);
+extern void c_remove(c_block_t *v, long cutpos, long cutsize);
+extern void c_overwrite(c_block_t *v, long pos, int16_t *b, long size);
 extern void c_append(c_block_t *v, int16_t *vector, long size);
 extern void c_removef(c_block_t *v, long cut);
 
-#define ce(v) (v->begin+v->size)
+#define ce(v) (v->begin + v->size)
 #define cb(v) (v->begin)
 #define cs(v) (v->size)
 
@@ -200,7 +199,7 @@ extern void i_paranoia_firstlast(cdrom_paranoia_t *p);
 
 #define cv(c) (c->vector)
 
-#define fe(f) (f->begin+f->size)
+#define fe(f) (f->begin + f->size)
 #define fb(f) (f->begin)
 #define fs(f) (f->size)
 #define fv(f) (v_buffer(f))
@@ -212,4 +211,3 @@ extern void i_paranoia_firstlast(cdrom_paranoia_t *p);
 
 #define CDP_COMPILE
 #endif /*_P_BLOCK_H_*/
-

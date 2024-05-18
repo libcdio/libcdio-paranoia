@@ -1,6 +1,6 @@
 /*
-  Copyright (C) 2004, 2005, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
-  Copyright (C) 1998 Monty xiphmont@mit.edu
+  Copyright (C) 2004, 2005, 2008, 2011, 2024 Rocky Bernstein
+  <rocky@gnu.org> Copyright (C) 1998 Monty xiphmont@mit.edu
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 /* Old isort got a bit complex.  This re-constrains complexity to
    give a go at speed through a more alpha-6-like mechanism. */
 
-
 /* "Sort" is a bit of a misnomer in this implementation.  It's actually
  * basically a hash table of sample values (with a linked-list collision
  * resolution), which lets you quickly determine where in a vector a
@@ -32,10 +31,9 @@
  * multiple occurrences of a given value.
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
-# define __CDIO_CONFIG_H__ 1
+#include "config.h"
+#define __CDIO_CONFIG_H__ 1
 #endif
 
 #ifdef HAVE_STDLIB_H
@@ -44,9 +42,8 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "p_block.h"
 #include "isort.h"
-
+#include "p_block.h"
 
 /* ===========================================================================
  * sort_alloc()
@@ -55,24 +52,21 @@
  * used to index up to (size) samples from a vector.
  */
 
-sort_info_t *
-sort_alloc(long size)
-{
-  sort_info_t *ret=calloc(1, sizeof(sort_info_t));
+sort_info_t *sort_alloc(long size) {
+  sort_info_t *ret = calloc(1, sizeof(sort_info_t));
 
-  ret->vector=NULL;
-  ret->sortbegin=-1;
-  ret->size=-1;
-  ret->maxsize=size;
+  ret->vector = NULL;
+  ret->sortbegin = -1;
+  ret->size = -1;
+  ret->maxsize = size;
 
-  ret->head=calloc(65536,sizeof(sort_link_t *));
-  ret->bucketusage=calloc(1, 65536*sizeof(long));
-  ret->revindex=calloc(size,sizeof(sort_link_t));
-  ret->lastbucket=0;
+  ret->head = calloc(65536, sizeof(sort_link_t *));
+  ret->bucketusage = calloc(1, 65536 * sizeof(long));
+  ret->revindex = calloc(size, sizeof(sort_link_t));
+  ret->lastbucket = 0;
 
-  return(ret);
+  return (ret);
 }
-
 
 /* ===========================================================================
  * sort_unsortall() (internal)
@@ -81,25 +75,23 @@ sort_alloc(long size)
  * or range, without the overhead of an unnecessary free/alloc.
  */
 
-void 
-sort_unsortall(sort_info_t *i)
-{
+void sort_unsortall(sort_info_t *i) {
   /* If there were few enough different samples encountered (and hence few
    * enough buckets used), we can just zero out those buckets.  If there
    * were many (2000 is picked somewhat arbitrarily), it's faster simply to
    * zero out all buckets with a memset() rather than walking the data
    * structure and zeroing them out one by one.
    */
-  if (i->lastbucket>2000) { /* a guess */
-    memset(i->head,0,65536*sizeof(sort_link_t *));
+  if (i->lastbucket > 2000) { /* a guess */
+    memset(i->head, 0, 65536 * sizeof(sort_link_t *));
   } else {
     long b;
-    for (b=0; b<i->lastbucket; b++)
-      i->head[i->bucketusage[b]]=NULL;
+    for (b = 0; b < i->lastbucket; b++)
+      i->head[i->bucketusage[b]] = NULL;
   }
 
-  i->lastbucket=0;
-  i->sortbegin=-1;
+  i->lastbucket = 0;
+  i->sortbegin = -1;
 
   /* Curiously, this function preserves the vector association created
    * by sort_setup(), but it is used only internally by sort_setup, so
@@ -107,22 +99,18 @@ sort_unsortall(sort_info_t *i)
    */
 }
 
-
 /* ===========================================================================
  * sort_free()
  *
  * Releases all memory consumed by a sort_info object.
  */
 
-void 
-sort_free(sort_info_t *i)
-{
+void sort_free(sort_info_t *i) {
   free(i->revindex);
   free(i->head);
   free(i->bucketusage);
   free(i);
 }
-
 
 /* ===========================================================================
  * sort_sort() (internal)
@@ -132,16 +120,14 @@ sort_free(sort_info_t *i)
  * vector.  It is called internally and only when needed.
  */
 
-static void 
-sort_sort(sort_info_t *i,long sortlo,long sorthi)
-{
+static void sort_sort(sort_info_t *i, long sortlo, long sorthi) {
   long j;
 
   /* We walk backward through the range to index because we insert new
    * samples at the head of each bucket's list.  At the end, they'll be
    * sorted from first to last occurrence.
    */
-  for (j=sorthi-1; j>=sortlo; j--) {
+  for (j = sorthi - 1; j >= sortlo; j--) {
     /* i->vector[j] = the signed 16-bit sample to index.
      * hv           = pointer to the head of the sorted list of occurences
      *                of this sample
@@ -154,30 +140,29 @@ sort_sort(sort_info_t *i,long sortlo,long sorthi)
      * corresponding to the sample's position in the vector.  This allows
      * ipos() to determine the sample position from a returned sort_link.
      */
-    sort_link_t **hv = i->head+i->vector[j]+32768;
-    sort_link_t *l   = i->revindex+j;
+    sort_link_t **hv = i->head + i->vector[j] + 32768;
+    sort_link_t *l = i->revindex + j;
 
     /* If this is the first time we've encountered this sample, add its
      * bucket to the list of buckets used.  This list is used only for
      * resetting the index quickly.
      */
-    if(*hv==NULL){
-      i->bucketusage[i->lastbucket] = i->vector[j]+32768;
+    if (*hv == NULL) {
+      i->bucketusage[i->lastbucket] = i->vector[j] + 32768;
       i->lastbucket++;
     }
 
     /* Point the new node at the old head, then assign the new node as
      * the new head.
      */
-    l->next=*hv;    
-    *hv=l;
+    l->next = *hv;
+    *hv = l;
   }
 
   /* Mark the index as initialized.
    */
-  i->sortbegin=0;
+  i->sortbegin = 0;
 }
-
 
 /* ===========================================================================
  * sort_setup()
@@ -195,18 +180,16 @@ sort_sort(sort_info_t *i,long sortlo,long sorthi)
  * but no error checking is done here.
  */
 
-void 
-sort_setup(sort_info_t *i, int16_t *vector, long int *abspos, 
-	   long int size, long int sortlo, long int sorthi)
-{
+void sort_setup(sort_info_t *i, int16_t *vector, long int *abspos,
+                long int size, long int sortlo, long int sorthi) {
   /* Reset the index if it has already been built.
    */
-  if (i->sortbegin!=-1)
+  if (i->sortbegin != -1)
     sort_unsortall(i);
 
-  i->vector=vector;
-  i->size=size;
-  i->abspos=abspos;
+  i->vector = vector;
+  i->size = size;
+  i->abspos = abspos;
 
   /* Convert the absolute (sortlo, sorthi) to offsets within the vector.
    * Note that the index will not be built until sort_getmatch() is called.
@@ -228,15 +211,13 @@ sort_setup(sort_info_t *i, int16_t *vector, long int *abspos,
  * This function returns NULL if no matches were found.
  */
 
-sort_link_t *
-sort_getmatch(sort_info_t *i, long post, long overlap, int value)
-{
+sort_link_t *sort_getmatch(sort_info_t *i, long post, long overlap, int value) {
   sort_link_t *ret;
 
   /* If the vector hasn't been indexed yet, index it now.
    */
-  if (i->sortbegin==-1)
-    sort_sort(i,i->lo,i->hi);
+  if (i->sortbegin == -1)
+    sort_sort(i, i->lo, i->hi);
   /* Now we reuse lo and hi */
 
   /* We'll only return samples within (overlap) samples of (post).
@@ -246,34 +227,33 @@ sort_getmatch(sort_info_t *i, long post, long overlap, int value)
    *
    * Reusing lo and hi this way is awful.
    */
-  post=max(0,min(i->size,post));
-  i->val=value+32768;
-  i->lo=max(0,post-overlap);       /* absolute position */
-  i->hi=min(i->size,post+overlap); /* absolute position */
+  post = max(0, min(i->size, post));
+  i->val = value + 32768;
+  i->lo = max(0, post - overlap);       /* absolute position */
+  i->hi = min(i->size, post + overlap); /* absolute position */
 
   /* Walk through the linked list of samples with this value, until
    * we find the first one within the bounds specified.  If there
    * aren't any, return NULL.
    */
-  ret=i->head[i->val];
+  ret = i->head[i->val];
 
   while (ret) {
     /* ipos() calculates the offset (in terms of the original vector)
      * of this hit.
      */
 
-    if (ipos(i,ret)<i->lo) {
-      ret=ret->next;
+    if (ipos(i, ret) < i->lo) {
+      ret = ret->next;
     } else {
-      if (ipos(i,ret)>=i->hi)
-	ret=NULL;
+      if (ipos(i, ret) >= i->hi)
+        ret = NULL;
       break;
     }
   }
   /*i->head[i->val]=ret;*/
-  return(ret);
+  return (ret);
 }
-
 
 /* ===========================================================================
  * sort_nextmatch()
@@ -285,17 +265,14 @@ sort_getmatch(sort_info_t *i, long post, long overlap, int value)
  * This function returns NULL if no further matches were found.
  */
 
-sort_link_t *
-sort_nextmatch(sort_info_t *i, sort_link_t *prev)
-{
-  sort_link_t *ret=prev->next;
+sort_link_t *sort_nextmatch(sort_info_t *i, sort_link_t *prev) {
+  sort_link_t *ret = prev->next;
 
   /* If there aren't any more hits, or we've passed the boundary requested
    * of sort_getmatch(), we're done.
    */
-  if (!ret || ipos(i,ret)>=i->hi)
-    return(NULL); 
+  if (!ret || ipos(i, ret) >= i->hi)
+    return (NULL);
 
-  return(ret);
+  return (ret);
 }
-

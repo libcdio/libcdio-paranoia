@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2008, 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty <xiphmont@mit.edu>
 */
 
@@ -16,5 +16,3 @@ extern long buffering_write(int outf, char *buffer, long num);
  *
  */
 extern int buffering_close(int fd);
-
-
