@@ -339,7 +339,7 @@ static inline long int do_const_sync(c_block_t *A, sort_info_t *B,
    * a real match if it's long enough.
    */
   if (ret > MIN_WORDS_SEARCH) {
-    *offset = +(posA + cb(A)) - (posB + ib(B));
+    *offset = (posA + cb(A)) - (posB + ib(B));
 
     /* Note that try_sort_sync()'s swaps A & B when it calls this function,
      * so while we adjust begin & end to be relative to A here, that means
