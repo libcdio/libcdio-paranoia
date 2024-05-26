@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2008, 2011 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2008, 2011, 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
   This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,17 @@
  ***/
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+#include "config.h"
 # define __CDIO_CONFIG_H__ 1
 #endif
+
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+
+#include "gap.h"
 #include "p_block.h"
 #include <cdio/paranoia/paranoia.h>
-#include "gap.h"
 #include <string.h>
 
 /**** Gap analysis code ***************************************************/
@@ -44,22 +49,20 @@
  * This function is used by i_analyze_rift_r() below to find where a
  * leading rift ends.
  */
-long int
-i_paranoia_overlap_r(int16_t *buffA,int16_t *buffB,
-			  long offsetA, long offsetB)
-{
-  long beginA=offsetA;
-  long beginB=offsetB;
+long int i_paranoia_overlap_r(int16_t *buffA, int16_t *buffB, long offsetA,
+                              long offsetB) {
+  long beginA = offsetA;
+  long beginB = offsetB;
 
   /* Start at the given offsets and work our way backwards until we hit
    * the beginning of one of the vectors.
    */
-  for( ; beginA>=0 && beginB>=0; beginA--,beginB-- )
-    if (buffA[beginA] != buffB[beginB]) break;
+  for (; beginA >= 0 && beginB >= 0; beginA--, beginB--)
+    if (buffA[beginA] != buffB[beginB])
+      break;
 
-  return(offsetA-beginA);
+  return (offsetA - beginA);
 }
-
 
 /* ===========================================================================
  * i_paranoia_overlap_f (internal)
@@ -74,23 +77,20 @@ i_paranoia_overlap_r(int16_t *buffA,int16_t *buffB,
  * This function is used by i_analyze_rift_f() below to find where a
  * trailing rift ends.
  */
-long int 
-i_paranoia_overlap_f(int16_t *buffA,int16_t *buffB,
-		     long offsetA, long offsetB,
-		     long sizeA,long sizeB)
-{
-  long endA=offsetA;
-  long endB=offsetB;
-  
+long int i_paranoia_overlap_f(int16_t *buffA, int16_t *buffB, long offsetA,
+                              long offsetB, long sizeA, long sizeB) {
+  long endA = offsetA;
+  long endB = offsetB;
+
   /* Start at the given offsets and work our way forward until we hit
    * the end of one of the vectors.
    */
-  for(;endA<sizeA && endB<sizeB;endA++,endB++)
-    if(buffA[endA]!=buffB[endB])break;
-  
-  return(endA-offsetA);
-}
+  for (; endA < sizeA && endB < sizeB; endA++, endB++)
+    if (buffA[endA] != buffB[endB])
+      break;
 
+  return (endA - offsetA);
+}
 
 /* ===========================================================================
  * i_stutter_or_gap (internal)
@@ -103,12 +103,11 @@ i_paranoia_overlap_f(int16_t *buffA,int16_t *buffB,
  * or whether the rift contains a stutter (that should be dropped).  See
  * i_analyze_rift_[rf] for more details.
  */
-int 
-i_stutter_or_gap(int16_t *A, int16_t *B,long offA, long offB, long int gap)
-{
-  long a1=offA;
-  long b1=offB;
-  
+int i_stutter_or_gap(int16_t *A, int16_t *B, long offA, long offB,
+                     long int gap) {
+  long a1 = offA;
+  long b1 = offB;
+
   /* If the rift was so big that there aren't enough samples in the other
    * vector to compare against the full gap, then just compare what we
    * have available.  E.g.:
@@ -123,27 +122,26 @@ i_stutter_or_gap(int16_t *A, int16_t *B,long offA, long offB, long int gap)
    * Again, this approach to identifying stutters is simply a heuristic,
    * so this may not produce correct results in all cases.
    */
-  if(a1<0){
+  if (a1 < 0) {
     /* Note that a1 is negative, so we're increasing b1 and decreasing (gap).
      */
-    b1-=a1;
-    gap+=a1;
-    a1=0;
+    b1 -= a1;
+    gap += a1;
+    a1 = 0;
   }
 
   /* Note that we don't have an equivalent adjustment for leading rifts.
    * Thus, it's possible for the following memcmp() to run off the end
    * of A.  See the bug note in i_analyze_rift_r().
    */
-  
+
   /* Multiply gap by 2 because samples are 2 bytes long and memcmp compares
    * at the byte level.
    */
-  return(memcmp(A+a1,B+b1,gap*2));
+  return (memcmp(A + a1, B + b1, gap * 2));
 }
 
 /* riftv is the first value into the rift -> or <- */
-
 
 /* ===========================================================================
  * i_analyze_rift_f (internal)
@@ -161,23 +159,20 @@ i_stutter_or_gap(int16_t *A, int16_t *B,long offA, long offB, long int gap)
  *  matchC != 0 if there are (matchC) samples of garbage, after which
  *              both A and B are in sync again
  */
-void 
-i_analyze_rift_f(int16_t *A,int16_t *B,
-		 long sizeA, long sizeB,
-		 long aoffset, long boffset, 
-		 long *matchA,long *matchB,long *matchC)
-{
-  
-  long apast=sizeA-aoffset;
-  long bpast=sizeB-boffset;
+void i_analyze_rift_f(int16_t *A, int16_t *B, long sizeA, long sizeB,
+                      long aoffset, long boffset, long *matchA, long *matchB,
+                      long *matchC) {
+
+  long apast = sizeA - aoffset;
+  long bpast = sizeB - boffset;
   long i;
-  
-  *matchA=0, *matchB=0, *matchC=0;
-  
+
+  *matchA = 0, *matchB = 0, *matchC = 0;
+
   /* Look forward to see where we regain agreement between vectors
    * A and B (of at least MIN_WORDS_RIFT samples).  We look for one of
    * the following possible matches:
-   * 
+   *
    *                         edge
    *                          v
    * (1)  (... A matching run)|(aoffset matches ...)
@@ -198,58 +193,64 @@ i_analyze_rift_f(int16_t *A,int16_t *B,
    * We won't find the eventual match, since we wouldn't be sure how
    * to fix the rift.
    */
-  
-  for(i=1;;i++){
+
+  for (i = 1;; i++) {
     /* Search for whatever case we hit first, so as to end up with the
      * smallest rift.
      */
 
     /* Don't search for (1) past the end of B */
-    if (i<bpast)
+    if (i < bpast)
 
       /* See if we match case (1) above, which either means that A dropped
        * samples at the rift, or that B stuttered.
        */
-      if(i_paranoia_overlap_f(A,B,aoffset,boffset+i,sizeA,sizeB)>=MIN_WORDS_RIFT){
-	*matchA=i;
-	break;
+      if (i_paranoia_overlap_f(A, B, aoffset, boffset + i, sizeA, sizeB) >=
+          MIN_WORDS_RIFT) {
+        *matchA = i;
+        break;
       }
-    
+
     /* Don't search for (2) or (3) past the end of A */
-    if (i<apast) {
+    if (i < apast) {
 
       /* See if we match case (2) above, which either means that B dropped
        * samples at the rift, or that A stuttered.
        */
-      if(i_paranoia_overlap_f(A,B,aoffset+i,boffset,sizeA,sizeB)>=MIN_WORDS_RIFT){
-	*matchB=i;
-	break;
+      if (i_paranoia_overlap_f(A, B, aoffset + i, boffset, sizeA, sizeB) >=
+          MIN_WORDS_RIFT) {
+        *matchB = i;
+        break;
       }
 
       /* Don't search for (3) past the end of B */
-      if (i<bpast)
+      if (i < bpast)
 
         /* See if we match case (3) above, which means that a fixed-length
          * rift of samples is getting read unreliably.
          */
-	if(i_paranoia_overlap_f(A,B,aoffset+i,boffset+i,sizeA,sizeB)>=MIN_WORDS_RIFT){
-	  *matchC=i;
-	  break;
-	}
-    }else
+        if (i_paranoia_overlap_f(A, B, aoffset + i, boffset + i, sizeA,
+                                 sizeB) >= MIN_WORDS_RIFT) {
+          *matchC = i;
+          break;
+        }
+    } else
 
       /* Stop searching when we've reached the end of both vectors.
        * In theory we could stop when there aren't MIN_WORDS_RIFT samples
        * left in both vectors, but this case should happen fairly rarely.
        */
-      if(i>=bpast)break;
-    
+      if (i >= bpast)
+        break;
+
     /* Try the search again with a larger tentative rift. */
   }
-  
-  if(*matchA==0 && *matchB==0 && *matchC==0)return;
-  
-  if(*matchC)return;
+
+  if (*matchA == 0 && *matchB == 0 && *matchC == 0)
+    return;
+
+  if (*matchC)
+    return;
 
   /* For case (1) or (2), we need to determine whether the rift contains
    * samples dropped by the other vector (that should be inserted), or
@@ -271,34 +272,33 @@ i_analyze_rift_f(int16_t *A,int16_t *B,
    * verified fragments in stage 2, we can have some confidence that this
    * is the case.
    */
-  if(*matchA){
+  if (*matchA) {
     /* For case (1), we need to determine whether A dropped samples at the
      * rift or whether B stuttered.
      *
      * If the rift doesn't match the good samples in A (and hence in B),
      * it's not a stutter, and the rift should be inserted into A.
      */
-    if(i_stutter_or_gap(A,B,aoffset-*matchA,boffset,*matchA))
+    if (i_stutter_or_gap(A, B, aoffset - *matchA, boffset, *matchA))
       return;
 
     /* It is a stutter, so we need to signal that we need to remove
      * (matchA) bytes from B.
      */
     *matchB = -*matchA;
-    *matchA=0;
+    *matchA = 0;
     return;
 
-  }else{
+  } else {
     /* Case (2) is the inverse of case (1) above. */
-    if(i_stutter_or_gap(B,A,boffset-*matchB,aoffset,*matchB))
+    if (i_stutter_or_gap(B, A, boffset - *matchB, aoffset, *matchB))
       return;
 
     *matchA = -*matchB;
-    *matchB=0;
+    *matchB = 0;
     return;
   }
 }
-
 
 /* riftv must be first even val of rift moving back */
 
@@ -318,23 +318,20 @@ i_analyze_rift_f(int16_t *A,int16_t *B,
  *  matchC != 0 if there are (matchC) samples of garbage, after which
  *              both A and B are in sync again
  */
-void 
-i_analyze_rift_r(int16_t *A,int16_t *B,
-		 long sizeA, long sizeB,
-		 long aoffset, long boffset, 
-		 long *matchA,long *matchB,long *matchC)
-{
-  
-  long apast=aoffset+1;
-  long bpast=boffset+1;
+void i_analyze_rift_r(int16_t *A, int16_t *B, long sizeA, long sizeB,
+                      long aoffset, long boffset, long *matchA, long *matchB,
+                      long *matchC) {
+
+  long apast = aoffset + 1;
+  long bpast = boffset + 1;
   long i;
-  
-  *matchA=0, *matchB=0, *matchC=0;
+
+  *matchA = 0, *matchB = 0, *matchC = 0;
 
   /* Look backward to see where we regain agreement between vectors
    * A and B (of at least MIN_WORDS_RIFT samples).  We look for one of
    * the following possible matches:
-   * 
+   *
    *                                    edge
    *                                      v
    * (1)             (... aoffset matches)|(A matching run ...)
@@ -355,58 +352,62 @@ i_analyze_rift_r(int16_t *A,int16_t *B,
    * We won't find the eventual match, since we wouldn't be sure how
    * to fix the rift.
    */
-  
-  for(i=1;;i++){
+
+  for (i = 1;; i++) {
     /* Search for whatever case we hit first, so as to end up with the
      * smallest rift.
      */
 
     /* Don't search for (1) past the beginning of B */
-    if (i<bpast)
+    if (i < bpast)
 
       /* See if we match case (1) above, which either means that A dropped
        * samples at the rift, or that B stuttered.
        */
-      if(i_paranoia_overlap_r(A,B,aoffset,boffset-i)>=MIN_WORDS_RIFT){
-	*matchA=i;
-	break;
+      if (i_paranoia_overlap_r(A, B, aoffset, boffset - i) >= MIN_WORDS_RIFT) {
+        *matchA = i;
+        break;
       }
 
     /* Don't search for (2) or (3) past the beginning of A */
-    if (i<apast) {
+    if (i < apast) {
 
       /* See if we match case (2) above, which either means that B dropped
        * samples at the rift, or that A stuttered.
        */
-      if(i_paranoia_overlap_r(A,B,aoffset-i,boffset)>=MIN_WORDS_RIFT){
-	*matchB=i;
-	break;
+      if (i_paranoia_overlap_r(A, B, aoffset - i, boffset) >= MIN_WORDS_RIFT) {
+        *matchB = i;
+        break;
       }
 
       /* Don't search for (3) past the beginning of B */
-      if (i<bpast)
+      if (i < bpast)
 
-	/* See if we match case (3) above, which means that a fixed-length
-	 * rift of samples is getting read unreliably.
-	 */
-	if(i_paranoia_overlap_r(A,B,aoffset-i,boffset-i)>=MIN_WORDS_RIFT){
-	  *matchC=i;
-	  break;
-	}
-    }else
+        /* See if we match case (3) above, which means that a fixed-length
+         * rift of samples is getting read unreliably.
+         */
+        if (i_paranoia_overlap_r(A, B, aoffset - i, boffset - i) >=
+            MIN_WORDS_RIFT) {
+          *matchC = i;
+          break;
+        }
+    } else
 
       /* Stop searching when we've reached the end of both vectors.
        * In theory we could stop when there aren't MIN_WORDS_RIFT samples
        * left in both vectors, but this case should happen fairly rarely.
        */
-      if(i>=bpast)break;
+      if (i >= bpast)
+        break;
 
     /* Try the search again with a larger tentative rift. */
   }
 
-  if(*matchA==0 && *matchB==0 && *matchC==0)return;
+  if (*matchA == 0 && *matchB == 0 && *matchC == 0)
+    return;
 
-  if(*matchC)return;
+  if (*matchC)
+    return;
 
   /* For case (1) or (2), we need to determine whether the rift contains
    * samples dropped by the other vector (that should be inserted), or
@@ -429,7 +430,7 @@ i_analyze_rift_r(int16_t *A,int16_t *B,
    * is the case.
    */
 
-  if(*matchA){
+  if (*matchA) {
     /* For case (1), we need to determine whether A dropped samples at the
      * rift or whether B stuttered.
      *
@@ -444,27 +445,26 @@ i_analyze_rift_r(int16_t *A,int16_t *B,
      *
      * This bug is not fixed yet.
      */
-    if(i_stutter_or_gap(A,B,aoffset+1,boffset-*matchA+1,*matchA))
+    if (i_stutter_or_gap(A, B, aoffset + 1, boffset - *matchA + 1, *matchA))
       return;
 
     /* It is a stutter, so we need to signal that we need to remove
      * (matchA) bytes from B.
      */
     *matchB = -*matchA;
-    *matchA=0;
+    *matchA = 0;
     return;
 
-  }else{
+  } else {
     /* Case (2) is the inverse of case (1) above. */
-    if(i_stutter_or_gap(B,A,boffset+1,aoffset-*matchB+1,*matchB))
+    if (i_stutter_or_gap(B, A, boffset + 1, aoffset - *matchB + 1, *matchB))
       return;
 
     *matchA = -*matchB;
-    *matchB=0;
+    *matchB = 0;
     return;
   }
 }
-
 
 /* ===========================================================================
  * analyze_rift_silence_f (internal)
@@ -489,19 +489,17 @@ i_analyze_rift_r(int16_t *A,int16_t *B,
  * Note that while this function checks both A and B for silence, the caller
  * assumes that only one or the other has silence.
  */
-void
-analyze_rift_silence_f(int16_t *A,int16_t *B,long sizeA,long sizeB,
-		       long aoffset, long boffset,
-		       long *matchA, long *matchB)
-{
-  *matchA=-1;
-  *matchB=-1;
+void analyze_rift_silence_f(int16_t *A, int16_t *B, long sizeA, long sizeB,
+                            long aoffset, long boffset, long *matchA,
+                            long *matchB) {
+  *matchA = -1;
+  *matchB = -1;
 
   /* Search for MIN_WORDS_RIFT samples, or to the end of the vector,
    * whichever comes first.
    */
-  sizeA=min(sizeA,aoffset+MIN_WORDS_RIFT);
-  sizeB=min(sizeB,boffset+MIN_WORDS_RIFT);
+  sizeA = min(sizeA, aoffset + MIN_WORDS_RIFT);
+  sizeB = min(sizeB, boffset + MIN_WORDS_RIFT);
 
   aoffset++;
   boffset++;
@@ -509,9 +507,9 @@ analyze_rift_silence_f(int16_t *A,int16_t *B,long sizeA,long sizeB,
   /* Check whether A has only "silence" within the search range.  Note
    * that "silence" here is a single, repeated value (zero or not).
    */
-  while(aoffset<sizeA){
-    if(A[aoffset]!=A[aoffset-1]){
-      *matchA=0;
+  while (aoffset < sizeA) {
+    if (A[aoffset] != A[aoffset - 1]) {
+      *matchA = 0;
       break;
     }
     aoffset++;
@@ -523,9 +521,9 @@ analyze_rift_silence_f(int16_t *A,int16_t *B,long sizeA,long sizeB,
    * Also note that while the caller assumes that only matchA or matchB
    * is set, we check both vectors here.
    */
-  while(boffset<sizeB){
-    if(B[boffset]!=B[boffset-1]){
-      *matchB=0;
+  while (boffset < sizeB) {
+    if (B[boffset] != B[boffset - 1]) {
+      *matchB = 0;
       break;
     }
     boffset++;

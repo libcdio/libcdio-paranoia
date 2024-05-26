@@ -1,7 +1,5 @@
 /*
-  $Id: isort.h,v 1.6 2008/04/17 17:39:48 karl Exp $
-
-  Copyright (C) 2004, 2005, 2008 Rocky Bernstein <rocky@gnu.org>
+  Copyright (C) 2004, 2005, 2008, 2024 Rocky Bernstein <rocky@gnu.org>
   Copyright (C) 1998 Monty xiphmont@mit.edu
 
   This program is free software: you can redistribute it and/or modify
@@ -19,9 +17,9 @@
 */
 
 #ifndef _ISORT_H_
-#define _ISORT_H_
+# define _ISORT_H_
 
-typedef struct sort_link{
+typedef struct sort_link {
   struct sort_link *next;
 } sort_link_t;
 
@@ -40,7 +38,7 @@ typedef struct sort_info {
   /* sort structs */
   sort_link_t **head;           /* sort buckets (65536) */
 
-  long *bucketusage;          /*  of used buckets (65536) */
+  long *bucketusage;            /*  of used buckets (65536) */
   long lastbucket;
   sort_link_t *revindex;
 
@@ -78,7 +76,7 @@ extern void sort_unsortall(sort_info_t *i);
  * but no error checking is done here.
  */
 extern void sort_setup(sort_info_t *i, int16_t *vector, long int *abspos,
-		       long int size, long int sortlo, long int sorthi);
+                       long int size, long int sortlo, long int sorthi);
 
 /* =========================================================================
  * sort_free()
@@ -99,7 +97,7 @@ extern void sort_free(sort_info_t *i);
  * This function returns NULL if no matches were found.
  */
 extern sort_link_t *sort_getmatch(sort_info_t *i, long post, long overlap,
-				  int value);
+                                  int value);
 
 /*! ========================================================================
  * sort_nextmatch()
@@ -117,7 +115,7 @@ extern sort_link_t *sort_nextmatch(sort_info_t *i, sort_link_t *prev);
  *
  * This macro returns the size of the vector indexed by the given sort_info_t.
  */
-#define is(i) (i->size)
+# define is(i) (i->size)
 
 /* ===========================================================================
  * ib()
@@ -125,7 +123,7 @@ extern sort_link_t *sort_nextmatch(sort_info_t *i, sort_link_t *prev);
  * This macro returns the absolute position of the first sample in the vector
  * indexed by the given sort_info_t.
  */
-#define ib(i) (*i->abspos)
+# define ib(i) (*i->abspos)
 
 /* ===========================================================================
  * ie()
@@ -133,14 +131,14 @@ extern sort_link_t *sort_nextmatch(sort_info_t *i, sort_link_t *prev);
  * This macro returns the absolute position of the sample after the last
  * sample in the vector indexed by the given sort_info_t.
  */
-#define ie(i) (i->size+*i->abspos)
+# define ie(i) (i->size + *i->abspos)
 
 /* ===========================================================================
  * iv()
  *
  * This macro returns the vector indexed by the given sort_info_t.
  */
-#define iv(i) (i->vector)
+# define iv(i) (i->vector)
 
 /* ===========================================================================
  * ipos()
@@ -155,7 +153,6 @@ extern sort_link_t *sort_nextmatch(sort_info_t *i, sort_link_t *prev);
  *   q - p = p + n - p, and
  *   q - p = n, not the difference of the two addresses.
  */
-#define ipos(i,l) (l-i->revindex)
+# define ipos(i, l) (l - i->revindex)
 
 #endif /* _ISORT_H_ */
-

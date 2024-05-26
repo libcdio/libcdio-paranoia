@@ -26,53 +26,76 @@
    rely on them.  For that reason, we need to empirically determine
    cache size and strategy used for reads. */
 
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
 #include <cdio/paranoia/cdda.h>
 #include <cdio/paranoia/paranoia.h>
 #include <cdio/paranoia/version.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+/* Has to come after cdio/paranoia/cdda.h */
 #include "cachetest.h"
 
 /* not strictly just seeks, but also recapture and read resume when
    reading/readahead is suspended and idling */
 #define MIN_SEEK_MS 6
 
-#define reportC(...) {if(progress){fprintf(progress, __VA_ARGS__);}	\
-    if(log){fprintf(log, __VA_ARGS__);}}
-#define printC(...) {if(progress){fprintf(progress, __VA_ARGS__);}}
-#define logC(...) {if(log){fprintf(log, __VA_ARGS__);}}
+#define reportC(...)                                                           \
+  {                                                                            \
+    if (progress) {                                                            \
+      fprintf(progress, __VA_ARGS__);                                          \
+    }                                                                          \
+    if (log) {                                                                 \
+      fprintf(log, __VA_ARGS__);                                               \
+    }                                                                          \
+  }
+#define printC(...)                                                            \
+  {                                                                            \
+    if (progress) {                                                            \
+      fprintf(progress, __VA_ARGS__);                                          \
+    }                                                                          \
+  }
+#define logC(...)                                                              \
+  {                                                                            \
+    if (log) {                                                                 \
+      fprintf(log, __VA_ARGS__);                                               \
+    }                                                                          \
+  }
 
-static int time_drive(cdrom_drive_t *d, FILE *progress, FILE *log, int lba, int len, int initial_seek){
-  int i,x;
-  int latency=0;
-  double sum=0;
-  double sumsq=0;
+static int time_drive(cdrom_drive_t *d, FILE *progress, FILE *log, int lba,
+                      int len, int initial_seek) {
+  int i, x;
+  int latency = 0;
+  double sum = 0;
+  double sumsq = 0;
   int sofar;
 
   logC("\n");
 
-  for(i=0,sofar=0;sofar<len;i++){
-    int toread = (i==0 && initial_seek?1:len-sofar);
+  for (i = 0, sofar = 0; sofar < len; i++) {
+    int toread = (i == 0 && initial_seek ? 1 : len - sofar);
     int ret;
-    /* first read should also trigger a short seek; one sector so seek duration dominates */
-    if((ret=cdio_cddap_read_timed(d,NULL,lba+sofar,toread,&x))<=0){
+    /* first read should also trigger a short seek; one sector so seek duration
+     * dominates */
+    if ((ret = cdio_cddap_read_timed(d, NULL, lba + sofar, toread, &x)) <= 0) {
       /* media error! grr!  retry elsewhere */
-      if(ret==-404)return -404;
+      if (ret == -404)
+        return -404;
       return -1;
     }
 
-    if(x>9999)x=9999;
-    if(x<0)x=0;
-    logC("%d:%d:%d ",lba+sofar,ret,x);
+    if (x > 9999)
+      x = 9999;
+    if (x < 0)
+      x = 0;
+    logC("%d:%d:%d ", lba + sofar, ret, x);
 
-    sofar+=ret;
-    if(i || !initial_seek){
-      sum+=x;
-      sumsq+= x*x /(float)ret;
-    }else
-      latency=x;
+    sofar += ret;
+    if (i || !initial_seek) {
+      sum += x;
+      sumsq += x * x / (float)ret;
+    } else
+      latency = x;
   }
 
   /* we count even the upper outliers because the drive is almost
@@ -81,44 +104,50 @@ static int time_drive(cdrom_drive_t *d, FILE *progress, FILE *log, int lba, int 
      slow a timing than too fast; the timing data is used as an
      optimization when sleeping. */
   {
-    double mean = sum/(float)(len-1);
-    double stddev = sqrt( (sumsq/(float)(len-1) - mean*mean));
+    double mean = sum / (float)(len - 1);
+    double stddev = sqrt((sumsq / (float)(len - 1) - mean * mean));
 
-    if(initial_seek){
-      printC("%4dms seek, %.2fms/sec read [%.1fx]",latency,mean,1000./75./mean);
-      logC("\n\tInitial seek latency (%d sectors): %dms",len,latency);
+    if (initial_seek) {
+      printC("%4dms seek, %.2fms/sec read [%.1fx]", latency, mean,
+             1000. / 75. / mean);
+      logC("\n\tInitial seek latency (%d sectors): %dms", len, latency);
     }
 
-    logC("\n\tAverage read latency: %.2fms/sector (raw speed: %.1fx)",mean,1000./75./mean);
-    logC("\n\tRead latency standard deviation: %.2fms/sector",stddev);
+    logC("\n\tAverage read latency: %.2fms/sector (raw speed: %.1fx)", mean,
+         1000. / 75. / mean);
+    logC("\n\tRead latency standard deviation: %.2fms/sector", stddev);
 
     return sum;
   }
 }
 
-static float retime_drive(cdrom_drive_t *d, FILE *progress, FILE *log, int lba, int readahead, float oldmean){
+static float retime_drive(cdrom_drive_t *d, FILE *progress, FILE *log, int lba,
+                          int readahead, float oldmean) {
   int sectors = 2000;
   int total;
   float newmean;
-  if(sectors*oldmean > 5000) sectors=5000/oldmean;
-  readahead*=10;
-  readahead/=9;
-  if(readahead>sectors)sectors=readahead;
+  if (sectors * oldmean > 5000)
+    sectors = 5000 / oldmean;
+  readahead *= 10;
+  readahead /= 9;
+  if (readahead > sectors)
+    sectors = readahead;
 
   printC("\bo");
   logC("\n\tRetiming drive...                               ");
 
-  total = time_drive(d,NULL,log,lba,sectors,1);
-  newmean = total/(float)sectors;
+  total = time_drive(d, NULL, log, lba, sectors, 1);
+  newmean = total / (float)sectors;
 
-  logC("\n\tOld mean=%.2fms/sec, New mean=%.2fms/sec\n",oldmean,newmean);
+  logC("\n\tOld mean=%.2fms/sec, New mean=%.2fms/sec\n", oldmean, newmean);
   printC("\b");
 
-  if(newmean>oldmean)return newmean;
+  if (newmean > oldmean)
+    return newmean;
   return oldmean;
 }
 
-int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
+int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
 
   /* Some assumptions about timing:
 
@@ -144,120 +173,130 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
      we're consistently hitting latency on the same sector during
      initial collection, may need to move past it. */
 
-  int ret=0;
-  int i,j,x;
-  int firstsector=-1;
-  int lastsector=-1;
-  int firsttest=-1;
-  int lasttest=-1;
+  int ret = 0;
+  int i, j, x;
+  int firstsector = -1;
+  int lastsector = -1;
+  int firsttest = -1;
+  int lasttest = -1;
   int offset;
-  int warn=0;
-  int current=1000;
-  int hi=15000;
-  int cachesize=0;
-  int readahead=0;
-  int rollbehind=0;
-  int cachegran=0;
-  float mspersector=0;
-  if(speed<=0)speed=-1;
+  int warn = 0;
+  int current = 1000;
+  int hi = 15000;
+  int cachesize = 0;
+  int readahead = 0;
+  int rollbehind = 0;
+  int cachegran = 0;
+  float mspersector = 0;
+  if (speed <= 0)
+    speed = -1;
 
-  reportC("\n=================== Checking drive cache/timing behavior ===================\n");
-  d->error_retry=0;
+  reportC("\n=================== Checking drive cache/timing behavior "
+          "===================\n");
+  d->error_retry = 0;
 
   /* verify the lib and cache analysis match */
-  if(strcmp(LIBCDIO_PARANOIA_VERSION,paranoia_version())){
-    reportC("\nWARNING: cdparanoia application (and thus the cache tests) does not match the"
-	    "\ninstalled (or in use) libcdda_paranoia.so library.  The final verdict of this"
-	    "\ntesting may or may not be accurate for the actual version of the paranoia"
-	    "library.  Continuing anyway...\n\n");
+  if (strcmp(LIBCDIO_PARANOIA_VERSION, paranoia_version())) {
+    reportC("\nWARNING: cdparanoia application (and thus the cache tests) does "
+            "not match the"
+            "\ninstalled (or in use) libcdda_paranoia.so library.  The final "
+            "verdict of this"
+            "\ntesting may or may not be accurate for the actual version of "
+            "the paranoia"
+            "library.  Continuing anyway...\n\n");
   }
 
   /* find the longest stretch of available audio data */
 
-  for(i=0;i<d->tracks;i++){
-    if(cdda_track_audiop(d,i+1)==1){
-      if(firsttest == -1)
-	firsttest=cdda_track_firstsector(d,i+1);
-      lasttest=cdda_track_lastsector(d,i+1);
-      if(lasttest-firsttest > lastsector-firstsector){
-	firstsector=firsttest;
-	lastsector=lasttest;
+  for (i = 0; i < d->tracks; i++) {
+    if (cdda_track_audiop(d, i + 1) == 1) {
+      if (firsttest == -1)
+        firsttest = cdda_track_firstsector(d, i + 1);
+      lasttest = cdda_track_lastsector(d, i + 1);
+      if (lasttest - firsttest > lastsector - firstsector) {
+        firstsector = firsttest;
+        lastsector = lasttest;
       }
-    }else{
-      firsttest=-1;
-      lasttest=-1;
+    } else {
+      firsttest = -1;
+      lasttest = -1;
     }
   }
 
-  if(firstsector==-1){
+  if (firstsector == -1) {
     reportC("\n\tNo audio on disc; Cannot determine timing behavior...");
     return -1;
   }
 
   /* Dump some initial timing data to give a little context for human
-     eyes.  Take readings ten minutes apart (45000 sectors) and at end of disk. */
+     eyes.  Take readings ten minutes apart (45000 sectors) and at end of disk.
+   */
   {
-    int best=0;
-    int bestcount=0;
-    int iterating=0;
+    int best = 0;
+    int bestcount = 0;
+    int iterating = 0;
 
-    offset = lastsector-firstsector-current-1;
+    offset = lastsector - firstsector - current - 1;
 
     reportC("\nSeek/read timing:\n");
 
-    while(offset>=firstsector){
-      int m = offset/4500;
-      int s = (offset-m*4500)/75;
-      int f = offset-m*4500-s*75;
+    while (offset >= firstsector) {
+      int m = offset / 4500;
+      int s = (offset - m * 4500) / 75;
+      int f = offset - m * 4500 - s * 75;
       int sofar;
 
-      if(iterating){
-	reportC("\n");
-      }else{
-	printC("\r");
-	logC("\n");
+      if (iterating) {
+        reportC("\n");
+      } else {
+        printC("\r");
+        logC("\n");
       }
-      reportC("\t[%02d:%02d.%02d]: ",m,s,f);
+      reportC("\t[%02d:%02d.%02d]: ", m, s, f);
 
       /* initial seek to put at at a small offset past end of upcoming reads */
-      if((ret=cdda_read(d,NULL,offset+current+1,1))<0){
-	/* media error! grr!  retry elsewhere */
-	if(ret==-404)return -1;
-	reportC("\n\tWARNING: media error during read; continuing at next offset...");
-	offset = (offset-firstsector+44999)/45000*45000+firstsector;
-	offset-=45000;
-	continue;
+      if ((ret = cdda_read(d, NULL, offset + current + 1, 1)) < 0) {
+        /* media error! grr!  retry elsewhere */
+        if (ret == -404)
+          return -1;
+        reportC("\n\tWARNING: media error during read; continuing at next "
+                "offset...");
+        offset = (offset - firstsector + 44999) / 45000 * 45000 + firstsector;
+        offset -= 45000;
+        continue;
       }
 
-      sofar=time_drive(d,progress, log, offset, current, 1);
-      if(offset==firstsector)mspersector = sofar/(float)current;
-      if(sofar==-404)
-	return -1;
-      else if(sofar<0){
-	reportC("\n\tWARNING: media error during read; continuing at next offset...");
-	offset = (offset-firstsector+44999)/45000*45000+firstsector;
-	offset-=45000;
-	continue;
-      }else{
-	if(!iterating){
-	  if(best==0 || sofar*1.01<best){
-	    best= sofar;
-	    bestcount=0;
-	  }else{
-	    bestcount+=sofar;
-	    if(bestcount>sofar && bestcount>4000)
-	      iterating=1;
-	  }
-	}
+      sofar = time_drive(d, progress, log, offset, current, 1);
+      if (offset == firstsector)
+        mspersector = sofar / (float)current;
+      if (sofar == -404)
+        return -1;
+      else if (sofar < 0) {
+        reportC("\n\tWARNING: media error during read; continuing at next "
+                "offset...");
+        offset = (offset - firstsector + 44999) / 45000 * 45000 + firstsector;
+        offset -= 45000;
+        continue;
+      } else {
+        if (!iterating) {
+          if (best == 0 || sofar * 1.01 < best) {
+            best = sofar;
+            bestcount = 0;
+          } else {
+            bestcount += sofar;
+            if (bestcount > sofar && bestcount > 4000)
+              iterating = 1;
+          }
+        }
       }
 
-      if(iterating){
-	offset = (offset-firstsector+44999)/45000*45000+firstsector;
-	offset-=45000;
-	printC("                 ");
-      }else{
-	offset--;
-	printC(" spinning up...  ");
+      if (iterating) {
+        offset = (offset - firstsector + 44999) / 45000 * 45000 + firstsector;
+        offset -= 45000;
+        printC("                 ");
+      } else {
+        offset--;
+        printC(" spinning up...  ");
       }
     }
   }
@@ -268,138 +307,148 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
      linear search through cache hits up to a miss are faster than a
      bisection */
   {
-    int under=1;
-    int onex=0;
-    current=0;
-    offset = firstsector+10;
+    int under = 1;
+    int onex = 0;
+    current = 0;
+    offset = firstsector + 10;
 
-    while(current <= hi && under){
-      int i,j;
-      under=0;
+    while (current <= hi && under) {
+      int i, j;
+      under = 0;
       current++;
 
-      if(onex){
-	if(speed==-1){
-	  logC("\tAttempting to reset read speed to full... ");
-	}else{
-	  logC("\tAttempting to reset read speed to %dx... ",speed);
-	}
-	if(cdda_speed_set(d,speed)){
-	  logC("failed.\n");
-	}else{
-	  logC("drive said OK\n");
-	}
-	onex=0;
+      if (onex) {
+        if (speed == -1) {
+          logC("\tAttempting to reset read speed to full... ");
+        } else {
+          logC("\tAttempting to reset read speed to %dx... ", speed);
+        }
+        if (cdda_speed_set(d, speed)) {
+          logC("failed.\n");
+        } else {
+          logC("drive said OK\n");
+        }
+        onex = 0;
       }
 
       printC("\r");
-      reportC("\tFast search for approximate cache size... %d sectors            ",current-1);
+      reportC(
+          "\tFast search for approximate cache size... %d sectors            ",
+          current - 1);
       logC("\n");
 
-      for(i=0;i<25 && !under;i++){
-	for(j=0;;j++){
-	  int ret1=0,ret2=0;
-	  if(i>=15){
-	    int sofar=0;
+      for (i = 0; i < 25 && !under; i++) {
+        for (j = 0;; j++) {
+          int ret1 = 0, ret2 = 0;
+          if (i >= 15) {
+            int sofar = 0;
 
-	    if(i==15){
-	      printC("\r");
-	      reportC("\tSlow verify for approximate cache size... %d sectors",current-1);
-	      logC("\n");
+            if (i == 15) {
+              printC("\r");
+              reportC("\tSlow verify for approximate cache size... %d sectors",
+                      current - 1);
+              logC("\n");
 
-	      logC("\tAttempting to reduce read speed to 1x... ");
-	      if(cdda_speed_set(d,1)){
-		logC("failed.\n");
-	      }else{
-		logC("drive said OK\n");
-	      }
-	      onex=1;
-	    }
-	    printC(".");
-	    logC("\t\t>>> ");
+              logC("\tAttempting to reduce read speed to 1x... ");
+              if (cdda_speed_set(d, 1)) {
+                logC("failed.\n");
+              } else {
+                logC("drive said OK\n");
+              }
+              onex = 1;
+            }
+            printC(".");
+            logC("\t\t>>> ");
 
-	    while(sofar<current){
-	      ret1 = cdda_read_timed(d,NULL,offset+sofar,current-sofar,&x);
-	      logC("slow_read=%d:%d:%d ",offset+sofar,ret1,x);
-	      if(ret1<=0)break;
-	      sofar+=ret1;
-	    }
-	  }else{
-	    ret1 = cdda_read_timed(d,NULL,offset+current-1,1,&x);
-	    logC("\t\t>>> fast_read=%d:%d:%d ",offset+current-1,ret1,x);
+            while (sofar < current) {
+              ret1 =
+                  cdda_read_timed(d, NULL, offset + sofar, current - sofar, &x);
+              logC("slow_read=%d:%d:%d ", offset + sofar, ret1, x);
+              if (ret1 <= 0)
+                break;
+              sofar += ret1;
+            }
+          } else {
+            ret1 = cdda_read_timed(d, NULL, offset + current - 1, 1, &x);
+            logC("\t\t>>> fast_read=%d:%d:%d ", offset + current - 1, ret1, x);
 
-	    /* Some drives are 'easily distracted' when readahead is
-	       running ahead of the read cursor, causing accesses of
-	       the earliest sectors in the cache to show bursty
-	       latency. If there's no seek here after a borderline
-	       long read of the earliest sector in the cache, then the
-	       cache must not have been dumped yet. */
+            /* Some drives are 'easily distracted' when readahead is
+               running ahead of the read cursor, causing accesses of
+               the earliest sectors in the cache to show bursty
+               latency. If there's no seek here after a borderline
+               long read of the earliest sector in the cache, then the
+               cache must not have been dumped yet. */
 
-	    if (ret==1 && i && x<MIN_SEEK_MS) {
-	      under=1;
-	      logC("\n");
-	      break;
-	    }
-	  }
-	  ret2 = cdda_read_timed(d,NULL,offset,1,&x);
-	  logC("seek_read=%d:%d:%d\n",offset,ret2,x);
+            if (ret == 1 && i && x < MIN_SEEK_MS) {
+              under = 1;
+              logC("\n");
+              break;
+            }
+          }
+          ret2 = cdda_read_timed(d, NULL, offset, 1, &x);
+          logC("seek_read=%d:%d:%d\n", offset, ret2, x);
 
-	  if(ret1<=0 || ret2<=0){
-	    offset+=current+100;
-	    if(j==10 || offset+current>lastsector){
-	      reportC("\n\tToo many read errors while performing drive cache checks;"
-		      "\n\t  aborting test.\n\n");
-	      return(-1);
-	    }
-	    reportC("\n\tRead error while performing drive cache checks;"
-		    "\n\t  choosing new offset and trying again.\n");
-	  }else{
-	    if(x==-1){
-	      reportC("\n\tTiming error while performing drive cache checks; aborting test.\n");
-	      return(-1);
-	    }else{
-	      if(x<MIN_SEEK_MS){
-		under=1;
-	      }
-	      break;
-	    }
-	  }
-	}
+          if (ret1 <= 0 || ret2 <= 0) {
+            offset += current + 100;
+            if (j == 10 || offset + current > lastsector) {
+              reportC("\n\tToo many read errors while performing drive cache "
+                      "checks;"
+                      "\n\t  aborting test.\n\n");
+              return (-1);
+            }
+            reportC("\n\tRead error while performing drive cache checks;"
+                    "\n\t  choosing new offset and trying again.\n");
+          } else {
+            if (x == -1) {
+              reportC("\n\tTiming error while performing drive cache checks; "
+                      "aborting test.\n");
+              return (-1);
+            } else {
+              if (x < MIN_SEEK_MS) {
+                under = 1;
+              }
+              break;
+            }
+          }
+        }
       }
     }
   }
-  cachesize=current-1;
+  cachesize = current - 1;
 
   printC("\r");
-  if(cachesize==hi){
-    reportC("\tWARNING: Cannot determine drive cache size or behavior!          \n");
+  if (cachesize == hi) {
+    reportC("\tWARNING: Cannot determine drive cache size or behavior!         "
+            " \n");
     return 1;
-  }else if(cachesize){
-    reportC("\tApproximate random access cache size: %d sector(s)               \n",cachesize);
-  }else{
-    reportC("\tDrive does not cache nonlinear access                            \n");
+  } else if (cachesize) {
+    reportC(
+        "\tApproximate random access cache size: %d sector(s)               \n",
+        cachesize);
+  } else {
+    reportC("\tDrive does not cache nonlinear access                           "
+            " \n");
     return 0;
   }
 
   /* does the readahead cache exceed the maximum Paranoia currently expects? */
   {
-    cdrom_paranoia *p=paranoia_init(d);
-    if(cachesize > paranoia_cachemodel_size(p,-1)){
+    cdrom_paranoia *p = paranoia_init(d);
+    if (cachesize > paranoia_cachemodel_size(p, -1)) {
       reportC("\nWARNING: This drive appears to be caching more sectors of\n"
-	      "           readahead than Paranoia can currently handle!\n");
-      warn=1;
-
+              "           readahead than Paranoia can currently handle!\n");
+      warn = 1;
     }
     paranoia_free(p);
   }
-  if(speed==-1){
+  if (speed == -1) {
     logC("\tAttempting to reset read speed to full... ");
-  }else{
-    logC("\tAttempting to reset read speed to %d... ",speed);
+  } else {
+    logC("\tAttempting to reset read speed to %d... ", speed);
   }
-  if(cdda_speed_set(d,speed)){
+  if (cdda_speed_set(d, speed)) {
     logC("failed.\n");
-  }else{
+  } else {
     logC("drive said OK\n");
   }
 
@@ -407,52 +456,55 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
      cache is being tracked as multiple areas that are treated
      differently if non-contiguous.... */
   {
-    int seekoff = cachesize*3;
-    int under=0;
+    int seekoff = cachesize * 3;
+    int under = 0;
     reportC("\tVerifying that cache is contiguous...");
 
-    for(i=0;i<20 && !under;i++){
+    for (i = 0; i < 20 && !under; i++) {
       printC(".");
-      for(j=0;;j++){
-	int ret1,ret2;
+      for (j = 0;; j++) {
+        int ret1, ret2;
 
-	if(offset+seekoff>lastsector){
-	  reportC("\n\tOut of readable space on CDROM while performing drive checks;"
-		  "\n\t  aborting test.\n\n");
-	  return(-1);
-	}
+        if (offset + seekoff > lastsector) {
+          reportC("\n\tOut of readable space on CDROM while performing drive "
+                  "checks;"
+                  "\n\t  aborting test.\n\n");
+          return (-1);
+        }
 
+        ret1 = cdda_read_timed(d, NULL, offset + seekoff, 1, &x);
+        logC("\t\t>>> %d:%d:%d ", offset + seekoff, ret1, x);
+        ret2 = cdda_read_timed(d, NULL, offset, 1, &x);
+        logC("seek_read:%d:%d:%d\n", offset, ret2, x);
 
-	ret1 = cdda_read_timed(d,NULL,offset+seekoff,1,&x);
-	logC("\t\t>>> %d:%d:%d ",offset+seekoff,ret1,x);
-	ret2 = cdda_read_timed(d,NULL,offset,1,&x);
-	logC("seek_read:%d:%d:%d\n",offset,ret2,x);
-
-	if(ret1<=0 || ret2<=0){
-	  offset+=cachesize+100;
-	  if(j==10){
-	    reportC("\n\tToo many read errors while performing drive cache checks;"
-		    "\n\t  aborting test.\n\n");
-	    return(-1);
-	  }
-	  reportC("\n\tRead error while performing drive cache checks;"
-		  "\n\t  choosing new offset and trying again.\n");
-	}else{
-	  if(x==-1){
-	    reportC("\n\tTiming error while performing drive cache checks; aborting test.\n");
-	    return(-1);
-	  }else{
-	    if(x<MIN_SEEK_MS)under=1;
-	    break;
-	  }
-	}
+        if (ret1 <= 0 || ret2 <= 0) {
+          offset += cachesize + 100;
+          if (j == 10) {
+            reportC(
+                "\n\tToo many read errors while performing drive cache checks;"
+                "\n\t  aborting test.\n\n");
+            return (-1);
+          }
+          reportC("\n\tRead error while performing drive cache checks;"
+                  "\n\t  choosing new offset and trying again.\n");
+        } else {
+          if (x == -1) {
+            reportC("\n\tTiming error while performing drive cache checks; "
+                    "aborting test.\n");
+            return (-1);
+          } else {
+            if (x < MIN_SEEK_MS)
+              under = 1;
+            break;
+          }
+        }
       }
     }
     printC("\r");
-    if(under){
+    if (under) {
       reportC("\nWARNING: Drive cache does not appear to be contiguous!\n");
-      warn=1;
-    }else{
+      warn = 1;
+    } else {
       reportC("\tDrive cache tests as contiguous                           \n");
     }
   }
@@ -466,251 +518,270 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
      ahead of reads.
 
      Determine the rollahead size a few ways (which may disagree:
-     1) Read number of sectors equal to cache size; pause; read backward until seek
-     2) Read sectors equal to cache-rollahead; verify reading back to beginning does not seek
-     3) Read sectors equal to cache; pause; read ahead until seek delay
+     1) Read number of sectors equal to cache size; pause; read backward until
+     seek 2) Read sectors equal to cache-rollahead; verify reading back to
+     beginning does not seek 3) Read sectors equal to cache; pause; read ahead
+     until seek delay
   */
 
   {
-    int lower=0;
-    int gran=64;
-    int it=3;
-    int tests=0;
-    int under=1;
-    readahead=0;
+    int lower = 0;
+    int gran = 64;
+    int it = 3;
+    int tests = 0;
+    int under = 1;
+    readahead = 0;
 
-    while(gran>1 || under){
+    while (gran > 1 || under) {
       tests++;
-      if(tests>8 && gran<64){
-	gran<<=3;
-	tests=0;
-	it=3;
+      if (tests > 8 && gran < 64) {
+        gran <<= 3;
+        tests = 0;
+        it = 3;
       }
-      if(gran && !under){
-	gran>>=3;
-	tests=0;
-	if(gran==1)it=10;
+      if (gran && !under) {
+        gran >>= 3;
+        tests = 0;
+        if (gran == 1)
+          it = 10;
       }
 
-      under=0;
-      readahead=lower+gran;
+      under = 0;
+      readahead = lower + gran;
 
       printC("\r");
       logC("\n");
-      reportC("\tTesting background readahead past read cursor... %d",readahead);
+      reportC("\tTesting background readahead past read cursor... %d",
+              readahead);
       printC("           \b\b\b\b\b\b\b\b\b\b\b");
-      for (i=0;i<it;i++) {
-	int sofar=0, ret=0;
-	logC("\n\t\t%d >>> ",i);
+      for (i = 0; i < it; i++) {
+        int sofar = 0, ret = 0;
+        logC("\n\t\t%d >>> ", i);
 
-	while (sofar<cachesize) {
-	  ret = cdda_read_timed(d, NULL, offset+sofar,
-				     cachesize-sofar, &x);
-	  if (ret<=0) goto error;
-	  logC("%d:%d:%d ", offset+sofar, ret, x);
+        while (sofar < cachesize) {
+          ret = cdda_read_timed(d, NULL, offset + sofar, cachesize - sofar, &x);
+          if (ret <= 0)
+            goto error;
+          logC("%d:%d:%d ", offset + sofar, ret, x);
 
-	  /* Some drives can lose sync and perform an internal resync,
-	     which can also cause readahead to restart.  If we see
-	     seek-like delays during the initial cache load, retry the
-	     preload. */
+          /* Some drives can lose sync and perform an internal resync,
+             which can also cause readahead to restart.  If we see
+             seek-like delays during the initial cache load, retry the
+             preload. */
 
-	  sofar += ret;
-	}
+          sofar += ret;
+        }
 
-	printC(".");
+        printC(".");
 
-	/* what we'd predict is needed to let the readahead process work. */
-	{
-	  int usec=mspersector*(readahead)*(6+i)*200;
-	  int max= 13000*2*readahead; /* corresponds to .5x */
-	  if(usec>max)usec=max;
-	  logC("sleep=%dus ",usec);
-	  usleep(usec);
-	}
+        /* what we'd predict is needed to let the readahead process work. */
+        {
+          int usec = mspersector * (readahead) * (6 + i) * 200;
+          int max = 13000 * 2 * readahead; /* corresponds to .5x */
+          if (usec > max)
+            usec = max;
+          logC("sleep=%dus ", usec);
+          usleep(usec);
+        }
 
-	/* seek to offset+cachesize+readahead */
-	ret = cdda_read_timed(d,NULL,offset+cachesize+readahead-1,1,&x);
-	if(ret<=0)break;
-	logC("seek=%d:%d:%d",offset+cachesize+readahead-1,ret,x);
-	if(x<MIN_SEEK_MS){
-	  under=1;
-	  break;
-	}else if(i%3==1){
-	  /* retime the drive just to be conservative */
-	  mspersector=retime_drive(d, progress, log, offset, readahead, mspersector);
-	}
+        /* seek to offset+cachesize+readahead */
+        ret =
+            cdda_read_timed(d, NULL, offset + cachesize + readahead - 1, 1, &x);
+        if (ret <= 0)
+          break;
+        logC("seek=%d:%d:%d", offset + cachesize + readahead - 1, ret, x);
+        if (x < MIN_SEEK_MS) {
+          under = 1;
+          break;
+        } else if (i % 3 == 1) {
+          /* retime the drive just to be conservative */
+          mspersector =
+              retime_drive(d, progress, log, offset, readahead, mspersector);
+        }
       }
 
-      if(under)
-	lower=readahead;
-
+      if (under)
+        lower = readahead;
     }
-    readahead=lower;
+    readahead = lower;
   }
   logC("\n");
   printC("\r");
-  if(readahead==0){
-    reportC("\tDrive does not read ahead past read cursor (very strange)     \n");
-  }else{
-    reportC("\tDrive readahead past read cursor: %d sector(s)                \n",readahead);
+  if (readahead == 0) {
+    reportC(
+        "\tDrive does not read ahead past read cursor (very strange)     \n");
+  } else {
+    reportC(
+        "\tDrive readahead past read cursor: %d sector(s)                \n",
+        readahead);
   }
 
-   reportC("\tTesting cache tail cursor...");
+  reportC("\tTesting cache tail cursor...");
 
-  while(1) {
-    rollbehind=cachesize;
+  while (1) {
+    rollbehind = cachesize;
 
-    for(i=0;i<10 && rollbehind;){
-      int sofar=0,retry=0;
+    for (i = 0; i < 10 && rollbehind;) {
+      int sofar = 0, retry = 0;
       logC("\n\t\t>>> ");
       printC(".");
-      while(sofar<cachesize){
-	ret = cdda_read_timed(d,NULL,offset+sofar,cachesize-sofar,&x);
-	if(ret<=0)goto error;
-	logC("%d:%d:%d ",offset+sofar,ret,x);
-	sofar+=ret;
+      while (sofar < cachesize) {
+        ret = cdda_read_timed(d, NULL, offset + sofar, cachesize - sofar, &x);
+        if (ret <= 0)
+          goto error;
+        logC("%d:%d:%d ", offset + sofar, ret, x);
+        sofar += ret;
       }
 
       /* Pause what we'd predict is needed to let the readahead process work. */
       {
-	int usec=mspersector*readahead*1500;
-	logC("\n\t\tsleeping %d microseconds",usec);
-	usleep(usec);
+        int usec = mspersector * readahead * 1500;
+        logC("\n\t\tsleeping %d microseconds", usec);
+        usleep(usec);
       }
 
       /* read backwards until we seek */
       logC("\n\t\t<<< ");
-      sofar=rollbehind;
-      while(sofar>0){
-	sofar--;
-	ret = cdda_read_timed(d,NULL,offset+sofar,1,&x);
-	if(ret<=0)break;
-	logC("%d:%d:%d ",sofar,ret,x);
-	if(x>=MIN_SEEK_MS){
-	  if(rollbehind != sofar+1){
-	    rollbehind=sofar+1;
-	    i=0;
-	  }else{
-	    i++;
-	  }
-	  break;
-	}
-	if(sofar==0)rollbehind=0;
+      sofar = rollbehind;
+      while (sofar > 0) {
+        sofar--;
+        ret = cdda_read_timed(d, NULL, offset + sofar, 1, &x);
+        if (ret <= 0)
+          break;
+        logC("%d:%d:%d ", sofar, ret, x);
+        if (x >= MIN_SEEK_MS) {
+          if (rollbehind != sofar + 1) {
+            rollbehind = sofar + 1;
+            i = 0;
+          } else {
+            i++;
+          }
+          break;
+        }
+        if (sofar == 0)
+          rollbehind = 0;
       }
 
     error:
-      if(ret<=0){
-	offset+=cachesize;
-	retry++;
-	if(retry>10 || offset+cachesize>lastsector){
-	  reportC("\n\tToo many read errors while performing drive cache checks;"
-		  "\n\t  aborting test.\n\n");
-	  return(-1);
-	}
-	reportC("\n\tRead error while performing drive cache checks;"
-		"\n\t  choosing new offset and trying again.\n");
-	continue;
+      if (ret <= 0) {
+        offset += cachesize;
+        retry++;
+        if (retry > 10 || offset + cachesize > lastsector) {
+          reportC(
+              "\n\tToo many read errors while performing drive cache checks;"
+              "\n\t  aborting test.\n\n");
+          return (-1);
+        }
+        reportC("\n\tRead error while performing drive cache checks;"
+                "\n\t  choosing new offset and trying again.\n");
+        continue;
       }
     }
 
     /* verify that the drive timing didn't suddenly change */
     {
-      float newms=retime_drive(d, progress, log, offset, readahead, mspersector);
-      if(newms > mspersector*1.2){
-	mspersector=newms;
-	printC("\r");
-	reportC("\tDrive timing changed during test; retrying...");
-	continue;
+      float newms =
+          retime_drive(d, progress, log, offset, readahead, mspersector);
+      if (newms > mspersector * 1.2) {
+        mspersector = newms;
+        printC("\r");
+        reportC("\tDrive timing changed during test; retrying...");
+        continue;
       }
     }
     break;
-
   }
 
   logC("\n");
   printC("\r");
-  if(rollbehind==0){
+  if (rollbehind == 0) {
     reportC("\tCache tail cursor tied to read cursor                      \n");
-  }else{
-    reportC("\tCache tail rollbehind: %d sector(s)                        \n",rollbehind);
+  } else {
+    reportC("\tCache tail rollbehind: %d sector(s)                        \n",
+            rollbehind);
   }
   reportC("\tTesting granularity of cache tail");
 
-  while(1){
-    cachegran=cachesize+1;
-    for(i=0;i<10 && cachegran;){
-      int sofar=0,ret=0,retry=0;
+  while (1) {
+    cachegran = cachesize + 1;
+    for (i = 0; i < 10 && cachegran;) {
+      int sofar = 0, ret = 0, retry = 0;
       logC("\n\t\t>>> ");
       printC(".");
-      while(sofar<cachesize+1){
-	ret = cdda_read_timed(d,NULL,offset+sofar,cachesize-sofar+1,&x);
-	if(ret<=0)goto error2;
-	logC("%d:%d:%d ",offset+sofar,ret,x);
-	sofar+=ret;
+      while (sofar < cachesize + 1) {
+        ret =
+            cdda_read_timed(d, NULL, offset + sofar, cachesize - sofar + 1, &x);
+        if (ret <= 0)
+          goto error2;
+        logC("%d:%d:%d ", offset + sofar, ret, x);
+        sofar += ret;
       }
 
       /* Pause what we'd predict is needed to let the readahead process work. */
       {
-	int usec=mspersector*readahead*1500;
-	logC("\n\t\tsleeping %d microseconds",usec);
-	usleep(usec);
+        int usec = mspersector * readahead * 1500;
+        logC("\n\t\tsleeping %d microseconds", usec);
+        usleep(usec);
       }
 
       /* read backwards until we seek */
       logC("\n\t\t<<< ");
-      sofar=cachegran;
-      while(sofar){
-	sofar--;
-	ret = cdda_read_timed(d,NULL,offset+sofar,1,&x);
-	if(ret<=0)break;
-	logC("%d:%d:%d ",offset+sofar,ret,x);
-	if(x>=MIN_SEEK_MS){
-	  if(cachegran == sofar+1){
-	    i++;
-	  }else{
-	    cachegran=sofar+1;
-	    i=0;
-	  }
-	  break;
-	}
-	if(sofar==0)cachegran=0;
+      sofar = cachegran;
+      while (sofar) {
+        sofar--;
+        ret = cdda_read_timed(d, NULL, offset + sofar, 1, &x);
+        if (ret <= 0)
+          break;
+        logC("%d:%d:%d ", offset + sofar, ret, x);
+        if (x >= MIN_SEEK_MS) {
+          if (cachegran == sofar + 1) {
+            i++;
+          } else {
+            cachegran = sofar + 1;
+            i = 0;
+          }
+          break;
+        }
+        if (sofar == 0)
+          cachegran = 0;
       }
 
     error2:
-      if(ret<=0){
-	offset+=cachesize;
-	retry++;
-	if(retry>10 || offset+cachesize>lastsector){
-	  reportC("\n\tToo many read errors while performing drive cache checks;"
-		  "\n\t  aborting test.\n\n");
-	  return(-1);
-	}
-	reportC("\n\tRead error while performing drive cache checks;"
-		"\n\t  choosing new offset and trying again.\n");
-	continue;
+      if (ret <= 0) {
+        offset += cachesize;
+        retry++;
+        if (retry > 10 || offset + cachesize > lastsector) {
+          reportC(
+              "\n\tToo many read errors while performing drive cache checks;"
+              "\n\t  aborting test.\n\n");
+          return (-1);
+        }
+        reportC("\n\tRead error while performing drive cache checks;"
+                "\n\t  choosing new offset and trying again.\n");
+        continue;
       }
     }
 
     /* verify that the drive timing didn't suddenly change */
     {
-      float newms=retime_drive(d, progress, log, offset, readahead, mspersector);
-      if(newms > mspersector*1.2){
-	mspersector=newms;
-	printC("\r");
-	reportC("\tDrive timing changed during test; retrying...");
-	continue;
+      float newms =
+          retime_drive(d, progress, log, offset, readahead, mspersector);
+      if (newms > mspersector * 1.2) {
+        mspersector = newms;
+        printC("\r");
+        reportC("\tDrive timing changed during test; retrying...");
+        continue;
       }
     }
     break;
-
   }
 
   cachegran -= rollbehind;
 
   logC("\n");
   printC("\r");
-  reportC("\tCache tail granularity: %d sector(s)                      \n",cachegran);
-
+  reportC("\tCache tail granularity: %d sector(s)                      \n",
+          cachegran);
 
   /* Verify that a read that begins before the cached readahead dumps
      the entire readahead cache */
@@ -731,115 +802,133 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed){
   {
     float cachems;
     float readms;
-    int readsize = cachesize-rollbehind-8;
-    int retry=0;
+    int readsize = cachesize - rollbehind - 8;
+    int retry = 0;
 
-    if(readsize>cachesize-1)readsize=cachesize-1;
+    if (readsize > cachesize - 1)
+      readsize = cachesize - 1;
 
-    if(readsize<7){
-      reportC("\tCache size (considering rollbehind) too small to test cache speed.\n");
-    }else{
+    if (readsize < 7) {
+      reportC("\tCache size (considering rollbehind) too small to test cache "
+              "speed.\n");
+    } else {
       reportC("\tTesting cache transfer speed...");
 
       /* cache timing isn't dependent on rotational speed, so get a good
-	 read and then just hammer the cache; we will only need to do it once */
+         read and then just hammer the cache; we will only need to do it once */
 
       /* we need to time the cache using the most conservative
-	 possible read pattern; many drives will flush cache on *any*
-	 nonlinear access, but not if the read starts from the same
-	 point.  The original cache size verification algo knows this,
-	 and we need to do it the same way here (this the '0' for
-	 'initial_seek' on time_drve */
+         possible read pattern; many drives will flush cache on *any*
+         nonlinear access, but not if the read starts from the same
+         point.  The original cache size verification algo knows this,
+         and we need to do it the same way here (this the '0' for
+         'initial_seek' on time_drve */
 
-      while(1){
-	int ret=time_drive(d, NULL, log, offset, readsize, 0);
-	if(ret==-404) return -1;
-	if(ret>0)break;
-	retry++;
-	if(retry==10){
-	  reportC("\n\tToo many read errors while performing drive cache checks;"
-		  "\n\t  aborting test.\n\n");
-	  return(-1);
-	}
-	reportC("\n\tRead error while performing drive cache checks;"
-		"\n\t  choosing new offset and trying again.\n");
+      while (1) {
+        int ret = time_drive(d, NULL, log, offset, readsize, 0);
+        if (ret == -404)
+          return -1;
+        if (ret > 0)
+          break;
+        retry++;
+        if (retry == 10) {
+          reportC(
+              "\n\tToo many read errors while performing drive cache checks;"
+              "\n\t  aborting test.\n\n");
+          return (-1);
+        }
+        reportC("\n\tRead error while performing drive cache checks;"
+                "\n\t  choosing new offset and trying again.\n");
       }
 
       {
-	int elapsed=0;
-	int sectors=0;
-	int spinner=0;
-	while(elapsed<5000){
-	  sectors += readsize;
-	  elapsed += time_drive(d, NULL, log, offset, readsize, 0);
-	  spinner = elapsed*5/1000%4;
-	  printC("\b%c",(spinner==0?'o':(spinner==1?'O':(spinner==2?'o':'.'))));
-	}
-	printC("\r");
-	logC("\n");
-	cachems = elapsed/(float)sectors;
-	reportC("\t        Cache read speed: %.2fms/sector [%dx]\n",
-		cachems,(int)(1000./75./cachems));
+        int elapsed = 0;
+        int sectors = 0;
+        int spinner = 0;
+        while (elapsed < 5000) {
+          sectors += readsize;
+          elapsed += time_drive(d, NULL, log, offset, readsize, 0);
+          spinner = elapsed * 5 / 1000 % 4;
+          printC("\b%c",
+                 (spinner == 0
+                      ? 'o'
+                      : (spinner == 1 ? 'O' : (spinner == 2 ? 'o' : '.'))));
+        }
+        printC("\r");
+        logC("\n");
+        cachems = elapsed / (float)sectors;
+        reportC("\t        Cache read speed: %.2fms/sector [%dx]\n", cachems,
+                (int)(1000. / 75. / cachems));
       }
 
-      if(cachems*3>mspersector){
-	reportC("\tCache access insufficiently faster than media access to\n"
-		"\t\tperform cache backseek tests\n\n");
-      }else{
+      if (cachems * 3 > mspersector) {
+        reportC("\tCache access insufficiently faster than media access to\n"
+                "\t\tperform cache backseek tests\n\n");
+      } else {
 
-	/* now do the read/backseek combo */
-	reportC("\tTesting that backseek flushes cache...");
-	{
-	  int total=0;
-	  int elapsed=0;
-	  int sectors=0;
-	  int spinner=0;
-	  int retry=0;
-	  while(elapsed<5000 && total<25){ /* don't kill the drive */
-	    int ret;
-	    while(1){
-	      /* need to force seek/flush, but don't kill the drive */
-	      int seekpos = offset+cachesize+20000;
-	      if(seekpos>lastsector-150)seekpos=lastsector-150;
-	      ret=cdda_read(d, NULL, seekpos, 1);
-	      if(ret>0) ret=time_drive(d, NULL, log, offset+1, readsize, 1);
-	      if(ret>=0) ret=time_drive(d, NULL, log, offset, readsize, 1);
+        /* now do the read/backseek combo */
+        reportC("\tTesting that backseek flushes cache...");
+        {
+          int total = 0;
+          int elapsed = 0;
+          int sectors = 0;
+          int spinner = 0;
+          int retry = 0;
+          while (elapsed < 5000 && total < 25) { /* don't kill the drive */
+            int ret;
+            while (1) {
+              /* need to force seek/flush, but don't kill the drive */
+              int seekpos = offset + cachesize + 20000;
+              if (seekpos > lastsector - 150)
+                seekpos = lastsector - 150;
+              ret = cdda_read(d, NULL, seekpos, 1);
+              if (ret > 0)
+                ret = time_drive(d, NULL, log, offset + 1, readsize, 1);
+              if (ret >= 0)
+                ret = time_drive(d, NULL, log, offset, readsize, 1);
 
-	      if(ret<=0){
-		retry++;
-		if(retry==10){
-		  reportC("\n\tToo many read errors while performing drive cache checks;"
-			  "\n\t  aborting test.\n\n");
-		  return(-1);
-		}
-		reportC("\n\tRead error while performing drive cache checks; retrying...");
-	      }else
-		break;
-	    }
+              if (ret <= 0) {
+                retry++;
+                if (retry == 10) {
+                  reportC("\n\tToo many read errors while performing drive "
+                          "cache checks;"
+                          "\n\t  aborting test.\n\n");
+                  return (-1);
+                }
+                reportC("\n\tRead error while performing drive cache checks; "
+                        "retrying...");
+              } else
+                break;
+            }
 
-	    sectors += (readsize-1);
-	    elapsed += ret;
-	    total++;
+            sectors += (readsize - 1);
+            elapsed += ret;
+            total++;
 
-	    spinner = elapsed*5/1000%4;
-	    printC("\b%c",(spinner==0?'o':(spinner==1?'O':(spinner==2?'o':'.'))));
-	  }
+            spinner = elapsed * 5 / 1000 % 4;
+            printC("\b%c",
+                   (spinner == 0
+                        ? 'o'
+                        : (spinner == 1 ? 'O' : (spinner == 2 ? 'o' : '.'))));
+          }
 
-	  printC("\r");
-	  logC("\n");
-	  readms = elapsed/(float)sectors;
-	  reportC("\t        Access speed after backseek: %.2fms/sector [%dx]\n",
-		  readms,(int)(1000./75./readms));
-	  if(readms*2. < mspersector ||
-	     cachems*2. > readms){
-	    reportC("\tWARNING: Read timing after backseek faster than expected!\n"
-		    "\t         It's possible/likely that this drive is not\n"
-		    "\t         flushing the readahead cache on backward seeks!\n\n");
-	    warn=1;
-	  }else{
-	    reportC("\tBackseek flushes the cache as expected\n");
-	  }
-	}
+          printC("\r");
+          logC("\n");
+          readms = elapsed / (float)sectors;
+          reportC(
+              "\t        Access speed after backseek: %.2fms/sector [%dx]\n",
+              readms, (int)(1000. / 75. / readms));
+          if (readms * 2. < mspersector || cachems * 2. > readms) {
+            reportC(
+                "\tWARNING: Read timing after backseek faster than expected!\n"
+                "\t         It's possible/likely that this drive is not\n"
+                "\t         flushing the readahead cache on backward "
+                "seeks!\n\n");
+            warn = 1;
+          } else {
+            reportC("\tBackseek flushes the cache as expected\n");
+          }
+        }
       }
     }
   }
