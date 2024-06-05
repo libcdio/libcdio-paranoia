@@ -19,6 +19,8 @@
 #ifndef _GAP_H_
 #define _GAP_H_
 
+#include <stdint.h>
+
 extern long i_paranoia_overlap_r(int16_t *buffA, int16_t *buffB, long offsetA,
                                  long offsetB);
 extern long i_paranoia_overlap_f(int16_t *buffA, int16_t *buffB, long offsetA,

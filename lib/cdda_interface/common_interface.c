@@ -30,6 +30,7 @@
 #include <math.h>
 #include "utils.h"
 #include "smallft.h"
+#include <stdint.h>
 
 /* Variables to hold debugger-helping enumerations */
 enum paranoia_cdda_enums;

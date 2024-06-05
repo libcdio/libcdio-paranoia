@@ -20,6 +20,7 @@
 #include <cdio/bytesex.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdint.h>
 
 /* I wonder how many alignment issues this is gonna trip in the
    future...  it shouldn't trip any...  I guess we'll find out :) */

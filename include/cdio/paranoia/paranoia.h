@@ -29,6 +29,7 @@
 #define CDIO__PARANOIA__PARANOIA_H_
 
 #include <cdio/paranoia/cdda.h>
+#include <stdint.h>
 
 /*! Paranoia likes to work with 16-bit numbers rather than
     (possibly byte-swapped) bytes. So there are this many
