@@ -177,14 +177,6 @@ struct cdrom_drive_s {
 /**< under-run testing. The below bit is set for testing.  */
 #define CDDA_TEST_UNDERRUN         64
 
-#if TESTING_IS_FINISHED
-
- /** scratch testing */
-#define CDDA_TEST_SCRATCH         128
-#undef  CDDA_TEST_BOGUS_BYTES     256
-#undef  CDDA_TEST_DROPDUPE_BYTES  512
-#endif /* TESTING_IS_FINISHED */
-
 /** autosense functions */
 
 /** Get a CD-ROM drive with a CD-DA in it.
