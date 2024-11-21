@@ -1,6 +1,6 @@
 10.2+2.0.2
----------
-2019-05-0-7
+----------
+2024-05-07
 
 - A 6-year-old bug, seen primarily by Whipper users, concerning
   adjusting of CD-drives that have large sample offsets, or negative
@@ -19,7 +19,7 @@
 
 
 10.2+2.0.1
----------
+----------
 2019-09-16
 
 - cdda toc routines now included (fixes #21)
@@ -28,7 +28,7 @@
 
 
 10.2+2.0.0
----------
+----------
 2019-01-26
 
   This work was done by Edd Barrett and Thomas Schmitt
