@@ -1,0 +1,33 @@
+name: Run code linter
+
+on: [push, pull_request]
+
+# Cancel any preceding run on the pull request.
+concurrency:
+  group: lint-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/criu-dev' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/fedora:latest
+    steps:
+    - name: Install tools
+      run: sudo dnf -y install git make clang-tools-extra which git-clang-format
+
+    - uses: actions/checkout@v4
+
+    - name: Set git safe directory
+      # https://github.com/actions/checkout/issues/760
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Run make indent
+      run: |
+        if [ -z "${{github.base_ref}}" ]; then
+          git fetch --deepen=1
+          git clang-format --diff --style file --extensions c,h "HEAD~1"
+        else
+          git fetch origin ${{github.base_ref}}
+          git clang-format --diff --style file --extensions c,h origin/${{github.base_ref}}
+        fi
