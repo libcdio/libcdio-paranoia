@@ -125,7 +125,7 @@ const char usage_help[] =
     "sectors (75 sectors per second).\n"
     "\n"
     "When only a single offset is supplied, it is interpreted as a starting\n"
-    "offset and ripping will continue to the end of he track.  If a single\n"
+    "offset and ripping will continue to the end of the track.  If a single\n"
     "offset is preceded or followed by a hyphen, the implicit missing\n"
     "offset is taken to be the start or end of the disc, respectively. Thus:\n"
     "\n"
