@@ -637,11 +637,13 @@ static void cleanup(void) {
   free_and_null(force_cdrom_device);
   free_and_null(span);
   if (logfile_open) {
-    fclose(logfile);
+    if (logfile)
+      fclose(logfile);
     logfile = NULL;
   }
   if (reportfile_open) {
-    fclose(reportfile);
+    if (reportfile)
+      fclose(reportfile);
     reportfile = NULL;
   }
 }
