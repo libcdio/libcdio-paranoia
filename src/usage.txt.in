@@ -99,7 +99,7 @@ twenty seconds, [10:] would be ten minutes, [.30] would be thirty
 sectors (75 sectors per second).
 
 When only a single offset is supplied, it is interpreted as a starting
-offset and ripping will continue to the end of he track.  If a single
+offset and ripping will continue to the end of the track.  If a single
 offset is preceded or followed by a hyphen, the implicit missing
 offset is taken to be the start or end of the disc, respectively. Thus:
 
