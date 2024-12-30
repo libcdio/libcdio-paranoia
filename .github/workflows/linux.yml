@@ -1,0 +1,19 @@
+name: Linux, gcc
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        run: |
+          sudo apt-get update
+          sudo sudo apt-get install -y help2man libcdio-dev
+      - name: Build
+        run: |
+          ./autogen.sh
+          make -j4 V=1
+      - name: Test
+        run: make check
