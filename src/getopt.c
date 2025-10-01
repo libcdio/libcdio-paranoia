@@ -2,7 +2,7 @@
    NOTE: getopt is part of the C library, so if you don't know what
    "Keep this file name-space clean" means, talk to drepper@gnu.org
    before changing it!
-   Copyright (C) 1987-2014 Free Software Foundation, Inc.
+   Copyright (C) 1987-2015 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -145,7 +145,7 @@ static struct _getopt_data getopt_data;
    whose names are inconsistent.  */
 
 #ifndef getenv
-extern char *getenv();
+extern char *getenv (const char *);
 #endif
 
 #endif /* not __GNU_LIBRARY__ */
