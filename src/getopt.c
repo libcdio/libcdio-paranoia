@@ -145,7 +145,7 @@ static struct _getopt_data getopt_data;
    whose names are inconsistent.  */
 
 #ifndef getenv
-extern char *getenv (const char *);
+extern char *getenv(const char *);
 #endif
 
 #endif /* not __GNU_LIBRARY__ */

@@ -143,9 +143,9 @@ struct option {
 
 /* Check for musl C library (<bits/alltypes.h> is musl specific).  */
 #if !defined __GLIBC__ && __has_include(<bits/alltypes.h>)
-# ifndef __MUSL__
-#   define __MUSL__ 1
-# endif
+#ifndef __MUSL__
+#define __MUSL__ 1
+#endif
 #endif
 
 #if defined __GLIBC__ || defined __MUSL__
