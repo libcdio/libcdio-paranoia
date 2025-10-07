@@ -1,5 +1,5 @@
 /* Declarations for getopt.
-   Copyright (C) 1989-2014 Free Software Foundation, Inc.
+   Copyright (C) 1989-2015 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -141,7 +141,14 @@ struct option {
    arguments to the option '\0'.  This behavior is specific to the GNU
    `getopt'.  */
 
-#ifdef __GNU_LIBRARY__
+/* Check for musl C library (<bits/alltypes.h> is musl specific).  */
+#if !defined __GLIBC__ && __has_include(<bits/alltypes.h>)
+#ifndef __MUSL__
+#define __MUSL__ 1
+#endif
+#endif
+
+#if defined __GLIBC__ || defined __MUSL__
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
