@@ -1,0 +1,133 @@
+--- ChangeLog	2025-12-12 11:17:40.309474460 -0500
++++ ChangeLog.spell-corrected	2025-12-12 11:17:02.343415339 -0500
+@@ -317,7 +317,7 @@
+ 2019-09-16  R. Bernstein <rocky@gnu.org>
+ 
+ 	* include/cdio/paranoia/Makefile.am, include/cdio/paranoia/toc.h,
+-	lib/cdda_interface/toc.c: Correct names on toc.c defnitions and add
++	lib/cdda_interface/toc.c: Correct names on toc.c definitions and add
+ 	header Fixes #21
+ 
+ 2019-01-26  R. Bernstein <rocky@gnu.org>
+@@ -361,7 +361,7 @@
+ 
+ 2019-01-12  Edd Barrett <vext01@gmail.com>
+ 
+-	* test/.gitignore, test/Makefile.am, test/get_libcdio_version.c: 
++	* test/.gitignore, test/Makefile.am, test/get_libcdio_version.c:
+ 	Skip the test if the libcdio version is too old.
+ 
+ 2018-12-28  Edd Barrett <vext01@gmail.com>
+@@ -371,7 +371,7 @@
+ 
+ 2018-12-15  Edd Barrett <vext01@gmail.com>
+ 
+-	* lib/cdda_interface/common_interface.c: Fix endianess detection for
++	* lib/cdda_interface/common_interface.c: Fix endianness detection for
+ 	CDs with starting track >1.  From Thomas Schmitt -- Committing on his behalf.
+ 
+ 2018-12-15  Edd Barrett <vext01@gmail.com>
+@@ -451,7 +451,7 @@
+ 
+ 2017-03-26  R. Bernstein <rocky@gnu.org>
+ 
+-	* configure.ac, doc/how-to-make-a-release.txt, example/paranoia.c: 
++	* configure.ac, doc/how-to-make-a-release.txt, example/paranoia.c:
+ 	Lint paranoia.c now in 0.94-2git
+ 
+ 2017-03-25  R. Bernstein <rocky@gnu.org>
+@@ -579,7 +579,7 @@
+ 2014-09-29  R. Bernstein <rocky@gnu.org>
+ 
+ 	* NEWS, configure.ac, example/C++/Makefile.am, example/Makefile.am,
+-	src/Makefile.am, test/Makefile.am: Releae 10.2+0.93+1
++	src/Makefile.am, test/Makefile.am: Release 10.2+0.93+1
+ 
+ 2014-09-29  Robert Kausch <robert.kausch@freac.org>
+ 
+@@ -627,7 +627,7 @@
+ 
+ 	* configure.ac, include/cdio/paranoia/cdda.h,
+ 	lib/cdda_interface/Makefile.am, lib/cdda_interface/interface.c,
+-	lib/paranoia/Makefile.am, lib/paranoia/p_block.c, src/getopt.c: 
++	lib/paranoia/Makefile.am, lib/paranoia/p_block.c, src/getopt.c:
+ 	*/Makefile.am : Make sure we include libcdio libraries src/getopt.c:
+ 	same changes as in libcdio Reduce warnings from gcc.
+ 
+@@ -643,7 +643,7 @@
+ 	include/cdio/paranoia/version.h.in, lib/cdda_interface/interface.c,
+ 	lib/cdda_interface/utils.c, lib/paranoia/paranoia.c,
+ 	src/Makefile.am, src/cd-paranoia.c, test/.gitignore,
+-	test/cdda_interface/.gitignore, test/cdda_interface/Makefile.am: 
++	test/cdda_interface/.gitignore, test/cdda_interface/Makefile.am:
+ 	Reduce warnings. Preparation for 10.2+0.93+1
+ 
+ 2014-09-24  Robert Kausch <robert.kausch@freac.org>
+@@ -686,7 +686,7 @@
+ 
+ 2014-06-13  Robert Kausch <robert.kausch@freac.org>
+ 
+-	* src/getopt.c, src/getopt.h, src/getopt1.c, src/getopt_int.h: 
++	* src/getopt.c, src/getopt.h, src/getopt1.c, src/getopt_int.h:
+ 	Updated getopt to the version included with glibc 2.19.
+ 
+ 2014-06-13  Robert Kausch <robert.kausch@freac.org>
+@@ -705,7 +705,7 @@
+ 
+ 2014-06-05  Robert Kausch <robert.kausch@freac.org>
+ 
+-	* lib/cdda_interface/toc.c, test/cdda_interface/toc.c.in: 
++	* lib/cdda_interface/toc.c, test/cdda_interface/toc.c.in:
+ 	lib/cdda_interface/toc.c: fixed pregap and first track handling.  It was broken in commit c94fcc7b04... which removed special handling
+ 	of track 0 (representing the pregap/hidden track one) always
+ 	returning error -401 in that case. Instead, the pregap code was
+@@ -718,7 +718,7 @@
+ 
+ 2014-06-04  R. Bernstein <rocky@gnu.org>
+ 
+-	* configure.ac, src/cachetest.c, src/cachetest.h, src/cd-paranoia.c: 
++	* configure.ac, src/cachetest.c, src/cachetest.h, src/cd-paranoia.c:
+ 	Add the O_BINARY flag to open() calls on Windows. This is required
+ 	to prevent Windows from translating 0x0A to 0x0D0A when writing and
+ 	vice versa when reading binary files.  Remove the -mwindows linker option. This option is used to create
+@@ -775,7 +775,7 @@
+ 2013-07-23  R. Bernstein <rocky@gnu.org>
+ 
+ 	* configure.ac, doc/ja/Makefile.am, src/cd-paranoia.c: Use MKDIR_P
+-	instead of mkdir_p for compability with modern autotools wrt #47732
++	instead of mkdir_p for compatibility with modern autotools wrt #47732
+ 
+ 2013-05-15  R. Bernstein <rocky@gnu.org>
+ 
+@@ -824,7 +824,7 @@
+ 	* Makefile.am, configure.ac, libcdio_cdda.pc.in,
+ 	libcdio_paranoia.pc.in, src/getopt.h: Add COPYING-GPL and
+ 	COPYING-LGPL to tarball. Update src/getopt.h with newer sources. Add
+-	libcdio reuires to pkconfig files.
++	libcdio requires to pkconfig files.
+ 
+ 2012-10-28  R. Bernstein <rocky@gnu.org>
+ 
+@@ -894,7 +894,7 @@
+ 
+ 2012-02-19  rocky <rocky@gnu.org>
+ 
+-	* example/Makefile.am, example/paranoia.c, src/cd-paranoia.c: 
++	* example/Makefile.am, example/paranoia.c, src/cd-paranoia.c:
+ 	cd-paranoia.c: Prevent a failure of "make check" when stderr is not
+ 	a tty. Patch from Debian Distribution and N. Boullis.  Makefile.am:
+ 	typo.  paranoia.c: bail when getting no cd drives.
+@@ -986,7 +986,7 @@
+ 	include/cdio/paranoia/.gitignore,
+ 	include/cdio/paranoia/Makefile.am, include/cdio/{ =>
+ 	paranoia}/cdda.h, include/cdio/{ => paranoia}/paranoia.h,
+-	include/cdio/paranoia/version.h.in, lib/.gitignore, src/Makefile.am: 
++	include/cdio/paranoia/version.h.in, lib/.gitignore, src/Makefile.am:
+ 	autoreconf (or autogen.sh) and configure now don't error out.
+ 	configure is not quite correct though.
+ 
+@@ -994,4 +994,3 @@
+ 
+ 	* Initial guess at files to copy over. Expect lots of changes to get
+ 	this working.
+-

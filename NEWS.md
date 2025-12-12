@@ -1,3 +1,10 @@
+10.3dev+2.1.1
+-------------
+2025-12-12
+
+- GCC 15 tolerance. See https://github.com/libcdio/libcdio-paranoia/pull/55
+- Fix segfault when running `cd-paranoia -L -- -1` See https://github.com/libcdio/libcdio-paranoia/pull/52 (Adrian Reber)
+
 10.2+2.0.2
 ----------
 2024-05-07

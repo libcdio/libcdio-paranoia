@@ -56,9 +56,18 @@ MAINTAINERCLEANFILES = ChangeLog *.rej *.orig
 if MAINTAINER_MODE
 
 .PHONY: ChangeLog
-#: Create ChangeLog from version control
-ChangeLog:
-	git log --pretty --numstat --summary | $(GIT2CL) >$@
+
+#: Remove ChangeLog
+rmChangeLog:
+	rm ChangeLog || true
+
+#: Create ChangeLog from version control without corrections
+ChangeLog-without-corrections:
+	git log --pretty --numstat --summary | $(GIT2CL) >ChangeLog
+
+#: Create ChangeLog from version control with additonal corrections
+ChangeLog: ChangeLog-without-corrections
+	patch ChangeLog < ChangeLog-spell-corrected.diff
 
 ACLOCAL_AMFLAGS=-I m4
 
