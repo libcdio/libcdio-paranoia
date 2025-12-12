@@ -16,6 +16,7 @@ EXTRA_DIST = \
 	example/README \
 	COPYING \
 	$(wildcard test/data/*.bin) \
+	$(wildcard test/data/*.BIN) \
 	$(wildcard test/data/*.cue) \
 	$(wildcard test/data/*.iso) \
 	$(wildcard test/*.right)
