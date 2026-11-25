@@ -1387,7 +1387,7 @@ int main(int argc, char *argv[]) {
 
             int res;
             if (batch) {
-              res = snprintf(outfile_name, PATH_MAX, " %strack%02d.%s", dirname,
+              res = snprintf(outfile_name, PATH_MAX, "%strack%02d.%s", dirname,
                              batch_track, basename);
             } else
               res = snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);
