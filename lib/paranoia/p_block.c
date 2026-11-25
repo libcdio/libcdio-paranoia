@@ -394,7 +394,15 @@ void paranoia_set_range(cdrom_paranoia_t *p, long start, long end) {
  */
 int paranoia_cachemodel_size(cdrom_paranoia_t *p, int sectors) {
   int ret = p->cdcache_size;
-  if (sectors >= 0)
+  if (sectors >= 0) {
+    /* Each read covers cdcache_size sectors, and the sort index must be
+       able to hold all of a read, so grow it to match. */
+    if ((long)sectors * CD_FRAMEWORDS > p->sortcache->maxsize) {
+      sort_info_t *sortcache = sort_alloc((long)sectors * CD_FRAMEWORDS);
+      sort_free(p->sortcache);
+      p->sortcache = sortcache;
+    }
     p->cdcache_size = sectors;
+  }
   return ret;
 }
