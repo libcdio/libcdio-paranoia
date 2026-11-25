@@ -65,6 +65,14 @@ long int buffering_write(int fd, char *buffer, long num) {
     buffer += (OUTBUFSZ - bw_pos);
     bw_pos = 0;
   }
+  if (num > OUTBUFSZ) {
+    /* still more than the buffer holds: write it straight out */
+    if (blocking_write(fd, buffer, num)) {
+      perror("write (in buffering_write, large write)");
+      return (-1);
+    }
+    return (0);
+  }
   /* save data */
   if (buffer && num)
     memcpy(&bw_outbuf[bw_pos], buffer, num);
