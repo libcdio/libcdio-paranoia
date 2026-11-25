@@ -56,8 +56,11 @@
 # include <string.h>
 #endif
 
-#ifdef HAVE_FCNTL_H
+#if defined(HAVE_FCNTL_H) || defined(_WIN32)
 #include <fcntl.h>
+#endif
+#ifdef _WIN32
+#include <io.h> /* _setmode */
 #endif
 
 #include "getopt.h"
@@ -1383,6 +1386,11 @@ int main(int argc, char *argv[]) {
               report("Cannot duplicate stdout: %s", strerror(errno));
               exit(1);
             }
+#ifdef _WIN32
+            /* stdout is in text mode on Windows, which would turn every
+               0x0a byte of the audio into 0x0d 0x0a. */
+            _setmode(out, _O_BINARY);
+#endif
             if (batch)
               report("Are you sure you wanted 'batch' "
                      "(-B) output with stdout?");
