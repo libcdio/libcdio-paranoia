@@ -71,16 +71,26 @@
 #endif
 
 #include <math.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#ifdef _MSC_VER
+/* struct timeval, and isatty; MSVC has no <sys/time.h> or <unistd.h>. */
+#include <io.h>
+#include <winsock2.h>
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
 
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
 
 #if !defined(HAVE_GETTIMEOFDAY)
-/* MinGW uses sys/time.h and sys/timeb.h to roll its own gettimeofday() */
-# if defined(HAVE_SYS_TIME_H) && defined(HAVE_SYS_TIMEB_H)
-# include <sys/time.h>
+/* MinGW and MSVC use sys/timeb.h to roll their own gettimeofday();
+   struct timeval comes from sys/time.h or, with MSVC, winsock2.h. */
+#if (defined(HAVE_SYS_TIME_H) || defined(_MSC_VER)) && defined(HAVE_SYS_TIMEB_H)
 # include <sys/timeb.h>
 static void gettimeofday(struct timeval* tv, void* timezone);
 # endif
@@ -617,7 +627,8 @@ static char *force_cdrom_device = NULL;
   free(p);                                                                     \
   p = NULL;
 
-#if !defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIME_H) &&                 \
+#if !defined(HAVE_GETTIMEOFDAY) &&                                             \
+    (defined(HAVE_SYS_TIME_H) || defined(_MSC_VER)) &&                         \
     defined(HAVE_SYS_TIMEB_H)
 static void gettimeofday(struct timeval *tv, void *timezone) {
   struct timeb timebuffer;
@@ -1306,7 +1317,7 @@ int main(int argc, char *argv[]) {
       off_t sectorlen;
 
 #if defined(HAVE_GETUID) && (defined(HAVE_SETEUID) || defined(HAVE_SETEGID))
-      int dummy __attribute__((unused));
+      int dummy GNUC_UNUSED;
 #endif
       p = paranoia_init(d);
       paranoia_modeset(p, paranoia_mode);

@@ -70,7 +70,7 @@ put_num(long int num, int f, int bytes)
 /* Write a the header for a WAV file. */
 static void
 write_WAV_header(int fd, int32_t i_bytecount){
-  ssize_t bytes_ret __attribute__((unused));
+  ssize_t bytes_ret GNUC_UNUSED;
   /* quick and dirty */
   bytes_ret = writestr(fd, "RIFF");     /*  0-3 */
   assert(bytes_ret > 0);

@@ -25,13 +25,22 @@
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef _MSC_VER
+#include <io.h> /* write; MSVC has no <unistd.h> */
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
 
 #include "common_interface.h"
 #include "utils.h"
 void
 cderror(cdrom_drive_t *d,const char *s)
 {
-  ssize_t bytes_ret __attribute__((unused));
+  ssize_t bytes_ret GNUC_UNUSED;
   if(s && d){
     switch(d->errordest){
     case CDDA_MESSAGE_PRINTIT:
@@ -52,7 +61,7 @@ cderror(cdrom_drive_t *d,const char *s)
 void
 cdmessage(cdrom_drive_t *d, const char *s)
 {
-  ssize_t bytes_ret __attribute__((unused));
+  ssize_t bytes_ret GNUC_UNUSED;
   if(s && d){
     switch(d->messagedest){
     case CDDA_MESSAGE_PRINTIT:
@@ -87,7 +96,7 @@ idperror(int messagedest,char **messages,const char *f,
     }
 
   if(buffer){
-    ssize_t bytes_ret __attribute__((unused));
+    ssize_t bytes_ret GNUC_UNUSED;
     switch(messagedest){
     case CDDA_MESSAGE_PRINTIT:
       bytes_ret = write(STDERR_FILENO,buffer,strlen(buffer));
@@ -121,7 +130,7 @@ idmessage(int messagedest,char **messages,const char *f,
 {
   char *buffer;
   int malloced=0;
-  ssize_t bytes_ret __attribute__((unused));
+  ssize_t bytes_ret GNUC_UNUSED;
   if(!f)
     buffer=(char *)s;
   else
