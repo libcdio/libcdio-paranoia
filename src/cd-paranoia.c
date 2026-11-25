@@ -75,9 +75,14 @@
 #include <sys/time.h>
 #endif
 #ifdef _MSC_VER
-/* struct timeval, and isatty; MSVC has no <sys/time.h> or <unistd.h>. */
+/* MSVC has no <unistd.h> or <sys/time.h>: isatty is in <io.h>, and
+   struct timeval is only in the Winsock headers, so declare it here for
+   the gettimeofday() below instead of pulling in <winsock2.h>. */
 #include <io.h>
-#include <winsock2.h>
+struct timeval {
+  long tv_sec;
+  long tv_usec;
+};
 #endif
 #ifndef STDERR_FILENO
 #define STDERR_FILENO 2
@@ -89,7 +94,7 @@
 
 #if !defined(HAVE_GETTIMEOFDAY)
 /* MinGW and MSVC use sys/timeb.h to roll their own gettimeofday();
-   struct timeval comes from sys/time.h or, with MSVC, winsock2.h. */
+   struct timeval comes from sys/time.h or, with MSVC, from above. */
 #if (defined(HAVE_SYS_TIME_H) || defined(_MSC_VER)) && defined(HAVE_SYS_TIMEB_H)
 # include <sys/timeb.h>
 static void gettimeofday(struct timeval* tv, void* timezone);
