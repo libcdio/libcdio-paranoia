@@ -1,0 +1,12 @@
+# Autotools input, shell scripts and the files the tests compare byte
+# for byte must keep LF line endings, also in Windows checkouts.
+*.ac            eol=lf
+*.am            eol=lf
+*.m4            eol=lf
+*.sh            eol=lf
+*.sh.in         eol=lf
+*.pl            eol=lf
+*.right         eol=lf
+autogen.sh      eol=lf
+*.bin           binary
+*.BIN           binary
