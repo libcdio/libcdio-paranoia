@@ -38,10 +38,8 @@ while(<STDIN>) {
   # See "y" and "z" (with \'s around the quotes)
   s/[C,L,I,B,F]<(.+?)>/\\"$1\\"/g; 
   chomp;
-  if ( $^O eq "cygwin" ) {
-     s/\
-//
-  }
+  # A Windows checkout may have CRLF line endings, whichever Perl reads it
+  s/\r$//;
   print "\"$_\\n\"\n";
 }
 print ";\n";
