@@ -1329,14 +1329,21 @@ int main(int argc, char *argv[]) {
       dummy = setegid(getgid());
 #endif
 
+      /* argv[optind] is the span and argv[optind+1], if there is one, the
+         output file; with --all-sectors and no span, the output file is
+         argv[optind]. */
+      int outfile_arg = optind + 1;
+      if (all_sectors && !span_set)
+        outfile_arg = optind;
+
       while (cursor <= i_last_lsn) {
         char outfile_name[PATH_MAX];
         if (all_sectors) {
+          /* One pass over the whole range, which already accounts for the
+             offset and for --force-overread. */
           batch_first = cursor;
           batch_track = cdda_disc_firstsector(d);
-          batch_last = cdda_disc_lastsector(d);
-          if (batch_last > i_last_lsn)
-            batch_last = i_last_lsn;
+          batch_last = i_last_lsn;
         } else if (batch) {
           batch_first = cursor;
           batch_track = cdda_sector_gettrack(d, cursor - toc_offset);
@@ -1352,16 +1359,8 @@ int main(int argc, char *argv[]) {
         callbegin = batch_first;
         callend = batch_last;
 
-        if (all_sectors) {
-          /* decrement optind to ignore an empty span so outfile can
-           * still be named correctly */
-          if (!span_set)
-            optind = optind - 1;
-        }
-
-        /* argv[optind] is the span, argv[optind+1] (if exists) is outfile */
-        if (optind + 1 < argc) {
-          if (!strcmp(argv[optind + 1], "-")) {
+        if (outfile_arg < argc) {
+          if (!strcmp(argv[outfile_arg], "-")) {
             out = dup(fileno(stdout));
             if (out == -1) {
               report("Cannot duplicate stdout: %s", strerror(errno));
@@ -1379,7 +1378,7 @@ int main(int argc, char *argv[]) {
           } else {
             char dirname[PATH_MAX];
             char *basename =
-                split_base_dir(argv[optind + 1], dirname, PATH_MAX);
+                split_base_dir(argv[outfile_arg], dirname, PATH_MAX);
 
             if (NULL == basename) {
               report("Output filename too long");
@@ -1388,7 +1387,7 @@ int main(int argc, char *argv[]) {
 
             int res;
             if (batch) {
-              res = snprintf(outfile_name, PATH_MAX, " %strack%02d.%s", dirname,
+              res = snprintf(outfile_name, PATH_MAX, "%strack%02d.%s", dirname,
                              batch_track, basename);
             } else
               res = snprintf(outfile_name, PATH_MAX, "%s%s", dirname, basename);

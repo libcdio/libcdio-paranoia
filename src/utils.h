@@ -29,7 +29,7 @@ static inline char *split_base_dir(char *fullpath, char *path,
   char *post = strrchr(fullpath, '/');
   int pos = (post ? post - fullpath + 1 : 0);
   path[0] = '\0';
-  if (pos > max)
+  if (pos >= max) /* path must hold pos characters and a NUL */
     return NULL;
   if (fullpath[pos] == '/')
     pos++;
