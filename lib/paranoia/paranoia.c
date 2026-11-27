@@ -2421,8 +2421,8 @@ static void verify_skip_case(cdrom_paranoia_t *p,
       gend = min(gend + OVERLAP_ADJ, cend);
 
       if (rv(root) == NULL) {
-        int16_t *buff = malloc(cs(graft));
-        memcpy(buff, cv(graft), cs(graft));
+        int16_t *buff = malloc(cs(graft) * sizeof(int16_t));
+        memcpy(buff, cv(graft), cs(graft) * sizeof(int16_t));
         rc(root) = c_alloc(buff, cb(graft), cs(graft));
       } else {
         c_append(rc(root), cv(graft) + post - cbegin, gend - post);
