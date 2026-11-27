@@ -32,6 +32,10 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef _MSC_VER
+#include <malloc.h> /* MSVC has alloca only as _alloca */
+#define alloca _alloca
+#endif
 
 #include <stdio.h>
 

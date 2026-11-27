@@ -26,13 +26,20 @@
    rely on them.  For that reason, we need to empirically determine
    cache size and strategy used for reads. */
 
+#ifdef _MSC_VER
+/* MSVC has no <unistd.h> or usleep.  <windows.h> goes first: older
+   libcdio headers define an IN() macro that clashes with it. */
+#include <windows.h>
+#define usleep(usec) Sleep((DWORD)((usec) / 1000))
+#else
+#include <unistd.h>
+#endif
 #include <cdio/paranoia/cdda.h>
 #include <cdio/paranoia/paranoia.h>
 #include <cdio/paranoia/version.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 /* Has to come after cdio/paranoia/cdda.h */
 #include "cachetest.h"
 

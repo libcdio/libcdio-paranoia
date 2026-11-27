@@ -56,8 +56,11 @@
 # include <string.h>
 #endif
 
-#ifdef HAVE_FCNTL_H
+#if defined(HAVE_FCNTL_H) || defined(_WIN32)
 #include <fcntl.h>
+#endif
+#ifdef _WIN32
+#include <io.h> /* _setmode */
 #endif
 
 #include "getopt.h"
@@ -71,16 +74,31 @@
 #endif
 
 #include <math.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#ifdef _MSC_VER
+/* MSVC has no <unistd.h> or <sys/time.h>: isatty is in <io.h>, and
+   struct timeval is only in the Winsock headers, so declare it here for
+   the gettimeofday() below instead of pulling in <winsock2.h>. */
+#include <io.h>
+struct timeval {
+  long tv_sec;
+  long tv_usec;
+};
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
 
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
 
 #if !defined(HAVE_GETTIMEOFDAY)
-/* MinGW uses sys/time.h and sys/timeb.h to roll its own gettimeofday() */
-# if defined(HAVE_SYS_TIME_H) && defined(HAVE_SYS_TIMEB_H)
-# include <sys/time.h>
+/* MinGW and MSVC use sys/timeb.h to roll their own gettimeofday();
+   struct timeval comes from sys/time.h or, with MSVC, from above. */
+#if (defined(HAVE_SYS_TIME_H) || defined(_MSC_VER)) && defined(HAVE_SYS_TIMEB_H)
 # include <sys/timeb.h>
 static void gettimeofday(struct timeval* tv, void* timezone);
 # endif
@@ -617,7 +635,8 @@ static char *force_cdrom_device = NULL;
   free(p);                                                                     \
   p = NULL;
 
-#if !defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIME_H) &&                 \
+#if !defined(HAVE_GETTIMEOFDAY) &&                                             \
+    (defined(HAVE_SYS_TIME_H) || defined(_MSC_VER)) &&                         \
     defined(HAVE_SYS_TIMEB_H)
 static void gettimeofday(struct timeval *tv, void *timezone) {
   struct timeb timebuffer;
@@ -1306,7 +1325,7 @@ int main(int argc, char *argv[]) {
       off_t sectorlen;
 
 #if defined(HAVE_GETUID) && (defined(HAVE_SETEUID) || defined(HAVE_SETEGID))
-      int dummy __attribute__((unused));
+      int dummy GNUC_UNUSED;
 #endif
       p = paranoia_init(d);
       paranoia_modeset(p, paranoia_mode);
@@ -1367,6 +1386,11 @@ int main(int argc, char *argv[]) {
               report("Cannot duplicate stdout: %s", strerror(errno));
               exit(1);
             }
+#ifdef _WIN32
+            /* stdout is in text mode on Windows, which would turn every
+               0x0a byte of the audio into 0x0d 0x0a. */
+            _setmode(out, _O_BINARY);
+#endif
             if (batch)
               report("Are you sure you wanted 'batch' "
                      "(-B) output with stdout?");

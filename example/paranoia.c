@@ -45,6 +45,9 @@
 # include <sys/stat.h>
 #endif
 #include <fcntl.h>
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
 
 #include <cdio/paranoia/paranoia.h>
 #include <cdio/cd_types.h>
@@ -70,7 +73,7 @@ put_num(long int num, int f, int bytes)
 /* Write a the header for a WAV file. */
 static void
 write_WAV_header(int fd, int32_t i_bytecount){
-  ssize_t bytes_ret __attribute__((unused));
+  ssize_t bytes_ret GNUC_UNUSED;
   /* quick and dirty */
   bytes_ret = writestr(fd, "RIFF");     /*  0-3 */
   assert(bytes_ret > 0);
@@ -136,7 +139,8 @@ main(int argc, const char *argv[])
       ssize_t bytes_ret;
       track_t i_track    = cdda_sector_gettrack(d, i_first_lsn);
       lsn_t   i_last_lsn = cdda_track_lastsector(d, i_track);
-      int     fd         = creat("track1s.wav", 0644);
+      int fd =
+          open("track1s.wav", O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
       if (-1 == fd) {
         printf("Unable to create track1s.wav\n");
         exit(1);
