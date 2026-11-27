@@ -154,9 +154,12 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
   static int i_jitter=0;
   int jitter_flag;
   long i_sectors_orig = i_sectors;
+  long i_sectors_requested;
   long i_jitter_offset = 0;
 
-  char *p_buf=malloc(CDIO_CD_FRAMESIZE_RAW*(i_sectors+1));
+  /* Zeroed, so that bytes a read does not fill (past the end of an image,
+     say) are silence rather than whatever was in memory. */
+  char *p_buf = calloc(i_sectors + 1, CDIO_CD_FRAMESIZE_RAW);
 
   if (d->i_test_flags & CDDA_TEST_ALWAYS_JITTER)
     jitter_flag = 1;
@@ -213,13 +216,20 @@ jitter_read (cdrom_drive_t *d, void *p, lsn_t begin, long i_sectors,
 
   }
 
+  i_sectors_requested = i_sectors;
   i_sectors = read_blocks(d, p_buf, begin, i_sectors);
 
-  if (i_sectors < 0) return i_sectors;
+  if (i_sectors < 0) {
+    free(p_buf);
+    return i_sectors;
+  }
 
-  if (i_sectors < i_sectors_orig) {
-    /* Had to reduce # of sectors due to read errors. So give full amount,
-       with no jittering. */
+  if (i_sectors < i_sectors_requested) {
+    /* Had to reduce # of sectors due to read errors. So give what we got,
+       with no jittering: shifting by i_jitter_offset would take bytes from
+       past the end of what was read. */
+    if (i_sectors > i_sectors_orig)
+      i_sectors = i_sectors_orig;
     if (p) memcpy(p, p_buf, i_sectors*CDIO_CD_FRAMESIZE_RAW);
   } else {
     /* Got full amount, but now adjust size for jittering. */
